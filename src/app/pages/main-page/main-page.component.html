@@ -1,0 +1,79 @@
+<div class="card">
+   <p-table
+      class="custom-header-table"
+      styleClass="p-datatable-gridlines"
+      [scrollable]="true"
+      scrollHeight="600px"
+      [value]="eventi"
+      selectionMode="single"
+      [(selection)]="selectedEvent"
+      dataKey="id"
+      [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template pTemplate="header">
+         <tr>
+            <th style="width: 65px;">Id</th>
+            <th style="width: 120px;">Data</th>
+            <th style="width: 55px;">Ora</th>
+            <th style="width: 55px;">Fine</th>
+            <th style="width: 65px;">Pal.</th>
+            <th style="width: 120px;">Gruppo</th>
+            <th>Casa</th>
+            <th>Ospite</th>
+            <th style="min-width: 120px !important;">Azioni</th>
+         </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-evento let-rowIndex="rowIndex">
+         <tr [pSelectableRow]="evento"
+             [ngClass]="getRowColorClass(evento)">
+            <td><span style="font-size: 0.6em;">{{ evento.id }}</span></td>
+            <td>{{ FormattaData (evento.data) }}</td>
+            <td><b>{{ FormattaOrario (evento.orainizio) }}</b></td>
+            <td><span style="font-size: 0.7em;">{{ FormattaOrario (evento.orafine) }}</span></td>
+            <td [ngStyle]="ColoreRisorsa(evento.palestra)">{{ evento.palestra }}</td>
+            <td [ngStyle]="ColoreGruppo(evento.gruppo)">{{ evento.gruppo }}</td>
+            <td>{{ evento.casa }}</td>
+            <td>{{ evento.ospite }}</td>
+
+            <td>
+               <p-button
+                  class="p-button-table"
+                  icon="pi pi-pencil"
+                  severity="primary"
+                  pTooltip="Modifica"
+                  tooltipPosition="top"
+                  (click)="onEdit(evento)"
+               ></p-button>
+
+               <p-button
+                  icon="pi pi-trash"
+                  severity="warning"
+                  class="p-button-table"
+                  pTooltip="Elimina"
+                  tooltipPosition="top"
+                  (click)="onDelete(evento)"
+               ></p-button>
+            </td>
+
+         </tr>
+      </ng-template>
+   </p-table>
+</div>
+<div class="card flex justify-content-start">
+   <p-card [style]="{ width: '100vw' }"
+           contentStyleClass="card-contenuto-ridotto">
+      <div class="bottoni-container">
+         <p-button label="Nuovo Evento"
+                   severity="primary"
+                   icon="pi pi-plus"
+                   class="btn-fisso"></p-button>
+         <p-button label="Modifica Evento"
+                   severity="primary"
+                   icon="pi pi-pencil"
+                   class="btn-fisso"></p-button>
+         <p-button label="Elimina Evento"
+                   severity="warning"
+                   icon="pi pi-trash"
+                   class="btn-fisso"></p-button>
+      </div>
+   </p-card>
+</div>

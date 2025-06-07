@@ -1,0 +1,33 @@
+<div [ngClass]="{
+    'dlg-info-title': data.messtype === 'info',
+    'dlg-warning-title': data.messtype === 'warning',
+    'dlg-error-title': data.messtype === 'error'
+}">
+   <h2 class="dialog-title-text" [ngClass]="{
+        'dlg-info-title-text': data.messtype === 'info',
+        'dlg-warning-title-text': data.messtype === 'warning',
+        'dlg-error-title-text': data.messtype === 'error'
+    }">{{ data.title }}</h2>
+</div>
+
+<div class="dialog-content p-dialog-content">
+   <div *ngIf="data.subtitle">
+      <p class="subtitle">{{ data.subtitle }}</p>
+   </div>
+   <p style="white-space: pre-wrap;" [innerHTML]="sanitizedMessage"></p>
+</div>
+
+<div class="p-dialog-footer" style="text-align: end;">
+   <p-button
+      *ngIf="data.showCancelButton"
+      label="{{ data.cancelButtonCaption || 'Annulla' }}"
+      styleClass="p-button-sm p-button-secondary p-button-text"
+      (onClick)="onSecondary()">
+   </p-button>
+
+   <p-button
+      label="{{ data.btncaption || 'OK' }}"
+      styleClass="p-button-sm btn-yes ml-2"
+      (onClick)="onPrimary()">
+   </p-button>
+</div>

@@ -1,0 +1,66 @@
+/* Stili esistenti per il form-group, label, input text, ecc. */
+.main-container {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   margin-top: 50px;
+   gap: 20px;
+}
+
+.form-group {
+   width: 450px;
+   display: grid;
+   grid-template-columns: 120px 1fr;
+   align-items: center;
+   gap: 10px;
+   box-sizing: border-box;
+}
+
+.form-group label {
+   text-align: right;
+   font-weight: bold;
+}
+
+.form-group input[type="text"] {
+   width: 100%;
+   padding: 8px;
+   border: 1px solid #ccc;
+   border-radius: 4px;
+   box-sizing: border-box;
+}
+
+/* --- NUOVE REGOLE PER P-INPUTNUMBER --- */
+
+/* Potrebbe essere la classe che PrimeNG applica all'input interno o al wrapper */
+.form-group .p-inputnumber-input,
+.form-group .p-inputtext { /* Aggiungi .p-inputtext se è la classe usata da PrimeNG */
+   border: 1px solid #ccc !important; /* Forza il bordo come gli altri input */
+   outline: none !important; /* Rimuove l'outline al focus se presente */
+   box-shadow: none !important; /* Rimuove eventuali ombre se presenti */
+   width: 100%; /* Assicura che riempia lo spazio della colonna */
+   padding: 8px; /* Applica lo stesso padding degli altri input */
+   border-radius: 4px; /* Applica lo stesso border-radius */
+   box-sizing: border-box;
+}
+
+/* A volte il bordo è sul contenitore principale del componente inputnumber */
+.form-group .p-inputnumber {
+   border: none !important; /* Rimuove il bordo dal contenitore principale se presente */
+   box-shadow: none !important;
+   width: 100%; /* Fai in modo che il contenitore occupi la sua colonna */
+}
+
+/* Se PrimeNG crea un wrapper specifico per il controllo (es. un div con border) */
+.form-group .p-inputnumber-buttons-stacked .p-inputnumber-input {
+   /* Seleziona specificamente l'input all'interno del layout stackato di PrimeNG */
+   border: 1px solid #ccc !important;
+   outline: none !important;
+   box-shadow: none !important;
+}
+
+/* Potrebbe anche essere una classe che PrimeNG applica per il focus */
+.form-group .p-inputnumber.p-focus .p-inputnumber-input {
+   box-shadow: 0 0 0 0.2rem #a6d9ed !important; /* Esempio di come potresti volerlo se ti piace un focus ring */
+   /* Oppure semplicemente: */
+   /* box-shadow: none !important; */
+}

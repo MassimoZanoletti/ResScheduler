@@ -1,0 +1,76 @@
+/* mess-dialog-primeng.component.css */
+
+/* Stili del contenitore del titolo personalizzato */
+/* Applicato al div che racchiude il tuo h2 */
+.dlg-info-title,
+.dlg-warning-title,
+.dlg-error-title {
+   /* Questi padding daranno spazio attorno al testo del titolo all'interno del tuo div colorato */
+   padding: 0.25rem 1.1rem 0.25rem 1.1rem; /* top right bottom left */
+   /* Abbiamo rimosso: position, top, margin-left, margin-right, margin-top */
+   /* Poiché PrimeNG gestisce il posizionamento del dialogo principale */
+}
+
+.dlg-info-title {
+   background-color: #2e004f; /* Viola scuro */
+   color: white; /* Per il testo del titolo */
+}
+
+.dlg-warning-title {
+   background-color: #ffff91; /* Giallo chiaro */
+   /* Il testo sarà scuro per contrasto con il giallo */
+}
+
+.dlg-error-title {
+   background-color: red;
+   color: white; /* Per il testo del titolo */
+}
+
+/* Stili del testo del titolo (l'h2) */
+.dialog-title-text {
+   font-size: 1.5em;
+   font-weight: bold;
+   color: #ff93cd; /* Colore di default se non sovrascritto */
+}
+
+/* Sovrascrivi il colore del testo per i tipi specifici, assicurandoti che sia leggibile sul background */
+.dlg-info-title .dialog-title-text {
+   color: white; /* Testo bianco su sfondo viola scuro */
+}
+
+.dlg-warning-title .dialog-title-text {
+   color: orange; /* Testo arancione su sfondo giallo chiaro */
+}
+
+.dlg-error-title .dialog-title-text {
+   color: yellow; /* Testo giallo su sfondo rosso */
+}
+
+/* Contenuto del dialogo */
+/* La classe .p-dialog-content è una classe di PrimeNG per l'area del contenuto del dialogo */
+.dialog-content.p-dialog-content {
+   /* Il padding predefinito di PrimeNG è spesso già buono. */
+   /* Potresti volerlo adattare o lasciarlo a default se va bene. */
+   padding: 0.5rem 1.5rem 1rem 1.5rem; /* Adatta il padding al layout di PrimeNG */
+   margin-bottom: 20px; /* Spazio tra contenuto e footer del dialogo */
+}
+
+.subtitle {
+   font-size: 1.2em;
+   font-weight: bold;
+   margin-bottom: 0.5rem;
+}
+
+/* Footer del dialogo */
+/* La classe .p-dialog-footer è una classe di PrimeNG per l'area del footer */
+.p-dialog-footer {
+   text-align: end; /* Allinea il pulsante a destra */
+   padding: 0.75rem 1.5rem 1.25rem 1.5rem; /* Padding del footer */
+}
+
+/* Stile per il pulsante "OK/Close" */
+.btn-yes {
+   background-color: #4CAF50 !important; /* Verde */
+   color: white !important;
+   border-color: #4CAF50 !important; /* Colore del bordo */
+}

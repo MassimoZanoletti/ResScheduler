@@ -1,1 +1,107 @@
-/* You can add global styles to this file, and also import other style files */
+/* src/styles.css */
+
+/* 1. Stili del tema PrimeNG (obbligatorio per il look-and-feel) */
+/* Scegli uno dei temi dal pacchetto @primeng/themes. Esempio: */
+/* Altri esempi:
+@import "@primeng/themes/aura-light-green/theme.css";
+@import "@primeng/themes/nora-light-blue/theme.css";
+*/
+
+/* 2. Stili base di PrimeNG (obbligatorio per la funzionalità e la struttura) */
+/* Questo file è ancora nella cartella "resources" del pacchetto "primeng" */
+/*@import "primeng/resources/primeng.min.css";*/
+
+/* 3. Stili di PrimeIcons (obbligatorio per le icone) */
+/*@import "primeicons/primeicons.css";*/
+
+/* 4. Stili di PrimeFlex (se lo stai usando per il layout CSS) */
+/* Se non usi PrimeFlex, puoi omettere questa riga */
+/*@import "primeflex/primeflex.css";*/
+
+/* 5. Qui sotto puoi aggiungere i tuoi stili CSS personalizzati */
+/* ad esempio:
+body {
+    font-family: Arial, sans-serif;
+}
+*/
+
+
+/* --- Stili per i GRUPPI (voci non cliccabili) --- */
+/* Selezioniamo direttamente la classe 'menu-group-header' che hai aggiunto nel ng-template */
+.p-menu .menu-group-header {
+   font-weight: bold;
+   color: #777;
+   cursor: default;
+   background-color: #f0f0f0;
+   pointer-events: none; /* Rende la voce completamente non cliccabile */
+   padding-bottom: 0.5rem;
+   border-bottom: 1px solid #eee; /* Linea divisoria */
+   /* Mantieni il padding-left standard delle voci PrimeNG per allineamento */
+   padding-left: 1.25rem;
+}
+
+/* Rimuovi l'effetto hover per i gruppi */
+.p-menu .menu-group-header:hover {
+   background-color: #f0f0f0; /* Stesso sfondo anche in hover */
+   color: #777;
+}
+
+/* --- Stili per le VOCI VERE (cliccabili) --- */
+
+/* Applica un padding extra a sinistra per indentare le voci cliccabili */
+/* Selezioniamo i link che sono figli di un sottomenu (.p-submenu-list) */
+.p-menu .p-submenu-list .p-menuitem-link {
+   padding-left: 2.5rem !important; /* Aumenta il padding sinistro. Regola se necessario */
+}
+
+/* Stile base per le voci cliccabili, assicurandoci che non abbiano stili ereditati dai gruppi */
+.p-menu .p-menuitem-link:not(.menu-group-header) { /* Seleziona tutti i link che NON sono un group-header */
+   font-weight: normal;
+   color: var(--text-color, #333); /* Colore normale del testo del tema */
+   background-color: transparent;
+   cursor: pointer;
+}
+
+/* Opzionale: se vuoi un hover più discreto per le voci indentate */
+.p-menu .p-submenu-list .p-menuitem-link:hover {
+   background-color: var(--surface-hover); /* Colore di hover del tema */
+   color: var(--text-color);
+}
+
+
+
+
+
+/* styles.css (o un altro file CSS globale che viene caricato dopo i temi di PrimeNG) */
+
+/* Rimuove il padding predefinito dall'header del dialogo di PrimeNG */
+/* Questo elimina lo spazio vuoto in alto e il "rettangolo enorme" se non si usa il header di PrimeNG */
+.p-dialog .p-dialog-header {
+   padding: 0; /* Azzerato per eliminare lo spazio superiore indesiderato */
+   min-height: 0; /* Assicurati che non ci sia un'altezza minima implicita */
+}
+
+/* Riposiziona il pulsante di chiusura 'X' nell'angolo in alto a destra */
+/* Se il tuo dialogo ha closable: true */
+.p-dialog .p-dialog-header .p-dialog-header-icon {
+   position: absolute; /* Per posizionare liberamente l'icona */
+   top: 0.75rem; /* Distanza dal bordo superiore */
+   right: 0.75rem; /* Distanza dal bordo destro */
+   z-index: 1; /* Assicura che sia sopra il tuo header colorato */
+}
+
+/* Stili per il bordo (o background) del dialogo esterno, basati sul tipo di messaggio */
+/* Queste classi sono impostate nella configurazione di dialogService.open() tramite styleClass */
+/*
+.p-dialog.messagedlg-info {
+   border: 2px solid #2e004f;
+}
+
+.p-dialog.messagedlg-warning {
+   border: 2px solid orange;
+}
+
+.p-dialog.messagedlg-error {
+   border: 2px solid red;
+}
+*/

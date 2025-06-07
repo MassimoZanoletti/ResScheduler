@@ -1,13 +1,149 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import {
+   Component,
+   ViewChild,
+   AfterViewInit,
+   ChangeDetectionStrategy,
+   ChangeDetectorRef
+} from '@angular/core';
+import {
+   RouterOutlet,
+   RouterModule,
+   RouterLink,
+   RouterLinkActive
+} from '@angular/router';
+import {ToolbarModule} from 'primeng/toolbar';
+import {ButtonModule} from 'primeng/button';
+import {AuthService} from './services/auth.service';
+import {
+   CommonModule,
+   NgIf
+} from '@angular/common';
+import {MenuItem} from 'primeng/api';
+import {MenuModule} from 'primeng/menu';
+import {Menu} from 'primeng/menu';
+import { PrimeNGConfig } from 'primeng/api';
 
-@Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
-})
-export class AppComponent {
-  title = 'TestPrimeBG';
+
+
+
+@Component ({
+               selector:        'app-root',
+               standalone:      true,
+               imports:         [
+                  RouterOutlet,
+                  RouterLink,
+                  RouterLinkActive,
+                  ToolbarModule,
+                  ButtonModule,
+                  NgIf,
+                  RouterModule,
+                  MenuModule,
+                  CommonModule
+               ],
+               templateUrl:     './app.component.html',
+               styleUrl:        './app.component.css',
+               changeDetection: ChangeDetectionStrategy.OnPush
+            })
+export class AppComponent implements AfterViewInit
+{
+   title = 'ResSchedulerAuth';
+   mnuTabelle: MenuItem[] | undefined;
+
+   // Rimuovi la dichiarazione diretta tabelleMenuRef!: Menu;
+   // Useremo un setter privato per gestirlo
+
+   constructor (public authService: AuthService,
+                private cdr: ChangeDetectorRef,
+                private primengConfig: PrimeNGConfig)
+   {
+      this.mnuTabelle = [
+         {
+            label: "Normali",
+            items: [
+               {label: "Risorse", icon: 'pi pi-table'},
+               {label: "Gruppi", icon: 'pi pi-table'}
+            ]
+         },
+         {
+            separator: true
+         },
+         {
+            label: "Base",
+            items: [
+               {label: "Stagioni", icon: 'pi pi-table', routerLink: ['/seasonstable'] },
+               {label: "Società", icon: 'pi pi-table', routerLink: ['/societatable'] },
+               {label: "Ruoli", icon:  'pi pi-table'},
+               {label: "Categorie", icon: 'pi pi-table'}
+            ]
+         },
+         {
+            separator: true
+         },
+         {
+            label: "Sistema",
+            items: [
+               {label: "Utenti", icon: 'pi pi-table'},
+               {label: "Log", icon:  'pi pi-table'},
+               {label: "Eventi Master", icon: 'pi pi-table'}
+            ]
+         }
+      ];
+   }
+
+
+   // Definisci una variabile privata per il riferimento al menu
+   private _tabelleMenuInstance!: Menu;
+
+
+   // Usa un setter per @ViewChild per reagire quando il menu diventa disponibile
+   @ViewChild ('tabelleMenu', {static: false})
+   set tabelleMenuRef (menu: Menu)
+   {
+      if (menu)
+      {
+         this._tabelleMenuInstance = menu;
+      }
+   }
+
+
+   ngAfterViewInit (): void
+   {
+      // Questo hook si esegue presto, prima che il menu sia nel DOM.
+      // La logica di gestione del menu iniziale ora è nel setter di tabelleMenuRef.
+
+      this.primengConfig.setTranslation({
+                                           firstDayOfWeek: 1,
+                                           dayNames: ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
+                                           dayNamesShort: ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
+                                           dayNamesMin: ["D", "L", "M", "M", "G", "V", "S"],
+                                           monthNames: [
+                                              "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+                                              "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+                                           ],
+                                           monthNamesShort: [
+                                              "Gen", "Feb", "Mar", "Apr", "Mag", "Giu",
+                                              "Lug", "Ago", "Set", "Ott", "Nov", "Dic"
+                                           ],
+                                           today: 'Oggi',
+                                           clear: 'Pulisci',
+                                           dateFormat: 'dd/mm/yyyy'
+                                        });
+
+   }
+
+
+   logout (): void
+   {
+      this.authService.logout ();
+      window.location.href = '/login';
+   }
+
+
+   // Il metodo toggleTabelleMenu può continuare a usare il riferimento passato dal template
+   TabelleMenuClick (event: MouseEvent, menu: Menu)
+   {
+      // Qui `menu` è il riferimento valido passato dal template
+      menu.toggle (event);
+      this.cdr.detectChanges (); // Forziamo un ciclo di change detection
+   }
 }

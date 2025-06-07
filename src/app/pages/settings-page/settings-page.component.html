@@ -1,0 +1,55 @@
+<div class="main-container">
+
+   <div class="form-group">
+      <label for="inputText">InputText:</label>
+      <input type="text" id="inputText" [(ngModel)]="textValue" pInputText>
+   </div>
+
+   <div class="form-group">
+      <label for="inputNumber">InputNumber:</label>
+      <p-inputNumber
+         [(ngModel)]="numValue"
+         mode="decimal"
+         [showButtons]="true"
+         inputId="inputNumber"/>
+   </div>
+
+   <div class="form-group">
+      <label for="inputText">ColorPicker:</label>
+      <div class="card flex justify-content-center">
+         <p-colorPicker [(ngModel)]="colorValue" format="hex"/>
+         <span style="margin-left: 6px; position: relative; top: 6px;">{{ colorValue }}</span>
+      </div>
+   </div>
+
+   <div class="form-group">
+      <label for="buttondisplay" class="font-bold block mb-2">DateImput</label>
+      <p-calendar
+         [(ngModel)]="dateValue"
+         [showIcon]="true"
+         [showOnFocus]="false"
+         inputId="buttondisplay"/>
+   </div>
+
+   <div class="form-group">
+      <label for="calendar-24" class="font-bold block mb-2">TimeInput</label>
+      <p-calendar
+         inputId="calendar-24h"
+         [(ngModel)]="timeValue"
+         [showTime]="true"
+         [timeOnly]="true"/>
+   </div>
+
+   <div class="form-group">
+      <label for="inputText">ComboText:</label>
+      <div class="font-bold block mb-2">
+         <p-dropdown
+            [style]="{'min-width': '255px'}"
+            [options]="comboList"
+            [(ngModel)]="comboValue"
+            [checkmark]="true"
+            [showClear]="true"/>
+      </div>
+   </div>
+
+</div>
