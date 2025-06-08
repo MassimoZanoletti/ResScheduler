@@ -1,0 +1,36 @@
+<div class="the-container">
+   <p-card header="{{operazione}}Categoria">
+      <ng-template pTemplate="content">
+         <div class="form-group">
+            <label for="nome">Nome:</label>
+            <input type="text"
+                   id="nome"
+                   [(ngModel)]="nome"
+                   pInputText
+                   required
+                   #theError="ngModel"/>
+         </div>
+
+         <div *ngIf="theError.invalid && theError.touched" class="error-message">{{ errorMessage }}</div>
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+         <div class="footer-buttons">
+            <button
+               pButton
+               type="button"
+               label="Annulla"
+               class="p-button-secondary"
+               (click)="Annulla()"
+            ></button>
+            <button
+               pButton
+               type="button"
+               label="OK"
+               class="p-button-primary"
+               (click)="Salva()"
+            ></button>
+         </div>
+      </ng-template>
+   </p-card>
+</div>

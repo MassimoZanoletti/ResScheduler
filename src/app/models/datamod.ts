@@ -7,6 +7,7 @@ export interface User
    nome: string;
    password: string;
    ruolo: string;
+   ruolo_id: number;
 }
 
 

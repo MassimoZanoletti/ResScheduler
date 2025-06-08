@@ -1,0 +1,57 @@
+<div class="the-container">
+   <p-card header="{{operazione}}Utente">
+      <ng-template pTemplate="content">
+         <div class="form-group">
+            <label for="nome">Nome:</label>
+            <input type="text"
+                   id="nome"
+                   [(ngModel)]="nome"
+                   pInputText
+                   required
+                   #theError="ngModel"/>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Password:</label>
+            <input type="text"
+                   id="password"
+                   [(ngModel)]="password"
+                   pInputText
+                   required
+                   #theError="ngModel"/>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Ruolo:</label>
+            <p-dropdown
+               [style]="{'min-width': '255px'}"
+               [options]="listaRuoli"
+               optionLabel="ruolo"
+               [(ngModel)]="currRuolo"
+               [checkmark]="true"
+               [showClear]="false"/>
+         </div>
+
+         <div *ngIf="theError.invalid && theError.touched" class="error-message">{{ errorMessage }}</div>
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+         <div class="footer-buttons">
+            <button
+               pButton
+               type="button"
+               label="Annulla"
+               class="p-button-secondary"
+               (click)="Annulla()"
+            ></button>
+            <button
+               pButton
+               type="button"
+               label="OK"
+               class="p-button-primary"
+               (click)="Salva()"
+            ></button>
+         </div>
+      </ng-template>
+   </p-card>
+</div>

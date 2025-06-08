@@ -1,0 +1,95 @@
+<div class="the-container">
+   <p-card header="{{operazione}}Gruppo">
+      <ng-template pTemplate="content">
+         <div class="form-group">
+            <label for="nome">Nome:</label>
+            <input type="text"
+                   id="nome"
+                   [(ngModel)]="nome"
+                   pInputText
+                   required
+                   #theError="ngModel"/>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Abbreviazione:</label>
+            <input type="text"
+                   id="abbreviazione"
+                   [(ngModel)]="abbreviazione"
+                   pInputText />
+         </div>
+
+         <div class="main-layout-container">
+            <div class="color-pickers-column">
+               <div class="form-group">
+                  <label for="coloreTestoPicker">Colore Testo:</label>
+                  <div class="card flex justify-content-center">
+                     <p-colorPicker id="coloreTestoPicker" [(ngModel)]="coloreTesto" format="hex"></p-colorPicker>
+                     <span style="margin-left: 6px; position: relative; top: 6px;">{{ coloreTesto }}</span>
+                  </div>
+               </div>
+
+               <div class="form-group">
+                  <label for="coloreSfondoPicker">Colore Sfondo:</label>
+                  <div class="card flex justify-content-center">
+                     <p-colorPicker id="coloreSfondoPicker" [(ngModel)]="coloreSfondo" format="hex"></p-colorPicker>
+                     <span style="margin-left: 6px; position: relative; top: 6px;">{{ coloreSfondo }}</span>
+                  </div>
+               </div>
+            </div>
+
+            <div class="preview-column">
+               <label class="preview-label"
+                      [ngStyle]="{'color': coloreTesto, 'background-color': coloreSfondo}">
+                  TEST
+               </label>
+            </div>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Categoria:</label>
+            <p-dropdown
+               [style]="{'min-width': '255px'}"
+               [options]="listaCategorie"
+               optionLabel="nome"
+               [(ngModel)]="currCat"
+               [checkmark]="true"
+               [showClear]="true"
+               [scrollHeight]="'300px'"/>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Società:</label>
+            <p-dropdown
+               [style]="{'min-width': '255px'}"
+               [options]="listaSocieta"
+               optionLabel="nome"
+               [(ngModel)]="currSoc"
+               [checkmark]="true"
+               [showClear]="true"
+               [scrollHeight]="'300px'"/>
+         </div>
+
+         <div *ngIf="theError.invalid && theError.touched" class="error-message">{{ errorMessage }}</div>
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+         <div class="footer-buttons">
+            <button
+               pButton
+               type="button"
+               label="Annulla"
+               class="p-button-secondary"
+               (click)="Annulla()"
+            ></button>
+            <button
+               pButton
+               type="button"
+               label="OK"
+               class="p-button-primary"
+               (click)="Salva()"
+            ></button>
+         </div>
+      </ng-template>
+   </p-card>
+</div>

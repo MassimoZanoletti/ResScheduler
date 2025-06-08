@@ -1,0 +1,82 @@
+
+<div class="card flex justify-content-start">
+   <p-card [style]="{ width: '100%' }"
+           contentStyleClass="card-contenuto-ridotto">
+      <div style="display: flex; align-items: center;">
+         <h2 style="margin-left: 15px; margin-right: 30px; margin-bottom: 0px; margin-top: 0px; padding-bottom: 0px; padding-top: 0px;">Categorie</h2>
+         <p-button
+            class="p-button-table"
+            icon="pi pi-refresh"
+            severity="secondary"
+            pTooltip="Refresh"
+            tooltipPosition="top"
+            (click)="LoadData()"
+         ></p-button>
+         <p-button
+            *ngIf="AddEnabled()"
+            class="p-button-table"
+            icon="pi pi-plus"
+            severity="primary"
+            pTooltip="Aggiungi"
+            tooltipPosition="top"
+            (click)="onAdd()"
+         ></p-button>
+      </div>
+   </p-card>
+</div>
+
+<!--
+<div *ngIf="isLoading" class="card flex justify-content-center">
+   -->
+<p-blockUI [blocked]="isLoading">
+   <p-progressSpinner></p-progressSpinner>
+</p-blockUI>
+
+<div class="card">
+   <p-table
+      class="custom-header-table"
+      styleClass="p-datatable-gridlines"
+      [scrollable]="true"
+      scrollHeight="600px"
+      [value]="tblData"
+      dataKey="id"
+      [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template pTemplate="header">
+         <tr>
+            <th style="width: 65px;">Id</th>
+            <th style="width: 300px;">Nome</th>
+            <th style="min-width: 120px !important;">Azioni</th>
+         </tr>
+      </ng-template>
+      <ng-template pTemplate="body"
+                   let-elemento
+                   let-rowIndex="rowIndex">
+         <tr [ngClass]="getRowColorClass(rowIndex)">
+            <td><span style="font-size: 0.6em;">{{ elemento.id }}</span></td>
+            <td>{{ elemento.nome }}</td>
+            <td>
+               <p-button
+                  *ngIf="EditEnabled(elemento)"
+                  class="p-button-table"
+                  icon="pi pi-pencil"
+                  severity="primary"
+                  pTooltip="Modifica"
+                  tooltipPosition="top"
+                  (click)="onEdit(elemento)"
+               ></p-button>
+
+               <p-button
+                  *ngIf="DeleteEnabled(elemento)"
+                  icon="pi pi-trash"
+                  severity="warning"
+                  class="p-button-table"
+                  pTooltip="Elimina"
+                  tooltipPosition="top"
+                  (click)="onDelete(elemento)"
+               ></p-button>
+            </td>
+
+         </tr>
+      </ng-template>
+   </p-table>
+</div>

@@ -32,7 +32,6 @@ import { PrimeNGConfig } from 'primeng/api';
                imports:         [
                   RouterOutlet,
                   RouterLink,
-                  RouterLinkActive,
                   ToolbarModule,
                   ButtonModule,
                   NgIf,
@@ -60,8 +59,8 @@ export class AppComponent implements AfterViewInit
          {
             label: "Normali",
             items: [
-               {label: "Risorse", icon: 'pi pi-table'},
-               {label: "Gruppi", icon: 'pi pi-table'}
+               {label: "Risorse", icon: 'pi pi-table', routerLink: ['/risorsetable']},
+               {label: "Gruppi", icon: 'pi pi-table', routerLink: ['/gruppitable']}
             ]
          },
          {
@@ -72,8 +71,8 @@ export class AppComponent implements AfterViewInit
             items: [
                {label: "Stagioni", icon: 'pi pi-table', routerLink: ['/seasonstable'] },
                {label: "Società", icon: 'pi pi-table', routerLink: ['/societatable'] },
-               {label: "Ruoli", icon:  'pi pi-table'},
-               {label: "Categorie", icon: 'pi pi-table'}
+               {label: "Ruoli", icon:  'pi pi-table', routerLink: ['/ruolitable'] },
+               {label: "Categorie", icon: 'pi pi-table', routerLink: ['/categorietable'] }
             ]
          },
          {
@@ -82,7 +81,7 @@ export class AppComponent implements AfterViewInit
          {
             label: "Sistema",
             items: [
-               {label: "Utenti", icon: 'pi pi-table'},
+               {label: "Utenti", icon: 'pi pi-table', routerLink: ['/userstable'] },
                {label: "Log", icon:  'pi pi-table'},
                {label: "Eventi Master", icon: 'pi pi-table'}
             ]
