@@ -766,8 +766,10 @@ export class MainPageComponent implements OnInit, OnDestroy
       {
          this.fltrDlgRef = this.fltrDialogService.open(MultiSelectModalComponent, {
             //header: 'Filtro Risorse',
-            width: '25vw', // Larghezza della modale
-            height: '30vw',
+            width: '600px',
+            height: '650px',
+            position: 'topleft',
+            styleClass: 'custom-dlg-class',
             data: {
                options: this.listaRisorse,
                preSelectedOptions: this.fltrRisorsaItems,
@@ -832,8 +834,10 @@ export class MainPageComponent implements OnInit, OnDestroy
       {
          this.fltrDlgRef = this.fltrDialogService.open(MultiSelectModalComponent, {
             //header: 'Filtro Gruppi',
-            width: '25vw', // Larghezza della modale
-            height: '30vw',
+            width: '600px',
+            height: '650px',
+            position: 'topleft',
+            styleClass: 'custom-dlg-class',
             data: {
                options: this.listaGruppi,
                preSelectedOptions: this.fltrGruppoItems,

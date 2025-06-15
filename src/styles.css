@@ -105,3 +105,14 @@ body {
    border: 2px solid red;
 }
 */
+
+
+
+.custom-dlg-class {
+   min-width: 600px !important;
+   min-height: 650px !important;
+   max-width: 600px !important;
+   max-height: 650px !important;
+   width: 600px !important;
+   height: 650px !important;
+}

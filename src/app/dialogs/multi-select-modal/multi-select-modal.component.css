@@ -6,6 +6,8 @@
    padding: 1rem; /* Aggiungi un po' di padding per non far attaccare il contenuto ai bordi */
 }
 
+
+
 .modal-title {
    margin-top: 1rem;
    margin-bottom: 1rem; /* Spazio sotto il titolo */
@@ -29,4 +31,9 @@
    width: 200px !important;
    height: 800px !important;
 
+}
+
+
+.spaziatura {
+   margin-left:  15px !important;
 }

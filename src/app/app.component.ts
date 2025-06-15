@@ -22,6 +22,8 @@ import {MenuItem} from 'primeng/api';
 import {MenuModule} from 'primeng/menu';
 import {Menu} from 'primeng/menu';
 import { PrimeNGConfig } from 'primeng/api';
+import * as currentPackage from "../../package.json";
+
 
 
 
@@ -45,8 +47,14 @@ import { PrimeNGConfig } from 'primeng/api';
             })
 export class AppComponent implements AfterViewInit
 {
+   public pkg: { name: string; version: string; copyrights: string } = currentPackage;
+
    title = 'ResSchedulerAuth';
    mnuTabelle: MenuItem[] | undefined;
+   appVersion: string = "V. ";
+   appTitle: string = "RS";
+   appCopyrights: string = "";
+   separatore: string = "   ::     ";
 
    // Rimuovi la dichiarazione diretta tabelleMenuRef!: Menu;
    // Useremo un setter privato per gestirlo
@@ -87,6 +95,10 @@ export class AppComponent implements AfterViewInit
             ]
          }
       ];
+      //
+      this.appTitle = this.pkg.name;;
+      this.appVersion = `  (v. ${this.pkg.version})   `;
+      this.appCopyrights = `${this.pkg.copyrights}`;
    }
 
 
