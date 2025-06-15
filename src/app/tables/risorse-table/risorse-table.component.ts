@@ -121,13 +121,13 @@ export class RisorseTableComponent implements OnInit
 
    onAdd (): void
    {
-      this.router.navigate ([`/gruppoedit`], {state: {id: 0}});
+      this.router.navigate ([`/risorsaedit`], {state: {id: 0}});
    }
 
 
    onEdit (item: any): void
    {
-      this.router.navigate ([`/gruppoedit`], {state: {id: item.id}});
+      this.router.navigate ([`/risorsaedit`], {state: {id: item.id}});
    }
 
 

@@ -126,3 +126,35 @@
    /*background-color: green !important;*/
 }
 
+
+.header-button-first {
+   margin-left: 20px !important;
+}
+
+
+
+
+/* Usiamo un selettore più specifico per sovrascrivere PrimeNG se necessario */
+/* O semplicemente per applicare solo ai tuoi bottoni */
+.my-tiny-button.p-button {
+   width: 20px !important;       /* Forza la larghezza */
+   height: 20px !important;      /* Forza l'altezza */
+   min-width: 20px !important;   /* Assicura che non vada sotto */
+   min-height: 20px !important;  /* Assicura che non vada sotto */
+   padding: 0 !important;        /* Rimuove tutto il padding */
+   display: flex;                /* Per centrare l'icona */
+   justify-content: center;      /* Centra orizzontalmente */
+   align-items: center;          /* Centra verticalmente */
+}
+
+/* Potrebbe essere necessario regolare anche la dimensione dell'icona se vuoi che riempia meglio */
+.my-tiny-button.p-button .p-button-icon {
+   font-size: 14px !important; /* Adatta la dimensione dell'icona, ad esempio */
+   width: 14px !important;     /* Rimuovi spazio extra se l'icona è troppo grande per 20x20 */
+   height: 14px !important;
+}
+
+/* Se usi p-button-text, potresti voler aggiustare anche il colore se il default non va bene */
+.my-tiny-button.p-button.p-button-text {
+   color: var(--primary-color, #1E88E5) !important; /* Esempio: usa il colore primario del tema */
+}

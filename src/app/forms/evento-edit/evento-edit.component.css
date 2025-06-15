@@ -1,0 +1,120 @@
+.the-container
+{
+   display: flex;
+   justify-content: center;   /* allineamento orizzontale centrato */
+   align-items: start;        /* allineamento verticale in alto */
+   height: 100vh;
+   margin-top: 15px !important;
+
+   mat-card {
+      width: 400px;
+      color: white;
+   }
+
+   mat-form-field {
+      width: 100%;
+      margin-bottom: 8px;
+      margin-top: 8px;
+   }
+
+}
+
+.error-message {
+   color: red;
+   background-color: #ffe378;
+   margin-bottom: 16px;
+   margin-top: 16px;
+   padding: 8px;
+   font-weight: bold;
+}
+
+
+.form-group {
+   display: flex;
+   align-items: center;
+   margin-bottom: 1rem;
+}
+
+.form-group label {
+   width: 120px; /* larghezza fissa per allineamento */
+   margin-right: 1rem;
+   font-weight: bold;
+}
+
+.form-group input,
+.form-group p-calendar {
+   flex: 1;
+}
+
+.footer-buttons {
+   display: flex;
+   justify-content: flex-end;
+   gap: 0.5rem;
+}
+
+
+
+
+
+/* Contenitore principale per il layout a due colonne */
+.main-layout-container {
+   display: flex;
+   align-items: center;
+   /* Aumenta questo valore per più spazio tra la colonna dei picker e la preview */
+   gap: 80px; /* Aumentato da 30px a 60px (o più, sperimenta) */
+   flex-wrap: wrap;
+   margin-bottom: 20px; /* Mantiene la spaziatura sotto il blocco */
+}
+
+/* Colonna dei Color Pickers (a sinistra) */
+.color-pickers-column {
+   display: flex; /* Abilita Flexbox per impilare i picker uno sotto l'altro */
+   flex-direction: column; /* Impila verticalmente i form-group */
+   gap: 15px; /* Spazio tra i due form-group dei color picker */
+}
+
+/* Stili per il .form-group all'interno della colonna dei picker */
+.color-pickers-column .form-group {
+   margin-bottom: 0; /* Rimuovi margini inferiori se PrimeNG li aggiunge, per controllo preciso del gap */
+}
+
+/* Colonna dell'Anteprima Test (a destra) */
+.preview-column {
+   /* Questo div conterrà la label "TEST" */
+   /* La centratura verticale è ereditata da .main-layout-container (align-items: center) */
+}
+
+/* Stili per la label "TEST" stessa */
+.preview-label {
+   padding: 10px 15px;
+   border: 1px solid #ccc;
+   border-radius: 4px;
+   font-size: 1.2em;
+   font-weight: bold;
+   min-width: 80px; /* Larghezza minima per l'anteprima */
+   text-align: center;
+   display: block; /* Rende la label un blocco per centrare il testo */
+   transition: background-color 0.3s, color 0.3s;
+   /* Assicurati che l'altezza di questa label sia approssimativamente centrata
+      rispetto all'altezza combinata dei due color picker.
+      Potresti voler aggiungere padding-top/bottom per allineare meglio
+      o usare display:flex con align-items:center se necessario nel preview-column. */
+}
+
+/* Media Query per la Responsività */
+@media (max-width: 768px) {
+   .main-layout-container {
+      flex-direction: column; /* Impila le due colonne verticalmente su schermi piccoli */
+      align-items: flex-start; /* Allinea a sinistra gli elementi impilati */
+      gap: 15px; /* Riduci il gap */
+   }
+
+   .color-pickers-column,
+   .preview-column {
+      width: 100%; /* Occupano tutta la larghezza disponibile */
+   }
+
+   .preview-label {
+      text-align: center; /* Centra il testo quando l'anteprima è su una riga separata */
+   }
+}

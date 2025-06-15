@@ -25,7 +25,6 @@ import {CardModule} from "primeng/card";
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {BlockUIModule} from 'primeng/blockui';
 import {MessageDialogService} from "../../services/message-dialog.service";
-import {TEvento} from "../../pages/main-page/main-page.component";
 
 
 

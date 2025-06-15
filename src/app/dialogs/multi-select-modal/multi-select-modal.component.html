@@ -1,0 +1,29 @@
+<div class="modal-container">
+   <h3 class="modal-title">{{modalTitle}}</h3>
+
+   <div class="multiselect-wrapper">
+      <p-multiSelect
+         class="combo-class"
+         [options]="options"
+         [(ngModel)]="selectedOptions"
+         optionLabel="nome"
+         display="chip"
+         placeholder="Seleziona le opzioni"
+         [filter]="true"
+         scrollHeight="500px"></p-multiSelect>
+   </div>
+
+   <div class="button-container">
+      <p-button
+         label="Annulla"
+         icon="pi pi-times"
+         styleClass="p-button-secondary p-mr-2"
+         (click)="onCancel()"
+      ></p-button>
+      <p-button
+         label="OK"
+         icon="pi pi-check" styleClass="p-button-primary"
+         (click)="onOk()"
+      ></p-button>
+   </div>
+</div>

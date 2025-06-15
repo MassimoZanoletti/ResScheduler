@@ -1,0 +1,192 @@
+<div class="the-container">
+   <p-card header="{{operazione}}Evento">
+      <ng-template pTemplate="content">
+
+         <div class="form-group horizontal">
+            <label for="datainizio">Giorno:</label>
+            <p-calendar
+               [(ngModel)]="data"
+               [showIcon]="true"
+               [showOnFocus]="false"
+               inputId="data"
+               dateFormat="dd/mm/yy"
+            ></p-calendar>
+         </div>
+
+         <div class="form-group horizontal">
+            <label for="datainizio">Ora:</label>
+            <p-calendar
+               inputId="orainizio"
+               [(ngModel)]="orainizio"
+               [showTime]="true"
+               [timeOnly]="true"/>
+            <button
+               pButton
+               type="button"
+               label="+2h ->"
+               class="p-button-primary"
+               (click)="SetOraFine()"
+               style="margin-left: 15px; margin-right: 15px;"
+            ></button>
+
+            <p-calendar
+               inputId="orafine"
+               [(ngModel)]="orafine"
+               [showTime]="true"
+               [timeOnly]="true"/>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Palestra:</label>
+            <p-dropdown
+               [style]="{'min-width': '255px'}"
+               [options]="listaRisorse"
+               optionLabel="nome"
+               [(ngModel)]="currRisorsa"
+               [checkmark]="true"
+               [showClear]="false"
+               [scrollHeight]="'300px'"/>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Gruppo:</label>
+            <p-dropdown
+               [style]="{'min-width': '255px'}"
+               [options]="listaGruppi"
+               optionLabel="nome"
+               [(ngModel)]="currGruppo"
+               [checkmark]="true"
+               [showClear]="false"
+               [scrollHeight]="'300px'"/>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Casa:</label>
+            <p-inputGroup>
+               <input type="text"
+                      pInputText
+                      placeholder="Casa"
+                      [(ngModel)]="casa"
+                      style="margin-left: 19px;"/>
+               <button type="button"
+                       pButton
+                       icon="pi pi-angle-double-left"
+                       class="p-button-primary"
+                       (click)="OnCasaClick()" ></button>
+            </p-inputGroup>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Ospite:</label>
+            <p-inputGroup>
+               <input type="text"
+                      pInputText
+                      placeholder="Ospite"
+                      [(ngModel)]="ospite"
+                      style="margin-left: 19px;"/>
+               <button type="button"
+                       pButton
+                       icon="pi pi-angle-double-left"
+                       class="p-button-primary"
+                       (click)="OnOspiteClick()" ></button>
+            </p-inputGroup>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Indirizzo:</label>
+            <p-inputGroup>
+               <input type="text"
+                      pInputText
+                      placeholder="Indirizzo"
+                      [(ngModel)]="indirizzo"
+                      style="margin-left: 19px;"/>
+               <button type="button"
+                       pButton
+                       icon="pi pi-angle-double-left"
+                       class="p-button-primary"
+                       (click)="OnIndirizzoClick()" ></button>
+            </p-inputGroup>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Commento:</label>
+            <input type="text"
+                   pInputText
+                   placeholder="Commento"
+                   [(ngModel)]="commento"/>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Arbitraggio:</label>
+            <p-checkbox
+               [(ngModel)]="arbitraggio"
+               [binary]="true"
+               inputId="binary" />
+         </div>
+
+         <!--
+         <div class="main-layout-container">
+            <div class="color-pickers-column">
+               <div class="form-group">
+                  <label for="coloreTestoPicker">Colore Testo:</label>
+                  <div class="card flex justify-content-center">
+                     <p-colorPicker id="coloreTestoPicker" [(ngModel)]="coloreTesto" format="hex"></p-colorPicker>
+                     <span style="margin-left: 6px; position: relative; top: 6px;">{{ coloreTesto }}</span>
+                  </div>
+               </div>
+
+               <div class="form-group">
+                  <label for="coloreSfondoPicker">Colore Sfondo:</label>
+                  <div class="card flex justify-content-center">
+                     <p-colorPicker id="coloreSfondoPicker" [(ngModel)]="coloreSfondo" format="hex"></p-colorPicker>
+                     <span style="margin-left: 6px; position: relative; top: 6px;">{{ coloreSfondo }}</span>
+                  </div>
+               </div>
+            </div>
+
+            <div class="preview-column">
+               <label class="preview-label"
+                      [ngStyle]="{'color': coloreTesto, 'background-color': coloreSfondo}">
+                  TEST
+               </label>
+            </div>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Società:</label>
+            <p-dropdown
+               [style]="{'min-width': '255px'}"
+               [options]="listaSocieta"
+               optionLabel="nome"
+               [(ngModel)]="currSoc"
+               [checkmark]="true"
+               [showClear]="true"
+               [scrollHeight]="'300px'"/>
+         </div>
+         -->
+
+         <!--
+         <div *ngIf="theError.invalid && theError.touched" class="error-message">{{ errorMessage }}</div>
+         -->
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+         <div class="footer-buttons">
+            <button
+               pButton
+               type="button"
+               label="Annulla"
+               class="p-button-secondary"
+               (click)="Annulla()"
+            ></button>
+            <button
+               pButton
+               type="button"
+               label="OK"
+               class="p-button-primary"
+               (click)="Salva()"
+            ></button>
+         </div>
+      </ng-template>
+   </p-card>
+</div>

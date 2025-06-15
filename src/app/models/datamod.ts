@@ -99,6 +99,80 @@ export interface Gruppo
 }
 
 
+export namespace TipoEvento
+{
+   export const EventoVuoto: number = 0;
+   export const EventoNormale: number = 1;
+   export const EventoMaster: number = 2;
+   export const EventoPeriodico: number = 3;
+}
+
+
+export interface EventoDbElement
+{
+   id: number;
+   data: string;
+   orainizio: string;
+   orafine: string;
+   risorsa_id: number;
+   gruppo_id: number;
+   casa: string;
+   ospite: string;
+   luogo: string;
+   commento: string;
+   arbitraggio: number;
+   tipoevento: number;
+   season_id: number;
+   season: string;
+   risorsa: string;
+   risorsatxt: string;
+   risorsabck: string;
+   gruppo: string;
+   gruppotxt: string
+   gruppobck: string;
+}
+
+
+export interface EventoDb
+{
+   ok: boolean;
+   message: string;
+   elements: EventoDbElement[];
+}
+
+
+export interface EventoElement
+{
+   id: number;
+   data: Date;
+   orainizio: Date;
+   orafine: Date;
+   risorsa_id: number;
+   gruppo_id: number;
+   casa: string;
+   ospite: string;
+   luogo: string;
+   commento: string;
+   arbitraggio: boolean;
+   tipoevento: number;
+   risorsa: string;
+   risorsatxt: string;
+   risorsabck: string;
+   gruppo: string;
+   gruppotxt: string
+   gruppobck: string;
+   season_id: number;
+   season: string;
+}
+
+
+export interface Evento
+{
+   ok: boolean;
+   message: string;
+   elements: EventoElement[];
+}
+
 
 export namespace globs
 {

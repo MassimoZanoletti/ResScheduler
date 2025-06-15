@@ -1,39 +1,121 @@
+
+<div class="card flex justify-content-start">
+   <p-card [style]="{ width: '100%' }"
+           contentStyleClass="card-contenuto-ridotto">
+      <div style="display: flex; align-items: center;">
+         <h2 style="margin-left: 15px; margin-right: 30px; margin-bottom: 0px; margin-top: 0px; padding-bottom: 0px; padding-top: 0px;">Eventi</h2>
+
+         <p-button
+            class="p-button-table"
+            icon="pi pi-refresh"
+            severity="secondary"
+            pTooltip="Refresh"
+            tooltipPosition="top"
+            (click)="LoadEvents()"
+         ></p-button>
+
+         <p-divider layout="vertical" />
+
+         <div class="form-group">
+            <label for="cbstagione" style="margin-right: 10px;">Stagione: {{debug}}</label>
+            <p-dropdown
+               id="cbstagione"
+               [style]="{'min-width': '255px'}"
+               [options]="listaStagioni"
+               optionLabel="nome"
+               [(ngModel)]="currSeason"
+               [checkmark]="true"
+               [showClear]="false"
+               [scrollHeight]="'300px'"
+               (onChange)="OnSeasonChange($event)"/>
+         </div>
+
+         <p-button
+            class="p-button-table header-button-first"
+            icon="pi pi-plus-circle"
+            severity="warning"
+            pTooltip="Crea eventi per la stagione selezionata"
+            tooltipPosition="top"
+            (click)="CreaEventiStagione()"
+         ></p-button>
+
+      </div>
+   </p-card>
+</div>
+
+<p-blockUI [blocked]="CheckLoading()">
+   <p-progressSpinner></p-progressSpinner>
+</p-blockUI>
+
+
 <div class="card">
    <p-table
+      #eventsTable
       class="custom-header-table"
       styleClass="p-datatable-gridlines"
       [scrollable]="true"
       scrollHeight="600px"
-      [value]="eventi"
+      [value]="listaEventi"
       selectionMode="single"
-      [(selection)]="selectedEvent"
+      [(selection)]="currEvent"
+      (onRowSelect)="OnRowSelected($event)"
+      (onRowUnselect)="OnRowUnselected($event)"
       dataKey="id"
       [tableStyle]="{ 'min-width': '50rem' }">
       <ng-template pTemplate="header">
          <tr>
             <th style="width: 65px;">Id</th>
-            <th style="width: 120px;">Data</th>
+            <th style="width: 130px;">Data</th>
             <th style="width: 55px;">Ora</th>
             <th style="width: 55px;">Fine</th>
-            <th style="width: 65px;">Pal.</th>
-            <th style="width: 120px;">Gruppo</th>
+            <th style="width: 65px;">Pal.
+               <button pButton
+                       type="button"
+                       icon="pi pi-filter"
+                       class="p-button-icon-only my-tiny-button"
+                       [ngClass]="{ 'p-button-success': fltrRisorsa, 'p-button-secondary': !fltrRisorsa }"
+                       (click)="OnFilterRisorsa()"></button>
+            </th>
+            <th style="width: 100px;">Gruppo
+               <button pButton
+                       type="button"
+                       icon="pi pi-filter"
+                       class="p-button-icon-only my-tiny-button"
+                       [ngClass]="{ 'p-button-success': fltrGruppo, 'p-button-secondary': !fltrGruppo }"
+                       (click)="OnFilterGruppo()"></button>
+            </th>
             <th>Casa</th>
             <th>Ospite</th>
+            <th>Luogo</th>
+            <th>Commento</th>
+            <th>Arb.</th>
+
+            <!--
             <th style="min-width: 120px !important;">Azioni</th>
+            -->
          </tr>
       </ng-template>
       <ng-template pTemplate="body" let-evento let-rowIndex="rowIndex">
          <tr [pSelectableRow]="evento"
-             [ngClass]="getRowColorClass(evento)">
+             [ngClass]="GetRowColorClass(evento)">
             <td><span style="font-size: 0.6em;">{{ evento.id }}</span></td>
             <td>{{ FormattaData (evento.data) }}</td>
             <td><b>{{ FormattaOrario (evento.orainizio) }}</b></td>
             <td><span style="font-size: 0.7em;">{{ FormattaOrario (evento.orafine) }}</span></td>
-            <td [ngStyle]="ColoreRisorsa(evento.palestra)">{{ evento.palestra }}</td>
-            <td [ngStyle]="ColoreGruppo(evento.gruppo)">{{ evento.gruppo }}</td>
+            <td [ngStyle]="ColoreRisorsa(evento)">{{ evento.risorsa }}</td>
+            <td [ngStyle]="ColoreGruppo(evento)">{{ evento.gruppo }}</td>
             <td>{{ evento.casa }}</td>
             <td>{{ evento.ospite }}</td>
+            <td>{{ evento.luogo }}</td>
+            <td>{{ evento.commento }}</td>
+            <td>
+               <p-checkbox
+                  [binary]="true"
+                  [ngModel]="evento.arbitraggio" [disabled]="true">
+               </p-checkbox>
+            </td>
 
+            <!--
             <td>
                <p-button
                   class="p-button-table"
@@ -41,7 +123,7 @@
                   severity="primary"
                   pTooltip="Modifica"
                   tooltipPosition="top"
-                  (click)="onEdit(evento)"
+                  (click)="OnEdit(evento)"
                ></p-button>
 
                <p-button
@@ -50,9 +132,10 @@
                   class="p-button-table"
                   pTooltip="Elimina"
                   tooltipPosition="top"
-                  (click)="onDelete(evento)"
+                  (click)="OnDelete(evento)"
                ></p-button>
             </td>
+            -->
 
          </tr>
       </ng-template>
@@ -63,17 +146,23 @@
            contentStyleClass="card-contenuto-ridotto">
       <div class="bottoni-container">
          <p-button label="Nuovo Evento"
+                   *ngIf="AddEnabled()"
                    severity="primary"
                    icon="pi pi-plus"
-                   class="btn-fisso"></p-button>
+                   class="btn-fisso"
+                   (click)="OnAdd()"></p-button>
          <p-button label="Modifica Evento"
+                   *ngIf="EditEnabled()"
                    severity="primary"
                    icon="pi pi-pencil"
-                   class="btn-fisso"></p-button>
+                   class="btn-fisso"
+                   (click)="OnEdit()"></p-button>
          <p-button label="Elimina Evento"
+                   *ngIf="DeleteEnabled()"
                    severity="warning"
                    icon="pi pi-trash"
-                   class="btn-fisso"></p-button>
+                   class="btn-fisso"
+                   (click)="OnDelete()"></p-button>
       </div>
    </p-card>
 </div>

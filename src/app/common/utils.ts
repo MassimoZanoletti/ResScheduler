@@ -369,7 +369,132 @@ export class utils
    }
 
 
+   /*
+      Esempi
+         SaveToLocalStorage ("nome", "Massimo");
+         SaveToLocalStorage ("eta", 58);
+         SaveToLocalStorage ("dati", variabileComplessa);  dove variabileComplessa è di tipo variabileComplessa: MioTipoComplesso;
+   */
+   static SaveToLocalStorage<T>(key: string,
+                                value: T)
+   {
+      try
+      {
+         const serializedValue = JSON.stringify(value);
+         localStorage.setItem(key, serializedValue);
+         //console.log(`Valore salvato con successo nella localStorage per la chiave: ${key}`);
+      }
+      catch (error)
+      {
+         //console.error(`Errore durante il salvataggio nella localStorage per la chiave "${key}":`, error);
+      }
+   }
 
+
+   /*
+      Esempi
+         const nome: string = GetToLocalStorage<string> ("nome");
+         const eta: number = GetToLocalStorage<number> ("eta");
+         const varCompl: MioTipoComplesso = GetToLocalStorage<MioTipoComplesso> ("dati");
+   */
+   static GetFromLocalStorage<T>(key: string): T | null
+   {
+      try
+      {
+         const serializedValue = localStorage.getItem(key);
+         if (serializedValue === null)
+         {
+            //console.log(`Nessun valore trovato nella localStorage per la chiave: ${key}`);
+            return null;
+         }
+         const value: T = JSON.parse(serializedValue);
+         //console.log(`Valore letto con successo dalla localStorage per la chiave "${key}":`, value);
+         return value;
+      }
+      catch (error)
+      {
+         //console.error(`Errore durante la lettura o il parsing dalla localStorage per la chiave "${key}":`, error);
+         return null;
+      }
+   }
+
+
+   static removeFromLocalStorage(key: string): void
+   {
+      try
+      {
+         localStorage.removeItem(key);
+         //console.log(`Valore rimosso con successo dalla localStorage per la chiave: ${key}`);
+      }
+      catch (error)
+      {
+         //console.error(`Errore durante la rimozione dalla localStorage per la chiave "${key}":`, error);
+      }
+   }
+
+
+   /*
+      Esempi
+         SaveToSessionStorage ("nome", "Massimo");
+         SaveToSessionStorage ("eta", 58);
+         SaveToSessionStorage ("dati", variabileComplessa);  dove variabileComplessa è di tipo variabileComplessa: MioTipoComplesso;
+   */
+   static SaveToSessionStorage<T>(key: string,
+                                value: T)
+   {
+      try
+      {
+         const serializedValue = JSON.stringify(value);
+         sessionStorage.setItem(key, serializedValue);
+         //console.log(`Valore salvato con successo nella sessionStorage per la chiave: ${key}`);
+      }
+      catch (error)
+      {
+         //console.error(`Errore durante il salvataggio nella sessionStorage per la chiave "${key}":`, error);
+      }
+   }
+
+
+   /*
+      Esempi
+         const nome: string = GetToSessionStorage<string> ("nome");
+         const eta: number = GetToSessionStorage<number> ("eta");
+         const varCompl: MioTipoComplesso = GetToSessionStorage<MioTipoComplesso> ("dati");
+   */
+   static GetFromSessionStorage<T>(key: string): T | null
+   {
+      try
+      {
+         const serializedValue = sessionStorage.getItem(key);
+         if (serializedValue === null)
+         {
+            //console.log(`Nessun valore trovato nella sessionStorage per la chiave: ${key}`);
+            return null;
+         }
+         const value: T = JSON.parse(serializedValue);
+         //console.log(`Valore letto con successo dalla sessionStorage per la chiave "${key}":`, value);
+         return value;
+      }
+      catch (error)
+      {
+         //console.error(`Errore durante la lettura o il parsing dalla sessionStorage per la chiave "${key}":`, error);
+         return null;
+      }
+   }
+
+
+   static removeFromSessionStorage(key: string): void
+   {
+      try
+      {
+         sessionStorage.removeItem(key);
+         //console.log(`Valore rimosso con successo dalla sessionStorage per la chiave: ${key}`);
+      }
+      catch (error)
+      {
+         //console.error(`Errore durante la rimozione dalla sessionStorage per la chiave "${key}":`, error);
+      }
+   }
 
 
 }// class utils

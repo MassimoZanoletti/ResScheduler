@@ -1,0 +1,32 @@
+/* multiselect-modal/multiselect-modal.component.css */
+.modal-container {
+   display: flex;
+   flex-direction: column; /* Gli elementi si allineano in colonna */
+   height: 100%; /* Occupa tutta l'altezza disponibile nella dialog */
+   padding: 1rem; /* Aggiungi un po' di padding per non far attaccare il contenuto ai bordi */
+}
+
+.modal-title {
+   margin-top: 1rem;
+   margin-bottom: 1rem; /* Spazio sotto il titolo */
+}
+
+.multiselect-wrapper {
+   flex-grow: 1; /* Il wrapper del multiselect occupa tutto lo spazio disponibile */
+   overflow-y: auto; /* Se le opzioni sono tante, permette lo scroll solo qui */
+   margin-bottom: 1rem; /* Spazio tra il multiselect e i bottoni */
+}
+
+.button-container {
+   display: flex;
+   justify-content: flex-end; /* Allinea i bottoni a destra */
+   align-items: flex-end; /* Assicura che siano allineati in basso se il container ha spazio */
+   margin-top: auto; /* Spinge il contenitore dei bottoni verso il basso */
+}
+
+.combo-class {
+   min-width: 200px !important;
+   width: 200px !important;
+   height: 800px !important;
+
+}
