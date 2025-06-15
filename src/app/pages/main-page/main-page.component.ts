@@ -438,53 +438,7 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                                                  if (result === 'secondary')
                                                                                  {
                                                                                     this.DeleteSelected();
-                                                                                    /*
-                                                                                    this.theDataService.DeleteData (item.id).subscribe (data =>
-                                                                                                                                        {
-                                                                                                                                           if (data)
-                                                                                                                                           {
-                                                                                                                                              if (data.ok)
-                                                                                                                                              {
-                                                                                                                                                 this.LoadData ();
-                                                                                                                                              }
-                                                                                                                                              else
-                                                                                                                                              {
-                                                                                                                                                 const dlgData: MessDlgData = {
-                                                                                                                                                    title:      'ERRORE',
-                                                                                                                                                    subtitle:   'Errore durante la cancellazione del dato',
-                                                                                                                                                    message:    `${data.message}`,
-                                                                                                                                                    messtype:   'error',
-                                                                                                                                                    btncaption: 'Chiudi'
-                                                                                                                                                 };
-                                                                                                                                                 this.messageDialogService.showMessage (dlgData, '600px');
-                                                                                                                                              }
-                                                                                                                                           }
-                                                                                                                                           else
-                                                                                                                                           {
-                                                                                                                                              const dlgData: MessDlgData = {
-                                                                                                                                                 title:      'ERRORE',
-                                                                                                                                                 subtitle:   'Errore durante la cancellazione del dato',
-                                                                                                                                                 message:    `Nessun dato ritornato`,
-                                                                                                                                                 messtype:   'error',
-                                                                                                                                                 btncaption: 'Chiudi'
-                                                                                                                                              };
-                                                                                                                                              this.messageDialogService.showMessage (dlgData, '600px');
-                                                                                                                                           }
-                                                                                                                                           this.isLoading = false;
-                                                                                                                                        })
-                                                                                    */
                                                                                  }
-                                                                                 /*
-                                                                                 else if (result === 'primary')
-                                                                                 {
-                                                                                    console.log ('L\'utente ha premuto "No, annulla"');
-                                                                                    // Annulla l'azione
-                                                                                 }
-                                                                                 else
-                                                                                 {
-                                                                                    console.log ('Il dialogo è stato chiuso (es. con X o ESC) o non è stato selezionato un bottone specifico:', result);
-                                                                                 }
-                                                                                 */
                                                                               });
       }
    }
@@ -593,7 +547,7 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                                                                                     "",
                                                                                                                     "",
                                                                                                                     false,
-                                                                                                                    1,
+                                                                                                                    TipoEvento.EventoVuoto,
                                                                                                                     this.currSeason.id).subscribe(data => {
                                                                                                                         goOn = true;
                                                                                           });
