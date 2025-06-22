@@ -16,6 +16,18 @@ export let loggedUser: User = {
 }
 
 
+export function InitLoggedUser()
+{
+   loggedUser = {
+      id: 0,
+      nome: "",
+      password: "",
+      ruolo_id: 0,
+      ruolo: "",
+      attributo: 0
+   };
+}
+
 @Injectable({
                providedIn: 'root'
             })

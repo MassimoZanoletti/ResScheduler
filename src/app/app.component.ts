@@ -24,7 +24,8 @@ import {MenuModule} from 'primeng/menu';
 import {Menu} from 'primeng/menu';
 import { PrimeNGConfig } from 'primeng/api';
 import * as currentPackage from "../../package.json";
-import { loggedUser } from "./services/users.service";
+import {InitLoggedUser, loggedUser} from "./services/users.service";
+import {utils} from "./common/utils";
 
 
 
@@ -149,6 +150,9 @@ export class AppComponent implements AfterViewInit, OnInit
 
    logout (): void
    {
+      utils.removeFromSessionStorage ("RS_Logged_User");
+      InitLoggedUser();
+      this.cdr.detectChanges (); // Forziamo un ciclo di change detection
       this.authService.logout ();
       window.location.href = '/login';
    }

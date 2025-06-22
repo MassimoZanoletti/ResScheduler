@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
-import { UserService,
-         loggedUser } from "./users.service";
+import {
+   UserService,
+   loggedUser, InitLoggedUser
+} from "./users.service";
 import {MessDlgData, User} from "../models/datamod";
 import {firstValueFrom} from "rxjs";
 import {utils} from "../common/utils";
+import * as util from "node:util";
 
 
 
@@ -16,12 +19,27 @@ export class AuthService
 
    constructor (private userServ: UserService)
    {
-
+      const lu = utils.GetFromSessionStorage<User>("RS_Logged_User");
+      if (lu)
+      {
+         loggedUser.id = lu?.id,
+         loggedUser.nome = lu?.nome,
+         loggedUser.password = lu.password,
+         loggedUser.ruolo_id = lu.ruolo_id,
+         loggedUser.ruolo = lu.ruolo,
+         loggedUser.attributo = lu.attributo
+      }
+      else
+         InitLoggedUser()
+      if (loggedUser.ruolo != "")
+      {
+         this.loggedIn = true;
+      }
    }
 
 
    async login (username: string,
-          password: string): Promise<boolean>
+                password: string): Promise<boolean>
    {
       let oggi: Date = new Date();
       let superUserName: string = `rs`;
@@ -36,6 +54,7 @@ export class AuthService
          loggedUser.ruolo_id = 0;
          loggedUser.attributo = 0;
          this.loggedIn = true;
+         utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
          return true;
       }
       else if ((username == superUserName) && (password == superUserPassword))
@@ -47,6 +66,7 @@ export class AuthService
          loggedUser.ruolo_id = 99999;
          loggedUser.attributo = 255;
          this.loggedIn = true;
+         utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
          return true;
       }
       else
@@ -63,6 +83,7 @@ export class AuthService
                loggedUser.ruolo_id = dataEvnt.elements.ruolo_id;
                loggedUser.attributo = dataEvnt.elements.attributo;
                this.loggedIn = true;
+               utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
                return true;
             }
             else
@@ -94,12 +115,14 @@ export class AuthService
          }
       }
       this.loggedIn = false;
+      utils.removeFromSessionStorage("RS_Logged_User");
       return false;
    }
 
 
    logout (): void
    {
+      InitLoggedUser();
       this.loggedIn = false;
    }
 
