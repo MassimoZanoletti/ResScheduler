@@ -21,6 +21,7 @@ import {SocietaService} from "../../services/societa.service";
 import {RisorseService} from "../../services/risorse.service";
 import {Router} from "@angular/router";
 import {MessageDialogService} from "../../services/message-dialog.service";
+import { loggedUser } from "../../services/users.service";
 
 @Component({
   selector:    'app-risorse-table',
@@ -103,19 +104,19 @@ export class RisorseTableComponent implements OnInit
 
    AddEnabled (): boolean
    {
-      return true;
+      return (loggedUser.attributo > 0);
    }
 
 
    EditEnabled (row: any): boolean
    {
-      return true;
+      return (loggedUser.attributo > 0);
    }
 
 
    DeleteEnabled (row: any): boolean
    {
-      return true;
+      return (loggedUser.attributo > 1);
    }
 
 

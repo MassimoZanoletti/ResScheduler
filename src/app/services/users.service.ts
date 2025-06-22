@@ -4,6 +4,18 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { User } from '../models/datamod';
 
+
+
+export let loggedUser: User = {
+   id: 0,
+   nome: "",
+   password: "",
+   ruolo: "",
+   ruolo_id: 0,
+   attributo: 0
+}
+
+
 @Injectable({
                providedIn: 'root'
             })
@@ -57,6 +69,15 @@ export class UserService
    {
       const operation: string = "delete";
       const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}`;
+      return this.http.get<any>(url);
+   }
+
+
+   CheckUser (aName: string,
+              aPassword: string): Observable<any>
+   {
+      const operation: string = "check";
+      const url: string = `${this.apiUrl}?operation=${operation}&nome=${aName}&password=${aPassword}`;
       return this.http.get<any>(url);
    }
 

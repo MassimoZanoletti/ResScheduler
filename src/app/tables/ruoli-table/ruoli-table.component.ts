@@ -19,6 +19,7 @@ import {MessDlgData,
 import {RuoliService} from "../../services/ruoli.service";
 import {Router} from "@angular/router";
 import {MessageDialogService} from "../../services/message-dialog.service";
+import { loggedUser } from "../../services/users.service";
 
 
 @Component({
@@ -102,19 +103,19 @@ export class RuoliTableComponent implements OnInit
 
    AddEnabled (): boolean
    {
-      return true;
+      return (loggedUser.attributo > 0);
    }
 
 
    EditEnabled (row: any): boolean
    {
-      return true;
+      return (loggedUser.attributo > 0);
    }
 
 
    DeleteEnabled (row: any): boolean
    {
-      return true;
+      return (loggedUser.attributo > 1);
    }
 
 

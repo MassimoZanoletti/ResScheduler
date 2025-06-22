@@ -19,6 +19,7 @@ import {MessDlgData,
 import {UserService} from "../../services/users.service";
 import {Router} from "@angular/router";
 import {MessageDialogService} from "../../services/message-dialog.service";
+import { loggedUser } from "../../services/users.service";
 
 
 
@@ -103,19 +104,19 @@ export class UsersTableComponent implements OnInit
 
    AddEnabled (): boolean
    {
-      return true;
+      return (loggedUser.attributo == 255);
    }
 
 
    EditEnabled (row: any): boolean
    {
-      return true;
+      return (loggedUser.attributo > 0);
    }
 
 
    DeleteEnabled (row: any): boolean
    {
-      return true;
+      return (loggedUser.attributo == 255);
    }
 
 

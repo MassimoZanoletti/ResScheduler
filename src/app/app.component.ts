@@ -1,6 +1,7 @@
 import {
    Component,
    ViewChild,
+   OnInit,
    AfterViewInit,
    ChangeDetectionStrategy,
    ChangeDetectorRef
@@ -23,8 +24,7 @@ import {MenuModule} from 'primeng/menu';
 import {Menu} from 'primeng/menu';
 import { PrimeNGConfig } from 'primeng/api';
 import * as currentPackage from "../../package.json";
-
-
+import { loggedUser } from "./services/users.service";
 
 
 
@@ -45,7 +45,7 @@ import * as currentPackage from "../../package.json";
                styleUrl:        './app.component.css',
                changeDetection: ChangeDetectionStrategy.OnPush
             })
-export class AppComponent implements AfterViewInit
+export class AppComponent implements AfterViewInit, OnInit
 {
    public pkg: { name: string; version: string; copyrights: string } = currentPackage;
 
@@ -117,11 +117,15 @@ export class AppComponent implements AfterViewInit
    }
 
 
+   ngOnInit ()
+   {
+   }
+
+
    ngAfterViewInit (): void
    {
       // Questo hook si esegue presto, prima che il menu sia nel DOM.
       // La logica di gestione del menu iniziale ora è nel setter di tabelleMenuRef.
-
       this.primengConfig.setTranslation({
                                            firstDayOfWeek: 1,
                                            dayNames: ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
@@ -157,4 +161,7 @@ export class AppComponent implements AfterViewInit
       menu.toggle (event);
       this.cdr.detectChanges (); // Forziamo un ciclo di change detection
    }
+
+
+   protected readonly loggedUser = loggedUser;
 }

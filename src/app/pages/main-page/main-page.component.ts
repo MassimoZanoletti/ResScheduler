@@ -41,6 +41,7 @@ import {
 import { MessageService } from 'primeng/api';
 import { MultiSelectModalComponent } from "../../dialogs/multi-select-modal/multi-select-modal.component";
 import {GruppiService} from "../../services/gruppi.service";
+import { loggedUser } from "../../services/users.service";
 
 
 
@@ -85,6 +86,7 @@ export class MainPageComponent implements OnInit, OnDestroy
    fltrGruppo: boolean = false;
    fltrGruppoItems: Array<Gruppo> | null = null;
    fltrDlgRef: DynamicDialogRef | undefined;
+   totRec: number = 0;
    @ViewChild('eventsTable') pTable: Table | undefined;
 
 
@@ -126,8 +128,8 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
       finally
       {
-         this.isLoadingSea = false;
-         this.isLoadingEv = false;
+         //this.isLoadingSea = false;
+         //this.isLoadingEv = false;
       }
    }
 
@@ -173,6 +175,7 @@ export class MainPageComponent implements OnInit, OnDestroy
       try
       {
          this.isLoadingEv = true;
+         this.totRec = 0;
          let seasonId: number | null = (this.currSeason != null)?this.currSeason.id:null;
          let tipoEvnt: number | null = 1;
          let risorsaId: Array<number> | null = null;
@@ -196,7 +199,7 @@ export class MainPageComponent implements OnInit, OnDestroy
             if (dataEvnt.ok)
             {
                this.listaEventi = dataEvnt.elements;
-               this.cdr.detectChanges ();
+               this.totRec = this.listaEventi.length;
                const prevSelected = utils.GetFromSessionStorage("RS_Editing_Event_Id");
                utils.removeFromSessionStorage("RS_Editing_Event_Id");
                if (prevSelected != null)
@@ -230,11 +233,19 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
       catch (err)
       {
-
+         const dlgData: MessDlgData = {
+            title:      'Exception',
+            subtitle:   'Errore',
+            message:    `${JSON.stringify(err,null,3)}`,
+            messtype:   'error',
+            btncaption: 'Chiudi'
+         };
+         this.messageDialogService.showMessage (dlgData, '600px');
       }
       finally
       {
          this.isLoadingEv = false;
+         this.cdr.detectChanges ();
       }
    }
 
@@ -253,19 +264,19 @@ export class MainPageComponent implements OnInit, OnDestroy
 
    AddEnabled (): boolean
    {
-      return true;
+      return (loggedUser.attributo > 0);
    }
 
 
    EditEnabled (): boolean
    {
-      return true;
+      return (loggedUser.attributo > 0);
    }
 
 
    DeleteEnabled (): boolean
    {
-      return true;
+      return (loggedUser.attributo > 1);
    }
 
 
@@ -459,42 +470,70 @@ export class MainPageComponent implements OnInit, OnDestroy
 
    FormattaData (data: Date | string): string
    {
-      const d = new Date (data);
+      try
+      {
+         const d = new Date (data);
 
-      return new Intl.DateTimeFormat ('it-IT', {
-         weekday: 'short',
-         day:     '2-digit',
-         month:   'short'
-      }).format (d);
+         return new Intl.DateTimeFormat ('it-IT', {
+            weekday: 'short',
+            day:     '2-digit',
+            month:   'short'
+         }).format (d);
+      }
+      catch (e)
+      {
+         return "DATE ERROR";
+      }
    }
 
 
    FormattaOrario (date: Date): string
    {
-      const hours = date.getHours ().toString ().padStart (2, '0');
-      const minutes = date.getMinutes ().toString ().padStart (2, '0');
-      if ((hours == "00") && (minutes == "00"))
-         return "";
-      else
-         return `${hours}:${minutes}`;
+      try
+      {
+         const hours = date.getHours ().toString ().padStart (2, '0');
+         const minutes = date.getMinutes ().toString ().padStart (2, '0');
+         if ((hours == "00") && (minutes == "00"))
+            return "";
+         else
+            return `${hours}:${minutes}`;
+      }
+      catch (e)
+      {
+         return "TIME ERROR";
+      }
    }
 
 
    ColoreRisorsa (evento: EventoElement): any
    {
-      if ((evento) && (evento.risorsatxt != "") && (evento.risorsabck != ""))
-         return {'background-color': `${evento.risorsabck}`, 'color': `${evento.risorsatxt}`};
-      else
+      try
+      {
+         if ((evento) && (evento.risorsatxt != "") && (evento.risorsabck != ""))
+            return {'background-color': `${evento.risorsabck}`, 'color': `${evento.risorsatxt}`};
+         else
+            return {};
+      }
+      catch (e)
+      {
          return {};
+      }
    }
 
 
    ColoreGruppo (evento: EventoElement): any
    {
-      if ((evento) && (evento.gruppotxt != "") && (evento.gruppobck != ""))
-         return {'background-color': `${evento.gruppobck}`, 'color': `${evento.gruppotxt}`};
-      else
+      try
+      {
+         if ((evento) && (evento.gruppotxt != "") && (evento.gruppobck != ""))
+            return {'background-color': `${evento.gruppobck}`, 'color': `${evento.gruppotxt}`};
+         else
+            return {};
+      }
+      catch (e)
+      {
          return {};
+      }
    }
 
 

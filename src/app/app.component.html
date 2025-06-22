@@ -33,6 +33,7 @@
    </div>
    <ng-container *ngIf="authService.isAuthenticated()">
       <div class="p-toolbar-group-right">
+         <p style="margin-right: 15px;">Utente: {{loggedUser.nome}} ({{loggedUser.ruolo}}) </p>
          <button pButton
                  label="Logout"
                  icon="pi pi-sign-out"

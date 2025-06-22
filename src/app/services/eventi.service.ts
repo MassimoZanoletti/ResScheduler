@@ -1,7 +1,7 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { EventoDb,
    EventoDbElement } from "../models/datamod";
 import {map, tap} from "rxjs/operators";
@@ -67,6 +67,7 @@ export class EventiService
       if (data != null)
          qryData = `&data=${this.FormattaData(data)}`;
       const url: string = `${this.apiUrl}?operation=${operation}`+ qryStagione + qryEvento + qryRisorsa + qryGruppo + qryData;
+      /*
       return this.http.get<EventoDb>(url).pipe (
          tap (value => { }),
          map ((dataFromDb) => {
@@ -75,19 +76,22 @@ export class EventiService
                      message:    dataFromDb.message,
                      elements:   dataFromDb.elements.map (element => {
                         const elm: EventoDbElement = (element as EventoDbElement);
-                        const arb: boolean = Boolean (((String (elm.arbitraggio)) != "1") ? false : true);
+                        //const arb: boolean = Boolean (((String (elm.arbitraggio)) != "1") ? false : true);
+                        //const dt: Date = new Date (elm.data);
+                        //const oi: Date = this.DbTimeToTime (elm.data, elm.orainizio);
+                        //const ofi: Date = this.DbTimeToTime (elm.data, elm.orafine);
                         return {
                                  id:            elm.id,
-                                 data:          new Date (elm.data),
-                                 orainizio:     this.DbTimeToTime (elm.data, elm.orainizio),
-                                 orafine:       this.DbTimeToTime (elm.data, elm.orafine),
+                                 //data:          dt,
+                                 //orainizio:     oi,
+                                 //orafine:       ofi,
                                  risorsa_id:    elm.risorsa_id,
                                  gruppo_id:     elm.gruppo_id,
                                  casa:          elm.casa,
                                  ospite:        elm.ospite,
                                  luogo:         elm.luogo,
                                  commento:      elm.commento,
-                                 arbitraggio:   arb,
+                                 //arbitraggio:   arb,
                                  tipoevento:    elm.tipoevento,
                                  season_id:     elm.season_id,
                                  risorsa:       elm.risorsa,
@@ -102,6 +106,75 @@ export class EventiService
               }
          })
       );
+      */
+      let rrr = this.http.get<EventoDb>(url).pipe (
+         tap (value => { }),
+         map ((dataFromDb) => {
+            return {
+               ok:         dataFromDb.ok,
+               message:    dataFromDb.message,
+               elements:   dataFromDb.elements.map (element => {
+                  const elm: EventoDbElement = (element as EventoDbElement);
+                  try
+                  {
+                     const arb: boolean = Boolean (((String (elm.arbitraggio)) != "1") ? false : true);
+                     const dt: Date = new Date (elm.data);
+                     const oi: Date = this.DbTimeToTime (elm.data, elm.orainizio);
+                     const ofi: Date = this.DbTimeToTime (elm.data, elm.orafine);
+                     return {
+                        id:            elm.id,
+                        data:          dt,
+                        orainizio:     oi,
+                        orafine:       ofi,
+                        risorsa_id:    elm.risorsa_id,
+                        gruppo_id:     elm.gruppo_id,
+                        casa:          elm.casa,
+                        ospite:        elm.ospite,
+                        luogo:         elm.luogo,
+                        commento:      elm.commento,
+                        arbitraggio:   arb,
+                        tipoevento:    elm.tipoevento,
+                        season_id:     elm.season_id,
+                        risorsa:       elm.risorsa,
+                        risorsatxt:    elm.risorsatxt,
+                        risorsabck:    elm.risorsabck,
+                        gruppo:        elm.gruppo,
+                        gruppotxt:     elm.gruppotxt,
+                        gruppobck:     elm.gruppobck,
+                        season:        elm.season
+                     }
+                  }
+                  catch (e)
+                  {
+                     const ddd: Date = new Date();
+                     return {
+                        id:            elm.id,
+                        data:          ddd,
+                        orainizio:     ddd,
+                        orafine:       ddd,
+                        risorsa_id:    elm.risorsa_id,
+                        gruppo_id:     elm.gruppo_id,
+                        casa:          elm.data,
+                        ospite:        elm.ospite,
+                        luogo:         elm.luogo,
+                        commento:      "ERRORE",
+                        arbitraggio:   false,
+                        tipoevento:    elm.tipoevento,
+                        season_id:     elm.season_id,
+                        risorsa:       elm.risorsa,
+                        risorsatxt:    elm.risorsatxt,
+                        risorsabck:    elm.risorsabck,
+                        gruppo:        elm.gruppo,
+                        gruppotxt:     elm.gruppotxt,
+                        gruppobck:     elm.gruppobck,
+                        season:        elm.season
+                     }
+                  }
+               })
+            }
+         })
+      );
+      return rrr;
    }
 
    /*

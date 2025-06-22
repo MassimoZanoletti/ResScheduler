@@ -19,6 +19,7 @@ import {MessDlgData,
 import {CategorieService} from "../../services/categorie.service";
 import {Router} from "@angular/router";
 import {MessageDialogService} from "../../services/message-dialog.service";
+import { loggedUser } from "../../services/users.service";
 
 @Component({
   selector:    'app-categorie-table',
@@ -101,19 +102,19 @@ export class CategorieTableComponent implements OnInit
 
    AddEnabled (): boolean
    {
-      return true;
+      return (loggedUser.attributo > 0);
    }
 
 
    EditEnabled (row: any): boolean
    {
-      return true;
+      return (loggedUser.attributo > 0);
    }
 
 
    DeleteEnabled (row: any): boolean
    {
-      return true;
+      return (loggedUser.attributo > 1);
    }
 
 

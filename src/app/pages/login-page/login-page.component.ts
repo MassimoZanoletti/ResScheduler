@@ -25,9 +25,10 @@ export class LoginPageComponent
    constructor (private authService: AuthService, private router: Router) {}
 
 
-   login (): void
+   async login ()
    {
-      if (this.authService.login (this.username, this.password))
+      const loginRes: boolean = await this.authService.login (this.username, this.password);
+      if (loginRes)
       {
          this.router.navigate (['/']);
       }

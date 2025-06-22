@@ -8,6 +8,7 @@ export interface User
    password: string;
    ruolo: string;
    ruolo_id: number;
+   attributo: number
 }
 
 
