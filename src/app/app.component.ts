@@ -10,7 +10,7 @@ import {
    RouterOutlet,
    RouterModule,
    RouterLink,
-   RouterLinkActive
+   RouterLinkActive, Router
 } from '@angular/router';
 import {ToolbarModule} from 'primeng/toolbar';
 import {ButtonModule} from 'primeng/button';
@@ -60,7 +60,8 @@ export class AppComponent implements AfterViewInit, OnInit
    // Rimuovi la dichiarazione diretta tabelleMenuRef!: Menu;
    // Useremo un setter privato per gestirlo
 
-   constructor (public authService: AuthService,
+   constructor (public router: Router,
+                public authService: AuthService,
                 private cdr: ChangeDetectorRef,
                 private primengConfig: PrimeNGConfig)
    {
@@ -120,6 +121,8 @@ export class AppComponent implements AfterViewInit, OnInit
 
    ngOnInit ()
    {
+      this.cdr.detectChanges ();
+      console.log(`User: ${loggedUser.nome}`);
    }
 
 
@@ -152,9 +155,11 @@ export class AppComponent implements AfterViewInit, OnInit
    {
       utils.removeFromSessionStorage ("RS_Logged_User");
       InitLoggedUser();
-      this.cdr.detectChanges (); // Forziamo un ciclo di change detection
+      this.cdr.detectChanges ();
       this.authService.logout ();
-      window.location.href = '/login';
+      InitLoggedUser();
+      this.cdr.detectChanges ();
+      window.location.href = '/code/yessched/index.html';
    }
 
 
