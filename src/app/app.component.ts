@@ -26,6 +26,7 @@ import { PrimeNGConfig } from 'primeng/api';
 import * as currentPackage from "../../package.json";
 import {InitLoggedUser, loggedUser} from "./services/users.service";
 import {utils} from "./common/utils";
+import {LogService} from "./services/log.service";
 
 
 
@@ -63,7 +64,8 @@ export class AppComponent implements AfterViewInit, OnInit
    constructor (public router: Router,
                 public authService: AuthService,
                 private cdr: ChangeDetectorRef,
-                private primengConfig: PrimeNGConfig)
+                private primengConfig: PrimeNGConfig,
+                private logService: LogService)
    {
       this.mnuTabelle = [
          {
@@ -92,7 +94,7 @@ export class AppComponent implements AfterViewInit, OnInit
             label: "Sistema",
             items: [
                {label: "Utenti", icon: 'pi pi-table', routerLink: ['/userstable'] },
-               {label: "Log", icon:  'pi pi-table'},
+               {label: "Log", icon:  'pi pi-table', routerLink: ['/logtable'] },
                {label: "Eventi Master", icon: 'pi pi-table'}
             ]
          }
@@ -153,6 +155,7 @@ export class AppComponent implements AfterViewInit, OnInit
 
    logout (): void
    {
+      this.logService.AddToLog(loggedUser, "Logout");
       utils.removeFromSessionStorage ("RS_Logged_User");
       InitLoggedUser();
       this.cdr.detectChanges ();

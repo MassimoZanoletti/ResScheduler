@@ -551,7 +551,7 @@ export class MainPageComponent implements OnInit, OnDestroy
          const dlgData: MessDlgData = {
             title:               'Creazione Eventi Stagione',
             subtitle:            '',
-            message:             `Sei veramente sicuro di voloer gli eventi vuoti per la stagione '<b>${this.currSeason?.nome}</b>' nel database?\n\n<b>Potrebbero venire cancellati gli eventi attualmente inseriti.</b>`,
+            message:             `Sei sicuro di voloer aggiungere gli eventi vuoti per la stagione\n'<b>${this.currSeason?.nome}</b>'\nnel database?</b>`,
             messtype:            'warning',
             btncaption:          'Annulla',
             showCancelButton:    true,
@@ -568,31 +568,45 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                                                        let strData: string;
                                                                                        let currDay: Date = new Date (this.currSeason.datainizio);
                                                                                        let dayToStop: Date = new Date (this.currSeason.datafine);
+                                                                                       let esisteGia: boolean = false;
                                                                                        dayToStop.setDate (dayToStop.getDate () + 1);
                                                                                        currDay.setHours(0,0,0,0);
                                                                                        dayToStop.setHours(0,0,0,0);
                                                                                        while (currDay.getTime () < dayToStop.getTime ())
                                                                                        {
+                                                                                          esisteGia = false;
                                                                                           currDay.setHours (0, 0, 0, 0);
                                                                                           strData = `${currDay.getFullYear()}-${currDay.getMonth()+1}-${currDay.getDate()}`;
-                                                                                          goOn = false;
-                                                                                          this.eventServ.addNewData(strData,
-                                                                                                                    "00:00",
-                                                                                                                    "00:00",
-                                                                                                                    0,
-                                                                                                                    0,
-                                                                                                                    "",
-                                                                                                                    "",
-                                                                                                                    "",
-                                                                                                                    "",
-                                                                                                                    false,
-                                                                                                                    TipoEvento.EventoVuoto,
-                                                                                                                    this.currSeason.id).subscribe(data => {
-                                                                                                                        goOn = true;
-                                                                                          });
-                                                                                          //
-                                                                                          while (goOn == false)
-                                                                                             await utils.Dlt_Sleep(10);
+                                                                                          for (let ggg=0;   ggg<this.listaEventi.length;   ggg++)
+                                                                                          {
+                                                                                             if (strData == `${this.listaEventi[ggg].data.getFullYear()}-${this.listaEventi[ggg].data.getMonth()+1}-${this.listaEventi[ggg].data.getDate()}`)
+                                                                                             {
+                                                                                                esisteGia = true;
+                                                                                                break;
+                                                                                             }
+                                                                                          }
+                                                                                          if (esisteGia == false)
+                                                                                          {
+                                                                                             goOn = false;
+                                                                                             this.eventServ.addNewData (strData,
+                                                                                                                        "00:00",
+                                                                                                                        "00:00",
+                                                                                                                        0,
+                                                                                                                        0,
+                                                                                                                        "",
+                                                                                                                        "",
+                                                                                                                        "",
+                                                                                                                        "",
+                                                                                                                        false,
+                                                                                                                        TipoEvento.EventoVuoto,
+                                                                                                                        this.currSeason.id).subscribe (data =>
+                                                                                                                                                       {
+                                                                                                                                                          goOn = true;
+                                                                                                                                                       });
+                                                                                             //
+                                                                                             while (goOn == false)
+                                                                                                await utils.Dlt_Sleep (10);
+                                                                                          }
                                                                                           currDay.setDate(currDay.getDate() + 1);
                                                                                        }
                                                                                     }

@@ -3,10 +3,13 @@ import {
    UserService,
    loggedUser, InitLoggedUser
 } from "./users.service";
-import {MessDlgData, User} from "../models/datamod";
+import {MessDlgData,
+   User,
+   LogMessage} from "../models/datamod";
 import {firstValueFrom} from "rxjs";
 import {utils} from "../common/utils";
 import * as util from "node:util";
+import {LogService} from "./log.service";
 
 
 
@@ -17,7 +20,8 @@ export class AuthService
 {
    private loggedIn = false;
 
-   constructor (private userServ: UserService)
+   constructor (private userServ: UserService,
+                private logService: LogService)
    {
       const lu = utils.GetFromSessionStorage<User>("RS_Logged_User");
       if (lu)
@@ -55,6 +59,7 @@ export class AuthService
          loggedUser.attributo = 0;
          this.loggedIn = true;
          utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
+         await this.logService.AddToLog(loggedUser, "Login");
          return true;
       }
       else if ((username == superUserName) && (password == superUserPassword))
@@ -67,6 +72,7 @@ export class AuthService
          loggedUser.attributo = 255;
          this.loggedIn = true;
          utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
+         await this.logService.AddToLog(loggedUser, "Login");
          return true;
       }
       else
@@ -84,6 +90,7 @@ export class AuthService
                loggedUser.attributo = dataEvnt.elements.attributo;
                this.loggedIn = true;
                utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
+               await this.logService.AddToLog(loggedUser, "Login");
                return true;
             }
             else
@@ -120,7 +127,7 @@ export class AuthService
    }
 
 
-   logout (): void
+   async logout ()
    {
       InitLoggedUser();
       this.loggedIn = false;

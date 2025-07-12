@@ -175,6 +175,16 @@ export interface Evento
 }
 
 
+export interface LogMessage
+{
+   id: number;
+   datetime: string;
+   user_id: number;
+   user: string
+   description: string;
+}
+
+
 export namespace globs
 {
    export let appName: string = "";
