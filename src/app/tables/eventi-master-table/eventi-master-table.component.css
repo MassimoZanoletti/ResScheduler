@@ -1,0 +1,160 @@
+/* Utilizza ::ng-deep se stai usando l'incapsulamento del componente (impostazione predefinita di Angular)
+   e vuoi che queste classi influenzino gli elementi interni della p-table.
+   Alternativamente, puoi definire queste classi nel tuo styles.css globale. */
+
+.row-lun {
+   background-color: #161c2d; /* Un rosso chiaro */
+}
+
+.row-mar {
+   background-color: #181e31; /* Un verde chiaro */
+}
+
+.row-mer {
+   background-color: #1a2136; /* Un giallo chiaro */
+}
+
+.row-gio {
+   background-color: #1c243a; /* Un giallo chiaro */
+}
+
+.row-ven {
+   background-color: #1e273f; /* Un giallo chiaro */
+}
+
+.row-sab {
+   background-color: #162a2d; /* Un giallo chiaro */
+}
+
+.row-dom {
+   background-color: #1a3236; /* Un giallo chiaro */
+}
+
+::ng-deep .p-button-table .p-button {
+   max-height: 28px !important;
+   min-height: 28px !important;
+   height: 28px !important;
+   line-height: 28px !important;
+   margin-top: 1px !important;
+   margin-bottom: 1px !important;
+   margin-right: 8px !important;
+}
+
+::ng-deep .custom-header-table .p-datatable-thead > tr > th {
+   background-color: #422d6b !important; /* blu scuro */
+   color: #ffe378 !important; /* testo bianco */
+   font-weight: bold;
+   font-size: 1.2em;
+   border-bottom: 2px solid #3949ab; /* bordo inferiore */
+}
+
+
+::ng-deep .p-selectable-row {
+   transition: background-color 0.3s ease;
+}
+
+
+/* Quando la riga è selezionata, sovrascrive il colore */
+::ng-deep .p-selectable-row.p-highlight {
+   background-color: #ab7a39 !important; /* colore selezione */
+   color: #2a134d !important;
+}
+
+
+::ng-deep .custom-header-table .p-button {
+   min-height: 2.5rem;
+}
+
+
+::ng-deep .action-button {
+   width: 2.5rem;
+   height: 2.5rem;
+   padding: 0;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   font-size: 1.2rem;
+   border: none;
+   border-radius: 50%;
+   cursor: pointer;
+}
+
+::ng-deep .edit-button {
+   /*background-color: #1976d2;*/
+   color: white;
+}
+
+::ng-deep .delete-button {
+   /*background-color: #d32f2f;*/
+   color: white;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+   padding-top: 0.08rem;
+   padding-bottom: 0.08rem;
+   line-height: 1.0;
+}
+
+
+.bottoni-container {
+   display: flex;
+   gap: 1rem;
+   align-items: center;
+   justify-content: flex-start;
+   margin: 1px !important;
+   padding: 1px !important;
+   /*background-color: red;*/
+}
+
+.btn-fisso ::ng-deep .p-button {
+   width: 250px;
+}
+
+::ng-deep .p-card .p-card-body {
+   padding: 1px !important;
+   margin-top: 12px !important;
+   margin-bottom: 6px !important;
+   margin-left: 4px !important;
+   margin-right: 4px !important;
+   /*background-color: white !important;*/
+}
+
+
+::ng-deep .p-card .p-card-content {
+   padding: 1px !important;
+   margin: 1px !important;
+   /*background-color: green !important;*/
+}
+
+
+.header-button-first {
+   margin-left: 20px !important;
+}
+
+
+
+
+/* Usiamo un selettore più specifico per sovrascrivere PrimeNG se necessario */
+/* O semplicemente per applicare solo ai tuoi bottoni */
+.my-tiny-button.p-button {
+   width: 20px !important;       /* Forza la larghezza */
+   height: 20px !important;      /* Forza l'altezza */
+   min-width: 20px !important;   /* Assicura che non vada sotto */
+   min-height: 20px !important;  /* Assicura che non vada sotto */
+   padding: 0 !important;        /* Rimuove tutto il padding */
+   display: flex;                /* Per centrare l'icona */
+   justify-content: center;      /* Centra orizzontalmente */
+   align-items: center;          /* Centra verticalmente */
+}
+
+/* Potrebbe essere necessario regolare anche la dimensione dell'icona se vuoi che riempia meglio */
+.my-tiny-button.p-button .p-button-icon {
+   font-size: 14px !important; /* Adatta la dimensione dell'icona, ad esempio */
+   width: 14px !important;     /* Rimuovi spazio extra se l'icona è troppo grande per 20x20 */
+   height: 14px !important;
+}
+
+/* Se usi p-button-text, potresti voler aggiustare anche il colore se il default non va bene */
+.my-tiny-button.p-button.p-button-text {
+   color: var(--primary-color, #1E88E5) !important; /* Esempio: usa il colore primario del tema */
+}

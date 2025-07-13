@@ -131,6 +131,7 @@ export interface EventoDbElement
    gruppo: string;
    gruppotxt: string
    gruppobck: string;
+   master_id: number;
 }
 
 
@@ -164,6 +165,7 @@ export interface EventoElement
    gruppobck: string;
    season_id: number;
    season: string;
+   master_id: number;
 }
 
 
@@ -172,6 +174,64 @@ export interface Evento
    ok: boolean;
    message: string;
    elements: EventoElement[];
+}
+
+
+export interface EventoMasterDbElement
+{
+   id: number;
+   data: string;
+   data_fine: string;
+   orainizio: string;
+   orafine: string;
+   risorsa_id: number;
+   gruppo_id: number;
+   commento: string;
+   season_id: number;
+   season: string;
+   risorsa: string;
+   risorsatxt: string;
+   risorsabck: string;
+   gruppo: string;
+   gruppotxt: string
+   gruppobck: string;
+}
+
+
+export interface EventoMasterDb
+{
+   ok: boolean;
+   message: string;
+   elements: EventoMasterDbElement[];
+}
+
+
+export interface EventoMasterElement
+{
+   id: number;
+   data: Date;
+   datafine: Date;
+   orainizio: Date;
+   orafine: Date;
+   risorsa_id: number;
+   gruppo_id: number;
+   commento: string;
+   risorsa: string;
+   risorsatxt: string;
+   risorsabck: string;
+   gruppo: string;
+   gruppotxt: string
+   gruppobck: string;
+   season_id: number;
+   season: string;
+}
+
+
+export interface EventoMaster
+{
+   ok: boolean;
+   message: string;
+   elements: EventoMasterElement[];
 }
 
 

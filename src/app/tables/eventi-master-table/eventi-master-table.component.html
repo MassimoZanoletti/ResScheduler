@@ -1,0 +1,134 @@
+
+<div class="card flex justify-content-start">
+   <p-card [style]="{ width: '100%' }"
+           contentStyleClass="card-contenuto-ridotto">
+      <div style="display: flex; align-items: center;">
+         <h2 style="margin-left: 15px; margin-right: 30px; margin-bottom: 0px; margin-top: 0px; padding-bottom: 0px; padding-top: 0px;">Eventi Master</h2>
+
+         <p-button
+            class="p-button-table"
+            icon="pi pi-refresh"
+            severity="secondary"
+            pTooltip="Refresh"
+            tooltipPosition="top"
+            (click)="LoadEvents()"
+         ></p-button>
+
+         <p-divider layout="vertical" />
+
+      </div>
+   </p-card>
+</div>
+
+<p-blockUI [blocked]="CheckLoading()">
+   <p-progressSpinner></p-progressSpinner>
+</p-blockUI>
+
+
+<div class="card">
+   <p-table
+      #eventsMasterTable
+      class="custom-header-table"
+      styleClass="p-datatable-gridlines"
+      [scrollable]="true"
+      scrollHeight="600px"
+      [value]="listaEventi"
+      selectionMode="single"
+      [(selection)]="currEvent"
+      (onRowSelect)="OnRowSelected($event)"
+      (onRowUnselect)="OnRowUnselected($event)"
+      dataKey="id"
+      [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template pTemplate="header">
+         <tr>
+            <th style="width: 65px;">Id</th>
+            <th style="width: 130px;">Data</th>
+            <th style="width: 130px;">Data fine</th>
+            <th style="width: 55px;">Ora</th>
+            <th style="width: 55px;">Fine</th>
+            <th style="width: 65px;">Pal.
+               <button pButton
+                       type="button"
+                       icon="pi pi-filter"
+                       class="p-button-icon-only my-tiny-button"
+                       [ngClass]="{ 'p-button-success': fltrRisorsa, 'p-button-secondary': !fltrRisorsa }"
+                       (click)="OnFilterRisorsa()"></button>
+            </th>
+            <th style="width: 100px;">Gruppo
+               <button pButton
+                       type="button"
+                       icon="pi pi-filter"
+                       class="p-button-icon-only my-tiny-button"
+                       [ngClass]="{ 'p-button-success': fltrGruppo, 'p-button-secondary': !fltrGruppo }"
+                       (click)="OnFilterGruppo()"></button>
+            </th>
+            <th>Commento</th>
+
+            <!--
+            <th style="min-width: 120px !important;">Azioni</th>
+            -->
+         </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-evento let-rowIndex="rowIndex">
+         <tr [pSelectableRow]="evento"
+             [ngClass]="GetRowColorClass(evento)">
+            <td><span style="font-size: 0.6em;">{{ evento.id }}</span></td>
+            <td>{{ FormattaData (evento.data) }}</td>
+            <td>{{ FormattaData (evento.datafine) }}</td>
+            <td>{{ FormattaOrario (evento.orainizio) }}</td>
+            <td>{{ FormattaOrario (evento.orafine) }}</td>
+            <td [ngStyle]="ColoreRisorsa(evento)">{{ evento.risorsa }}</td>
+            <td [ngStyle]="ColoreGruppo(evento)">{{ evento.gruppo }}</td>
+            <td>{{ evento.commento }}</td>
+
+            <!--
+            <td>
+               <p-button
+                  class="p-button-table"
+                  icon="pi pi-pencil"
+                  severity="primary"
+                  pTooltip="Modifica"
+                  tooltipPosition="top"
+                  (click)="OnEdit(evento)"
+               ></p-button>
+
+               <p-button
+                  icon="pi pi-trash"
+                  severity="warning"
+                  class="p-button-table"
+                  pTooltip="Elimina"
+                  tooltipPosition="top"
+                  (click)="OnDelete(evento)"
+               ></p-button>
+            </td>
+            -->
+
+         </tr>
+      </ng-template>
+   </p-table>
+</div>
+<div class="card flex justify-content-start">
+   <p-card [style]="{ width: '100vw' }"
+           contentStyleClass="card-contenuto-ridotto">
+      <div class="bottoni-container">
+         <p-button label="Nuovo Evento"
+                   *ngIf="AddEnabled()"
+                   severity="primary"
+                   icon="pi pi-plus"
+                   class="btn-fisso"
+                   (click)="OnAdd()"></p-button>
+         <p-button label="Modifica Evento"
+                   *ngIf="EditEnabled()"
+                   severity="primary"
+                   icon="pi pi-pencil"
+                   class="btn-fisso"
+                   (click)="OnEdit()"></p-button>
+         <p-button label="Elimina Evento"
+                   *ngIf="DeleteEnabled()"
+                   severity="warning"
+                   icon="pi pi-trash"
+                   class="btn-fisso"
+                   (click)="OnDelete()"></p-button>
+      </div>
+   </p-card>
+</div>

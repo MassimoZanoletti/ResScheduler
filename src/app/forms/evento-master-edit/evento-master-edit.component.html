@@ -1,0 +1,102 @@
+<div class="the-container">
+   <p-card header="{{operazione}}Evento Master">
+      <ng-template pTemplate="content">
+
+         <div class="form-group horizontal">
+            <label for="datainizio">Giorno:</label>
+            <p-calendar
+               [(ngModel)]="data"
+               [showIcon]="true"
+               [showOnFocus]="false"
+               inputId="data"
+               dateFormat="dd/mm/yy"
+            ></p-calendar>
+         </div>
+
+         <div class="form-group horizontal">
+            <label for="datainizio">Giorno di fine:</label>
+            <p-calendar
+               [(ngModel)]="datafine"
+               [showIcon]="true"
+               [showOnFocus]="false"
+               inputId="data"
+               dateFormat="dd/mm/yy"
+            ></p-calendar>
+         </div>
+
+         <div class="form-group horizontal">
+            <label for="datainizio">Ora:</label>
+            <p-calendar
+               inputId="orainizio"
+               [(ngModel)]="orainizio"
+               [showTime]="true"
+               [timeOnly]="true"/>
+            <button
+               pButton
+               type="button"
+               label="+1.5h ->"
+               class="p-button-primary"
+               (click)="SetOraFine()"
+               style="margin-left: 15px; margin-right: 15px;"
+            ></button>
+
+            <p-calendar
+               inputId="orafine"
+               [(ngModel)]="orafine"
+               [showTime]="true"
+               [timeOnly]="true"/>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Palestra:</label>
+            <p-dropdown
+               [style]="{'min-width': '255px'}"
+               [options]="listaRisorse"
+               optionLabel="nome"
+               [(ngModel)]="currRisorsa"
+               [checkmark]="true"
+               [showClear]="false"
+               [scrollHeight]="'500px'"/>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Gruppo:</label>
+            <p-dropdown
+               [style]="{'min-width': '255px'}"
+               [options]="listaGruppi"
+               optionLabel="nome"
+               [(ngModel)]="currGruppo"
+               [checkmark]="true"
+               [showClear]="false"
+               [scrollHeight]="'500px'"/>
+         </div>
+
+         <div class="form-group">
+            <label for="nome">Commento:</label>
+            <input type="text"
+                   pInputText
+                   placeholder="Commento"
+                   [(ngModel)]="commento"/>
+         </div>
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+         <div class="footer-buttons">
+            <button
+               pButton
+               type="button"
+               label="Annulla"
+               class="p-button-secondary"
+               (click)="Annulla()"
+            ></button>
+            <button
+               pButton
+               type="button"
+               label="OK"
+               class="p-button-primary"
+               (click)="Salva()"
+            ></button>
+         </div>
+      </ng-template>
+   </p-card>
+</div>

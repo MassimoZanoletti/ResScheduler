@@ -19,6 +19,8 @@ import {GruppiTableComponent} from "./tables/gruppi-table/gruppi-table.component
 import {GruppoEditComponent} from "./forms/gruppo-edit/gruppo-edit.component";
 import {EventoEditComponent} from "./forms/evento-edit/evento-edit.component";
 import {LogTableComponent} from "./tables/log-table/log-table.component";
+import {EventiMasterTableComponent} from "./tables/eventi-master-table/eventi-master-table.component";
+import {EventoMasterEditComponent} from "./forms/evento-master-edit/evento-master-edit.component";
 
 
 export const routes: Routes = [
@@ -43,6 +45,8 @@ export const routes: Routes = [
    { path: 'gruppoedit', component: GruppoEditComponent, canActivate: [AuthGuard] },
    { path: 'eventoedit', component: EventoEditComponent, canActivate: [AuthGuard] },
    { path: 'logtable', component: LogTableComponent, canActivate: [AuthGuard] },
+   { path: 'eventimastertable', component: EventiMasterTableComponent, canActivate: [AuthGuard] },
+   { path: 'eventomasteredit', component: EventoMasterEditComponent, canActivate: [AuthGuard] },
 
    // Questa rotta dovrebbe essere l'ULTIMA.
    // Reindirizza a 'login' per qualsiasi URL che non matcha le rotte precedenti.

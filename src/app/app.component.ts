@@ -95,7 +95,7 @@ export class AppComponent implements AfterViewInit, OnInit
             items: [
                {label: "Utenti", icon: 'pi pi-table', routerLink: ['/userstable'] },
                {label: "Log", icon:  'pi pi-table', routerLink: ['/logtable'] },
-               {label: "Eventi Master", icon: 'pi pi-table'}
+               {label: "Eventi Master", icon: 'pi pi-table', routerLink: ['/eventimastertable'] }
             ]
          }
       ];

@@ -56,6 +56,7 @@ export class EventoEditComponent implements OnInit
    month: number = 0;
    day: number = 0;
    season_id: number = 0;
+   master_id: number = 0;
    errorMessage: string = "Il campo non può essere vuoto";
    theError = false;
    operazione: string = "";
@@ -109,7 +110,7 @@ export class EventoEditComponent implements OnInit
       if (this.id > 0)
       {
          console.log(`EDIT: id > 0`);
-         this.operazione = `${this.id}-${this.isAdd}-${this.year}-${this.month}-${this.day}---EDIT`;
+         this.operazione = `Modifica `;
          console.log(`EDIT: operazione: ${this.operazione}`);
          const dataRes = await firstValueFrom(this.eventiService.getSingleData(this.id));
          if ((dataRes) && (dataRes.ok))
@@ -136,7 +137,7 @@ export class EventoEditComponent implements OnInit
       else
       {
          console.log(`EDIT: id == 0`);
-         this.operazione = `${this.id}-${this.isAdd}-${this.year}-${this.month}-${this.day}---NUOVO`;
+         this.operazione = `Nuovo `;
          console.log(`EDIT: operazione: ${this.operazione}`);
          this.data = new Date();
          this.data.setFullYear(this.year);
@@ -200,7 +201,8 @@ export class EventoEditComponent implements OnInit
                                                                                  this.commento,
                                                                                  this.arbitraggio,
                                                                                  TipoEvento.EventoNormale,
-                                                                                 this.season_id));
+                                                                                 this.season_id,
+                                                                                 this.master_id));
 
             if (response.ok)
             {
@@ -233,7 +235,8 @@ export class EventoEditComponent implements OnInit
                                                                                   this.commento,
                                                                                   this.arbitraggio,
                                                                                   TipoEvento.EventoNormale,
-                                                                                  this.season_id));
+                                                                                  this.season_id,
+                                                                                  this.master_id));
 
             if (response.ok)
             {

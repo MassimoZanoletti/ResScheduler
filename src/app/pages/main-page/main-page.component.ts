@@ -181,6 +181,7 @@ export class MainPageComponent implements OnInit, OnDestroy
          let risorsaId: Array<number> | null = null;
          let gruppoId: Array<number> | null = null;
          let giorno: Date | null = null;
+         let masterId: number | null = 0;
          if ((this.fltrRisorsaItems) && (this.fltrRisorsaItems.length > 0))
          {
             risorsaId = [];
@@ -193,7 +194,7 @@ export class MainPageComponent implements OnInit, OnDestroy
             for (let i = 0; i < this.fltrGruppoItems.length; i++)
                gruppoId.push (this.fltrGruppoItems[i].id);
          }
-         const dataEvnt = await firstValueFrom(this.eventServ.getAllData (seasonId, tipoEvnt, risorsaId, gruppoId, giorno));
+         const dataEvnt = await firstValueFrom(this.eventServ.getAllData (seasonId, tipoEvnt, risorsaId, gruppoId, giorno, masterId));
          if (dataEvnt)
          {
             if (dataEvnt.ok)
@@ -599,7 +600,8 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                                                                                         "",
                                                                                                                         false,
                                                                                                                         TipoEvento.EventoVuoto,
-                                                                                                                        this.currSeason.id).subscribe (data =>
+                                                                                                                        this.currSeason.id,
+                                                                                                                        0).subscribe (data =>
                                                                                                                                                        {
                                                                                                                                                           goOn = true;
                                                                                                                                                        });
@@ -734,7 +736,8 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                                                  "",
                                                                                  false,
                                                                                  TipoEvento.EventoVuoto,
-                                                                                 this.currEvent.season_id));
+                                                                                 this.currEvent.season_id,
+                                                                                 this.currEvent.master_id));
 
                if (response.ok)
                {

@@ -42,7 +42,8 @@ export class EventiService
               tipoEVento: number | null,
               risorsa: Array<number> | null,
               gruppo : Array<number> | null,
-              data : Date | null): Observable<any>
+              data : Date | null,
+              master: number | null): Observable<any>
    {
       const operation: string = "all";
       let qryStagione: string = "";
@@ -50,6 +51,7 @@ export class EventiService
       let qryRisorsa: string = "";
       let qryGruppo: string = "";
       let qryData: string = "";
+      let qryMaster: string = "";
       if (stagione != null)
          qryStagione = `&season=${stagione}`;
       if (tipoEVento != null)
@@ -66,7 +68,11 @@ export class EventiService
       }
       if (data != null)
          qryData = `&data=${this.FormattaData(data)}`;
-      const url: string = `${this.apiUrl}?operation=${operation}`+ qryStagione + qryEvento + qryRisorsa + qryGruppo + qryData;
+      if (master != null)
+      {
+         qryMaster = `&master_id=${master}`;
+      }
+      const url: string = `${this.apiUrl}?operation=${operation}`+ qryStagione + qryEvento + qryRisorsa + qryGruppo + qryData + qryMaster;
       /*
       return this.http.get<EventoDb>(url).pipe (
          tap (value => { }),
@@ -141,7 +147,8 @@ export class EventiService
                         gruppo:        elm.gruppo,
                         gruppotxt:     elm.gruppotxt,
                         gruppobck:     elm.gruppobck,
-                        season:        elm.season
+                        season:        elm.season,
+                        master_id:     elm.master_id
                      }
                   }
                   catch (e)
@@ -167,7 +174,8 @@ export class EventiService
                         gruppo:        elm.gruppo,
                         gruppotxt:     elm.gruppotxt,
                         gruppobck:     elm.gruppobck,
-                        season:        elm.season
+                        season:        elm.season,
+                        master_id:     elm.master_id
                      }
                   }
                })
@@ -221,7 +229,8 @@ export class EventiService
                aCommento: string,
                aArbitraggio: boolean,
                aTipoEvento: number,
-               aSeasonId: number): Observable<any>
+               aSeasonId: number,
+               aMasterId: number): Observable<any>
    {
       const operation: string = "edit";
       const url: string = `${this.apiUrl}?operation=${operation}` +
@@ -237,7 +246,8 @@ export class EventiService
          `&commento=${aCommento}` +
          `&arbitraggio=${Number(aArbitraggio)}` +
          `&tipoevento=${aTipoEvento}` +
-         `&season_id=${aSeasonId}`
+         `&season_id=${aSeasonId}` +
+         `&master_id=${aMasterId}`
       ;
       return this.http.get<any>(url);
    }
@@ -254,7 +264,8 @@ export class EventiService
                aCommento: string,
                aArbitraggio: boolean,
                aTipoEvento: number,
-               aSeasonId: number): Observable<any>
+               aSeasonId: number,
+               aMasterId: number): Observable<any>
    {
       const operation: string = "add";
       const url: string = `${this.apiUrl}?operation=${operation}` +
@@ -269,7 +280,8 @@ export class EventiService
          `&commento=${aCommento}` +
          `&arbitraggio=${Number(aArbitraggio)}` +
          `&tipoevento=${aTipoEvento}` +
-         `&season_id=${aSeasonId}`
+         `&season_id=${aSeasonId}` +
+         `&master_id=${aMasterId}`
       return this.http.get<any>(url);
    }
 
