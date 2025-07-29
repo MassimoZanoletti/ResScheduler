@@ -31,3 +31,7 @@
    padding: 5px !important;
    margin: 2px !important;
 }
+
+.router-container {
+   height: 100% !important;
+}

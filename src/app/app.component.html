@@ -43,7 +43,11 @@
    </ng-container>
 </p-toolbar>
 
-<router-outlet></router-outlet>
+<div id="router-container"
+     class="router-container"
+     style="background-color: green !important; padding: 10px !important;">
+   <router-outlet></router-outlet>
+</div>
 
 <div class="app-footer">
    <p style="white-space: pre-wrap !important;">{{appTitle}} {{appVersion}}{{separatore}}{{appCopyrights}}</p>
