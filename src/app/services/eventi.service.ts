@@ -38,6 +38,7 @@ export class EventiService
       return result;
    }
 
+
    getAllData(stagione: number | null,
               tipoEVento: number | null,
               risorsa: Array<number> | null,
@@ -55,7 +56,12 @@ export class EventiService
       if (stagione != null)
          qryStagione = `&season=${stagione}`;
       if (tipoEVento != null)
-         qryEvento = `&tipoevento=${tipoEVento}`;
+      {
+         if (tipoEVento < 0)
+            qryEvento = `&tipoevento=${tipoEVento}`;
+         else
+            qryEvento = `&tipoevento=${tipoEVento}`;
+      }
       if (risorsa != null)
       {
          for (let i=0;   i<risorsa.length;   i++)
@@ -210,12 +216,14 @@ export class EventiService
 }
     */
 
+
    getSingleData(aId: number): Observable<any>
    {
       const operation: string = "single";
       const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}`;
       return this.http.get<any>(url);
    }
+
 
    updateData (aId: number,
                aData: string,
@@ -290,6 +298,14 @@ export class EventiService
    {
       const operation: string = "delete";
       const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}`;
+      return this.http.get<any>(url);
+   }
+
+
+   DeletePeriodic (aMasterId: number): Observable<any>
+   {
+      const operation: string = "deleteperiodic";
+      const url: string = `${this.apiUrl}?operation=${operation}&masterid=${aMasterId}`;
       return this.http.get<any>(url);
    }
 

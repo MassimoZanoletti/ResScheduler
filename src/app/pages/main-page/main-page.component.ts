@@ -87,6 +87,8 @@ export class MainPageComponent implements OnInit, OnDestroy
    fltrGruppoItems: Array<Gruppo> | null = null;
    fltrDlgRef: DynamicDialogRef | undefined;
    totRec: number = 0;
+   listaTipoEvento: Array<string> = [];
+   currTipoEvento: string | null = null;
    @ViewChild('eventsTable') pTable: Table | undefined;
 
 
@@ -109,6 +111,16 @@ export class MainPageComponent implements OnInit, OnDestroy
    {
       try
       {
+         this.listaTipoEvento.push("Solo Eventi classici");
+         this.listaTipoEvento.push("Solo Eventi periodici");
+         this.listaTipoEvento.push("Tutti i tipi");
+         //
+         const tmpTipo: string | null = utils.GetFromLocalStorage<string> ("RS_CurrTipoEvento");
+         if (tmpTipo != null)
+         {
+            this.currTipoEvento = this.listaTipoEvento.find (tipo => tipo === tmpTipo) || null;
+         }
+         //
          await this.LoadFilters();
          //
          await this.LoadSeasons();
@@ -177,11 +189,11 @@ export class MainPageComponent implements OnInit, OnDestroy
          this.isLoadingEv = true;
          this.totRec = 0;
          let seasonId: number | null = (this.currSeason != null)?this.currSeason.id:null;
-         let tipoEvnt: number | null = 1;
+         let tipoEvnt: number | null = null;
          let risorsaId: Array<number> | null = null;
          let gruppoId: Array<number> | null = null;
          let giorno: Date | null = null;
-         let masterId: number | null = 0;
+         let masterId: number | null = null;
          if ((this.fltrRisorsaItems) && (this.fltrRisorsaItems.length > 0))
          {
             risorsaId = [];
@@ -194,6 +206,10 @@ export class MainPageComponent implements OnInit, OnDestroy
             for (let i = 0; i < this.fltrGruppoItems.length; i++)
                gruppoId.push (this.fltrGruppoItems[i].id);
          }
+         if (this.currTipoEvento == this.listaTipoEvento[0])
+            tipoEvnt = TipoEvento.EventoNormale;
+         if (this.currTipoEvento == this.listaTipoEvento[1])
+            tipoEvnt = -1;
          const dataEvnt = await firstValueFrom(this.eventServ.getAllData (seasonId, tipoEvnt, risorsaId, gruppoId, giorno, masterId));
          if (dataEvnt)
          {
@@ -537,10 +553,33 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
    }
 
+   ColoreTipoEvento (evento: EventoElement): any
+   {
+      const colore = "#646464";
+      try
+      {
+         if ((evento) && (evento.tipoevento == TipoEvento.EventoPeriodico))
+            return {'background-color': `${colore}`};
+         else
+            return {};
+      }
+      catch (e)
+      {
+         return {};
+      }
+   }
+
 
    OnSeasonChange(evento: any)
    {
       utils.SaveToLocalStorage("RS_CurrSeason", this.currSeason);
+      this.LoadEvents();
+   }
+
+
+   OnTipoEventoChange(evento: any)
+   {
+      utils.SaveToLocalStorage("RS_CurrTipoEvento", this.currTipoEvento);
       this.LoadEvents();
    }
 

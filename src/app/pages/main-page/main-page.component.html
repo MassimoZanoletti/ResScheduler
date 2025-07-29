@@ -39,6 +39,21 @@
             (click)="CreaEventiStagione()"
          ></p-button>
 
+         <p-divider layout="vertical" />
+
+         <div class="form-group">
+            <label for="cbtipoevento" style="margin-right: 10px;">Tipo evento:</label>
+            <p-dropdown
+               id="cbtipoevento"
+               [style]="{'min-width': '255px'}"
+               [options]="listaTipoEvento"
+               [(ngModel)]="currTipoEvento"
+               [checkmark]="true"
+               [showClear]="false"
+               [scrollHeight]="'300px'"
+               (onChange)="OnTipoEventoChange($event)"/>
+         </div>
+
       </div>
    </p-card>
 </div>
@@ -48,7 +63,8 @@
 </p-blockUI>
 
 
-<div class="card">
+<div class="card"
+     id="div-tabella">
    <p-table
       #eventsTable
       class="custom-header-table"
@@ -90,9 +106,9 @@
             <th>Commento</th>
             <th>Arb.</th>
 
-            <!--
-            <th style="min-width: 120px !important;">Azioni</th>
-            -->
+               <!--
+               <th style="min-width: 120px !important;">Azioni</th>
+               -->
          </tr>
       </ng-template>
       <ng-template pTemplate="body" let-evento let-rowIndex="rowIndex">
@@ -104,9 +120,9 @@
             <td><span style="font-size: 0.7em;">{{ FormattaOrario (evento.orafine) }}</span></td>
             <td [ngStyle]="ColoreRisorsa(evento)">{{ evento.risorsa }}</td>
             <td [ngStyle]="ColoreGruppo(evento)">{{ evento.gruppo }}</td>
-            <td>{{ evento.casa }}</td>
-            <td>{{ evento.ospite }}</td>
-            <td>{{ evento.luogo }}</td>
+            <td [ngStyle]="ColoreTipoEvento(evento)">{{ evento.casa }}</td>
+            <td [ngStyle]="ColoreTipoEvento(evento)">{{ evento.ospite }}</td>
+            <td [ngStyle]="ColoreTipoEvento(evento)">{{ evento.luogo }}</td>
             <td>{{ evento.commento }}</td>
             <td>
                <p-checkbox
@@ -114,34 +130,13 @@
                   [ngModel]="evento.arbitraggio" [disabled]="true">
                </p-checkbox>
             </td>
-
-            <!--
-            <td>
-               <p-button
-                  class="p-button-table"
-                  icon="pi pi-pencil"
-                  severity="primary"
-                  pTooltip="Modifica"
-                  tooltipPosition="top"
-                  (click)="OnEdit(evento)"
-               ></p-button>
-
-               <p-button
-                  icon="pi pi-trash"
-                  severity="warning"
-                  class="p-button-table"
-                  pTooltip="Elimina"
-                  tooltipPosition="top"
-                  (click)="OnDelete(evento)"
-               ></p-button>
-            </td>
-            -->
-
          </tr>
       </ng-template>
    </p-table>
 </div>
-<div class="card flex justify-content-start">
+
+<div class="card flex justify-content-start"
+   id="bottoni">
    <p-card [style]="{ width: '100vw' }"
            contentStyleClass="card-contenuto-ridotto">
       <div class="bottoni-container">

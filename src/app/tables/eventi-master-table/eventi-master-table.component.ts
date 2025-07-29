@@ -40,6 +40,7 @@ import {utils} from "../../common/utils";
 import {firstValueFrom} from "rxjs";
 import {loggedUser} from "../../services/users.service";
 import {MultiSelectModalComponent} from "../../dialogs/multi-select-modal/multi-select-modal.component";
+import {EventiService} from "../../services/eventi.service";
 
 
 
@@ -91,6 +92,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    constructor (public router: Router,
                 private seasonServ: SeasonsService,
                 private eventServ: EventiMasterService,
+                private eventoFiglioService: EventiService,
                 private resourceService: RisorseService,
                 private gruppiService: GruppiService,
                 private cdr: ChangeDetectorRef,
@@ -397,7 +399,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
          const dlgData: MessDlgData = {
             title:               'Cancellazione Evento Master',
             subtitle:            '',
-            message:             `Sei veramente sicuro di voloer cancellare l'evento master'<b>${this.FormattaData (this.currEvent.data)} : ${this.FormattaOrario (this.currEvent.orainizio)}</b>' dal database?`,
+            message:             `Sei veramente sicuro di voloer cancellare l'evento master\n'<b>${this.FormattaData (this.currEvent.data)} : ${this.FormattaOrario (this.currEvent.orainizio)} : ${this.currEvent.gruppo} : ${this.currEvent.risorsa}</b>'\n dal database?`,
             messtype:            'warning',
             btncaption:          'Annulla',
             showCancelButton:    true,
@@ -418,7 +420,9 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    OnRowSelected (evento: any)
    {
       if (this.currEvent != null)
+      {
          utils.SaveToSessionStorage ("RS_Editing_Event_Id", this.currEvent.id);
+      }
    }
 
 
@@ -560,63 +564,27 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
       {
          try
          {
-            let listaGiorno: Array<EventoMasterElement> = [];
-            listaGiorno = this.EventiDelGiorno (this.currEvent.data);
-            if (listaGiorno.length > 1)
-            {
-               // c'è più di un evento per il giorno selezionato:
-               //  cancello l'evento
-               this.isLoadingEv = true;
-               const response = await firstValueFrom (this.eventServ.DeleteData (this.currEvent.id));
+            this.isLoadingEv = true;
+            // cancello tutti gli eventi periodici figli
+            await firstValueFrom (this.eventoFiglioService.DeletePeriodic(this.currEvent.id));
+            // .. e pi cancello l'evento master
+            const response = await firstValueFrom (this.eventServ.DeleteData (this.currEvent.id));
 
-               if (response.ok)
-               {
-                  await this.LoadEvents ();
-                  this.cdr.detectChanges ();
-               }
-               else
-               {
-                  const dlgData: MessDlgData = {
-                     title:      'ERRORE',
-                     subtitle:   "Errore nella cancellazione dei dati",
-                     message:    `${response.message}`,
-                     messtype:   'error',
-                     btncaption: 'Chiudi'
-                  };
-                  this.messageDialogService.showMessage (dlgData, '600px');
-               }
+            if (response.ok)
+            {
+               await this.LoadEvents ();
+               this.cdr.detectChanges ();
             }
             else
             {
-               // c'è solo un evento nel giorno selezionato
-               //  azzero l'evento senza cancellare il record
-               this.isLoadingEv = true;
-               const response = await firstValueFrom (this.eventServ.updateData (this.currEvent.id,
-                                                                                 (this.currEvent.data) ? this.currEvent.data.toLocaleDateString ('ja-JP') : "",
-                                                                                 (this.currEvent.data) ? this.currEvent.data.toLocaleDateString ('ja-JP') : "",
-                                                                                 `00:00`,
-                                                                                 `00:00`,
-                                                                                 0,
-                                                                                 0,
-                                                                                 "",
-                                                                                 0));
-
-               if (response.ok)
-               {
-                  await this.LoadEvents ();
-                  this.cdr.detectChanges ();
-               }
-               else
-               {
-                  const dlgData: MessDlgData = {
-                     title:      'ERRORE',
-                     subtitle:   "Errore nell'aggiornamento dei dati",
-                     message:    `${response.message}`,
-                     messtype:   'error',
-                     btncaption: 'Chiudi'
-                  };
-                  this.messageDialogService.showMessage (dlgData, '600px');
-               }
+               const dlgData: MessDlgData = {
+                  title:      'ERRORE',
+                  subtitle:   "Errore nella cancellazione dei dati",
+                  message:    `${response.message}`,
+                  messtype:   'error',
+                  btncaption: 'Chiudi'
+               };
+               this.messageDialogService.showMessage (dlgData, '600px');
             }
          }
          catch (e)

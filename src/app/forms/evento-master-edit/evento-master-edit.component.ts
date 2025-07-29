@@ -10,6 +10,7 @@ import { Router} from "@angular/router";
 import { RisorseService } from "../../services/risorse.service";
 import { GruppiService } from "../../services/gruppi.service";
 import { EventiMasterService } from "../../services/eventi-master.service";
+import { EventiService } from "../../services/eventi.service";
 import {
    MessDlgData,
    SeasonElement,
@@ -81,6 +82,7 @@ export class EventoMasterEditComponent implements OnInit
 
    constructor (private authService: AuthService,
                 private eventiService: EventiMasterService,
+                private eventoFiglioService: EventiService,
                 private resourceService: RisorseService,
                 private gruppiService: GruppiService,
                 private router: Router,
@@ -202,7 +204,45 @@ export class EventoMasterEditComponent implements OnInit
 
             if (response.ok)
             {
-               console.log ('Item aggiunto:', response);
+               let newId: number = 0;
+               if (response.elements.length > 0)
+               {
+                  try
+                  {
+                     newId = Number(response.elements[0]);
+                  }
+                  catch(err)
+                  {
+                  }
+               }
+               console.log (`Item aggiunto: `, response);
+               if ((newId > 0) && (this.data) && (this.datafine) && (this.orainizio) && (this.orafine))
+               {
+                  // aggiungo tutti gli eventi figli nella tabella degli eventi
+                  // Come prima cosa prendo il giorno della settimana dell'evento
+                  let currDay: Date = new Date(this.data);
+                  while (currDay <= this.datafine)
+                  {
+                     currDay.setHours(0);
+                     currDay.setMinutes(0);
+                     currDay.setSeconds(0);
+                     await firstValueFrom (this.eventoFiglioService.addNewData(currDay.toLocaleDateString ('ja-JP'),
+                                                                               `${this.orainizio.getHours ()}:${this.orainizio.getMinutes ()}`,
+                                                                               `${this.orafine.getHours ()}:${this.orafine.getMinutes ()}`,
+                                                                               this.risorsa_id,
+                                                                               this.gruppo_id,
+                                                                               "", // casa
+                                                                               "", // ospite
+                                                                               "", // luogo
+                                                                               this.commento,
+                                                                               false,
+                                                                               TipoEvento.EventoPeriodico,
+                                                                               this.season_id,
+                                                                               newId));
+                     //
+                     currDay.setDate(currDay.getDate() + 7);   // incremento di 7 giorni
+                  }
+               }
                this.router.navigate (['/eventimastertable']);
             }
             else
@@ -232,6 +272,34 @@ export class EventoMasterEditComponent implements OnInit
             if (response.ok)
             {
                console.log ('Item aggiornato:', response);
+               if ((this.data) && (this.datafine) && (this.orainizio) && (this.orafine))
+               {
+                  // cancello tutti gli eventi periodici figli
+                  await firstValueFrom (this.eventoFiglioService.DeletePeriodic(this.id));
+                  // .. e poi li ricreo
+                  let currDay: Date = new Date(this.data);
+                  while (currDay <= this.datafine)
+                  {
+                     currDay.setHours(0);
+                     currDay.setMinutes(0);
+                     currDay.setSeconds(0);
+                     await firstValueFrom (this.eventoFiglioService.addNewData(currDay.toLocaleDateString ('ja-JP'),
+                                                                               `${this.orainizio.getHours ()}:${this.orainizio.getMinutes ()}`,
+                                                                               `${this.orafine.getHours ()}:${this.orafine.getMinutes ()}`,
+                                                                               this.risorsa_id,
+                                                                               this.gruppo_id,
+                                                                               "", // casa
+                                                                               "", // ospite
+                                                                               "", // luogo
+                                                                               this.commento,
+                                                                               false,
+                                                                               TipoEvento.EventoPeriodico,
+                                                                               this.season_id,
+                                                                               this.id));
+                     //
+                     currDay.setDate(currDay.getDate() + 7);   // incremento di 7 giorni
+                  }
+               }
                this.router.navigate (['/eventimastertable']);
             }
             else
