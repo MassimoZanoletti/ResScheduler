@@ -1,9 +1,12 @@
-import {ChangeDetectorRef,
+import {
+   ChangeDetectorRef,
    Component,
+   HostListener,
    NgZone,
    OnDestroy,
    OnInit,
-   ViewChild} from '@angular/core';
+   ViewChild,
+} from '@angular/core';
 import {BlockUIModule} from "primeng/blockui";
 import {Button,
    ButtonDirective,
@@ -86,6 +89,8 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    fltrGruppoItems: Array<Gruppo> | null = null;
    fltrDlgRef: DynamicDialogRef | undefined;
    totRec: number = 0;
+   windowHeight: number = 110;
+   scrollHeight: string = "110px";
    @ViewChild ('eventsMasterTable') pTable: Table | undefined;
 
 
@@ -109,6 +114,8 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    {
       try
       {
+         await this.GetWindowSize();
+         //
          await this.LoadFilters ();
          //
          await this.LoadSeasons ();
@@ -753,6 +760,23 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
       {
          //this.fltrGruppo = (this.fltrGruppoItems)?((this.fltrGruppoItems.length > 0)?true:false):false;
       }
+   }
+
+
+   async GetWindowSize()
+   {
+      this.windowHeight = window.innerHeight;
+      let sh: number = this.windowHeight - 110 - 90 - 180;
+      if (sh < 110)
+         sh = 110;
+      this.scrollHeight = `${sh}px`;
+   }
+
+
+   @HostListener('window:resize', ['$event'])
+   async onResize(event: any)
+   {
+      await this.GetWindowSize();
    }
 
 

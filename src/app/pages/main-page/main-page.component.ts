@@ -4,7 +4,8 @@ import {
    OnInit,
    ViewChild,
    ElementRef,
-   OnDestroy
+   OnDestroy,
+   HostListener
 } from '@angular/core';
 import { TableModule} from 'primeng/table';
 import { FormsModule} from '@angular/forms';
@@ -89,6 +90,8 @@ export class MainPageComponent implements OnInit, OnDestroy
    totRec: number = 0;
    listaTipoEvento: Array<string> = [];
    currTipoEvento: string | null = null;
+   windowHeight: number = 110;
+   scrollHeight: string = "110px";
    @ViewChild('eventsTable') pTable: Table | undefined;
 
 
@@ -111,6 +114,8 @@ export class MainPageComponent implements OnInit, OnDestroy
    {
       try
       {
+         await this.GetWindowSize();
+         //
          this.listaTipoEvento.push("Solo Eventi classici");
          this.listaTipoEvento.push("Solo Eventi periodici");
          this.listaTipoEvento.push("Tutti i tipi");
@@ -944,6 +949,22 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
    }
 
+
+   async GetWindowSize()
+   {
+      this.windowHeight = window.innerHeight;
+      let sh: number = this.windowHeight - 110 - 90 - 180;
+      if (sh < 110)
+         sh = 110;
+      this.scrollHeight = `${sh}px`;
+   }
+
+
+   @HostListener('window:resize', ['$event'])
+   async onResize(event: any)
+   {
+      await this.GetWindowSize();
+   }
 
 
 }

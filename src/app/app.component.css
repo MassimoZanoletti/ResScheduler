@@ -1,3 +1,10 @@
+html, body {
+   height: 100%; /* Importante per far funzionare min-height: 100vh */
+   margin: 0;    /* Rimuove margini predefiniti */
+   padding: 0;   /* Rimuove padding predefiniti */
+   overflow: auto; /* IMPORTANTE: Permette lo scroll della pagina */
+   overflow-x: hidden; /* OPZIONALE: Impedisce scroll orizzontale su tutto il body se non desiderato */
+}
 
 .app-container {
    display: flex;
@@ -7,6 +14,7 @@
 
 .content {
    flex-grow: 1;
+   padding-bottom: 90px;
 }
 
 .app-footer {
@@ -20,10 +28,11 @@
    */
    text-align: center;
    padding: 10px;
-   position: fixed; /* Ancoriamo il footer alla viewport */
-   bottom: 0; /* Lo posizioniamo in basso */
-   left: 0; /* Lo allineiamo al bordo sinistro */
-   width: 100%; /* Fa in modo che occupi tutta la larghezza */
+   position: fixed;
+   bottom: 0;
+   left: 0;
+   width: 100%;
+   height: 60px;
 }
 
 
