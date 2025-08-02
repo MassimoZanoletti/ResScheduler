@@ -1,11 +1,11 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Observable, of} from 'rxjs';
+import {Observable} from 'rxjs';
 import {
    EventoMasterDb,
-   EventoMasterDbElement
-} from "../models/datamod";
-import {map, tap} from "rxjs/operators";
+   EventoMasterDbElement } from "../models/datamod";
+import {map,
+   tap} from "rxjs/operators";
 
 
 

@@ -16,6 +16,20 @@
 
             <p-divider layout="vertical" />
 
+            <div class="form-group">
+               <label for="cbstagione" style="margin-right: 10px;">Stagione:</label>
+               <p-dropdown
+                  id="cbstagione"
+                  [style]="{'min-width': '255px'}"
+                  [options]="listaStagioni"
+                  optionLabel="nome"
+                  [(ngModel)]="currSeason"
+                  [checkmark]="true"
+                  [showClear]="false"
+                  [scrollHeight]="'300px'"
+                  (onChange)="OnSeasonChange($event)"/>
+            </div>
+
          </div>
       </p-card>
    </div>
@@ -75,7 +89,7 @@
                <tr [pSelectableRow]="evento"
                    [ngClass]="GetRowColorClass(evento)">
                   <td><span style="font-size: 0.6em;">{{ evento.id }}</span></td>
-                  <td>{{ FormattaData (evento.data) }}</td>
+                  <td>{{ GetFormattedDate(evento, rowIndex) }}</td>
                   <td>{{ FormattaData (evento.datafine) }}</td>
                   <td>{{ FormattaOrario (evento.orainizio) }}</td>
                   <td>{{ FormattaOrario (evento.orafine) }}</td>

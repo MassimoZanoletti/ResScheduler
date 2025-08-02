@@ -47,8 +47,9 @@
                <label for="cbtipoevento" style="margin-right: 10px;">Tipo evento:</label>
                <p-dropdown
                   id="cbtipoevento"
-                  [style]="{'min-width': '255px'}"
+                  [style]="{'min-width': '280px'}"
                   [options]="listaTipoEvento"
+                  optionLabel="nome"
                   [(ngModel)]="currTipoEvento"
                   [checkmark]="true"
                   [showClear]="false"
@@ -68,6 +69,7 @@
       <div class="card"
            id="div-tabella">
          <p-table
+            id="eventsTable"
             #eventsTable
             class="custom-header-table"
             styleClass="p-datatable-gridlines"
@@ -117,7 +119,7 @@
                <tr [pSelectableRow]="evento"
                    [ngClass]="GetRowColorClass(evento)">
                   <td><span style="font-size: 0.6em;">{{ evento.id }}</span></td>
-                  <td>{{ FormattaData (evento.data) }}</td>
+                  <td>{{ GetFormattedDate(evento, rowIndex) }}</td>
                   <td><b>{{ FormattaOrario (evento.orainizio) }}</b></td>
                   <td><span style="font-size: 0.7em;">{{ FormattaOrario (evento.orafine) }}</span></td>
                   <td [ngStyle]="ColoreRisorsa(evento)">{{ evento.risorsa }}</td>

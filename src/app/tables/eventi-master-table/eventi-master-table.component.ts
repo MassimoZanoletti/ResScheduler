@@ -1,46 +1,45 @@
-import {
-   ChangeDetectorRef,
-   Component,
-   HostListener,
-   NgZone,
-   OnDestroy,
-   OnInit,
-   ViewChild,
-} from '@angular/core';
+// angular
+import {ChangeDetectorRef,
+         Component,
+         HostListener,
+         NgZone,
+         OnDestroy,
+         OnInit,
+         ViewChild} from '@angular/core';
+import {CommonModule} from "@angular/common";
+import {FormsModule} from "@angular/forms";
+import {Router} from "@angular/router";
+import {firstValueFrom} from "rxjs";
+
+// primeng
 import {BlockUIModule} from "primeng/blockui";
-import {Button,
-   ButtonDirective,
-   ButtonModule} from "primeng/button";
+import {ButtonModule} from "primeng/button";
 import {CardModule} from "primeng/card";
 import {CheckboxModule} from "primeng/checkbox";
 import {DividerModule} from "primeng/divider";
 import {DropdownModule} from "primeng/dropdown";
-import {CommonModule,
-   NgIf} from "@angular/common";
 import {MessageService} from "primeng/api";
 import {ProgressSpinnerModule} from "primeng/progressspinner";
-import {Table, TableModule} from "primeng/table";
+import {Table,
+         TableModule} from "primeng/table";
 import {TooltipModule} from "primeng/tooltip";
-import {FormsModule} from "@angular/forms";
 import {DialogModule} from "primeng/dialog";
 import {DialogService,
-   DynamicDialogModule,
-   DynamicDialogRef} from "primeng/dynamicdialog";
-import {
-   EventoMasterElement,
-   Gruppo,
-   MessDlgData,
-   Resource,
-   SeasonElement
-} from "../../models/datamod";
-import {Router} from "@angular/router";
+         DynamicDialogModule,
+         DynamicDialogRef} from "primeng/dynamicdialog";
+
+// other
+import {EventoMasterElement,
+         Gruppo,
+         MessDlgData,
+         Resource,
+         SeasonElement} from "../../models/datamod";
 import {SeasonsService} from "../../services/seasons.service";
 import {EventiMasterService} from "../../services/eventi-master.service";
 import {RisorseService} from "../../services/risorse.service";
 import {GruppiService} from "../../services/gruppi.service";
 import {MessageDialogService} from "../../services/message-dialog.service";
 import {utils} from "../../common/utils";
-import {firstValueFrom} from "rxjs";
 import {loggedUser} from "../../services/users.service";
 import {MultiSelectModalComponent} from "../../dialogs/multi-select-modal/multi-select-modal.component";
 import {EventiService} from "../../services/eventi.service";
@@ -65,7 +64,7 @@ import {EventiService} from "../../services/eventi.service";
                   DialogModule,
                   DynamicDialogModule
                ],
-               providers: [
+               providers:   [
                   DialogService, // Fornisci il servizio per DynamicDialog
                   MessageService // Opzionale, per i messaggi
                ],
@@ -114,7 +113,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    {
       try
       {
-         await this.GetWindowSize();
+         await this.GetWindowSize ();
          //
          await this.LoadFilters ();
          //
@@ -318,7 +317,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
       let yyyy: number = 0;
       let mmmm: number = 0;
       let dddd: number = 0;
-      let oggi: Date = new Date();
+      let oggi: Date = new Date ();
 
 
       yyyy = oggi.getFullYear ();
@@ -436,6 +435,32 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    OnRowUnselected (evento: any)
    {
       utils.removeFromSessionStorage ("RS_Editing_Event_Id");
+   }
+
+
+   OnSeasonChange (evento: any)
+   {
+      utils.SaveToLocalStorage ("RS_CurrSeason", this.currSeason);
+      this.LoadEvents ();
+   }
+
+
+   GetFormattedDate(evento: any, rowIndex: number): string
+   {
+      // Se è la prima riga, visualizza sempre la data
+      if (rowIndex === 0)
+      {
+         return this.FormattaData(evento.data);
+      }
+
+      // Recupera il valore della data dell'evento precedente
+      const previousEvent = this.listaEventi[rowIndex - 1];
+      const previousDate = this.FormattaData(previousEvent.data);
+      const currentDate = this.FormattaData(evento.data);
+
+      // Confronta le date. Se sono uguali, restituisci una stringa vuota.
+      // Altrimenti, restituisci la data formattata.
+      return currentDate === previousDate ? '' : currentDate;
    }
 
 
@@ -573,7 +598,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
          {
             this.isLoadingEv = true;
             // cancello tutti gli eventi periodici figli
-            await firstValueFrom (this.eventoFiglioService.DeletePeriodic(this.currEvent.id));
+            await firstValueFrom (this.eventoFiglioService.DeletePeriodic (this.currEvent.id));
             // .. e pi cancello l'evento master
             const response = await firstValueFrom (this.eventServ.DeleteData (this.currEvent.id));
 
@@ -636,18 +661,20 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
                                                         // Se l'utente ha premuto OK e ci sono opzioni selezionate
                                                         this.fltrRisorsaItems = result.selectedOptions;
                                                         console.log ('Opzioni selezionate (OK):', this.fltrRisorsaItems);
-                                                        this.fltrMessageService.add ({severity:  'success',
-                                                                                        summary: 'Confermato',
-                                                                                        detail:  'Selezione salvata!'
+                                                        this.fltrMessageService.add ({
+                                                                                        severity: 'success',
+                                                                                        summary:  'Confermato',
+                                                                                        detail:   'Selezione salvata!'
                                                                                      });
                                                      }
                                                      else if (result.action === 'cancel')
                                                      {
                                                         // Se l'utente ha premuto Annulla
                                                         console.log ('Modale annullata. Mantenute le selezioni precedenti.');
-                                                        this.fltrMessageService.add ({severity:  'warn',
-                                                                                        summary: 'Annullato',
-                                                                                        detail:  'Selezione precedente mantenuta.'
+                                                        this.fltrMessageService.add ({
+                                                                                        severity: 'warn',
+                                                                                        summary:  'Annullato',
+                                                                                        detail:   'Selezione precedente mantenuta.'
                                                                                      });
                                                         // Non facciamo nulla con this.selectedItemsFromModal, così conserva il suo stato precedente
                                                      }
@@ -656,9 +683,10 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
                                                   {
                                                      // Questo caso si verifica se la modale è stata chiusa senza un'azione esplicita (es. clic su 'x' o tasto ESC)
                                                      console.log ('Modale chiusa senza azione specifica (es. X o ESC). Mantenute le selezioni precedenti.');
-                                                     this.fltrMessageService.add ({severity:  'info',
-                                                                                     summary: 'Chiusa',
-                                                                                     detail:  'Nessuna modifica alla selezione.'
+                                                     this.fltrMessageService.add ({
+                                                                                     severity: 'info',
+                                                                                     summary:  'Chiusa',
+                                                                                     detail:   'Nessuna modifica alla selezione.'
                                                                                   });
                                                   }
                                                }
@@ -714,18 +742,20 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
                                                         // Se l'utente ha premuto OK e ci sono opzioni selezionate
                                                         this.fltrGruppoItems = result.selectedOptions;
                                                         console.log ('Opzioni selezionate (OK):', this.fltrGruppoItems);
-                                                        this.fltrMessageService.add ({severity:  'success',
-                                                                                        summary: 'Confermato',
-                                                                                        detail:  'Selezione salvata!'
+                                                        this.fltrMessageService.add ({
+                                                                                        severity: 'success',
+                                                                                        summary:  'Confermato',
+                                                                                        detail:   'Selezione salvata!'
                                                                                      });
                                                      }
                                                      else if (result.action === 'cancel')
                                                      {
                                                         // Se l'utente ha premuto Annulla
                                                         console.log ('Modale annullata. Mantenute le selezioni precedenti.');
-                                                        this.fltrMessageService.add ({severity:  'warn',
-                                                                                        summary: 'Annullato',
-                                                                                        detail:  'Selezione precedente mantenuta.'
+                                                        this.fltrMessageService.add ({
+                                                                                        severity: 'warn',
+                                                                                        summary:  'Annullato',
+                                                                                        detail:   'Selezione precedente mantenuta.'
                                                                                      });
                                                         // Non facciamo nulla con this.selectedItemsFromModal, così conserva il suo stato precedente
                                                      }
@@ -734,9 +764,10 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
                                                   {
                                                      // Questo caso si verifica se la modale è stata chiusa senza un'azione esplicita (es. clic su 'x' o tasto ESC)
                                                      console.log ('Modale chiusa senza azione specifica (es. X o ESC). Mantenute le selezioni precedenti.');
-                                                     this.fltrMessageService.add ({severity:  'info',
-                                                                                     summary: 'Chiusa',
-                                                                                     detail:  'Nessuna modifica alla selezione.'
+                                                     this.fltrMessageService.add ({
+                                                                                     severity: 'info',
+                                                                                     summary:  'Chiusa',
+                                                                                     detail:   'Nessuna modifica alla selezione.'
                                                                                   });
                                                   }
                                                }
@@ -763,7 +794,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    }
 
 
-   async GetWindowSize()
+   async GetWindowSize ()
    {
       this.windowHeight = window.innerHeight;
       let sh: number = this.windowHeight - 110 - 90 - 180;
@@ -773,11 +804,13 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    }
 
 
-   @HostListener('window:resize', ['$event'])
-   async onResize(event: any)
+   @HostListener ('window:resize', ['$event'])
+   async onResize (event: any)
    {
-      await this.GetWindowSize();
+      await this.GetWindowSize ();
    }
 
 
 }
+
+

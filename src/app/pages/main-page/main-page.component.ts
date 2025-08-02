@@ -1,48 +1,57 @@
-import {
-   ChangeDetectorRef,
-   Component,
-   OnInit,
-   ViewChild,
-   ElementRef,
-   OnDestroy,
-   HostListener
-} from '@angular/core';
-import { TableModule} from 'primeng/table';
-import { FormsModule} from '@angular/forms';
-import { CommonModule} from '@angular/common';
-import { ButtonModule} from "primeng/button";
-import { TooltipModule} from 'primeng/tooltip';
-import { CardModule} from 'primeng/card';
-import { DropdownModule} from "primeng/dropdown";
-import {
-   EventoElement, Gruppo,
-   MessDlgData, Resource,
-   SeasonElement,
-   TipoEvento
-} from "../../models/datamod";
-import { SeasonsService} from "../../services/seasons.service";
-import { EventiService} from "../../services/eventi.service";
-import { RisorseService } from "../../services/risorse.service";
-import { MessageDialogService} from "../../services/message-dialog.service";
-import { utils} from "../../common/utils";
-import { BlockUIModule} from "primeng/blockui";
-import { ProgressSpinnerModule} from "primeng/progressspinner";
-import { DividerModule } from 'primeng/divider';
-import { CheckboxModule } from "primeng/checkbox";
-import { Router} from "@angular/router";
-import { Table } from 'primeng/table';
-import { NgZone } from '@angular/core'
-import { firstValueFrom} from "rxjs";
-import { DialogModule } from 'primeng/dialog';
-import {
-   DialogService,
-   DynamicDialogRef,
-   DynamicDialogModule
-      } from 'primeng/dynamicdialog';
-import { MessageService } from 'primeng/api';
-import { MultiSelectModalComponent } from "../../dialogs/multi-select-modal/multi-select-modal.component";
+// angular
+import {ChangeDetectorRef,
+         Component,
+         HostListener,
+         NgZone,
+         OnDestroy,
+         OnInit,
+         ViewChild} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {Router} from "@angular/router";
+import {firstValueFrom} from "rxjs";
+
+// primeng
+import {Table,
+         TableModule} from 'primeng/table';
+import {ButtonModule} from "primeng/button";
+import {TooltipModule} from 'primeng/tooltip';
+import {CardModule} from 'primeng/card';
+import {DropdownModule} from "primeng/dropdown";
+import {EventoElement,
+         Gruppo,
+         MessDlgData,
+         Resource,
+         SeasonElement,
+         TipoEvento} from "../../models/datamod";
+import {BlockUIModule} from "primeng/blockui";
+import {ProgressSpinnerModule} from "primeng/progressspinner";
+import {DividerModule} from 'primeng/divider';
+import {CheckboxModule} from "primeng/checkbox";
+import {DialogModule} from 'primeng/dialog';
+import {DialogService,
+         DynamicDialogModule,
+         DynamicDialogRef} from 'primeng/dynamicdialog';
+import {MessageService} from 'primeng/api';
+
+// other
+import {SeasonsService} from "../../services/seasons.service";
+import {EventiService} from "../../services/eventi.service";
+import {RisorseService} from "../../services/risorse.service";
+import {MessageDialogService} from "../../services/message-dialog.service";
+import {utils} from "../../common/utils";
+import {MultiSelectModalComponent} from "../../dialogs/multi-select-modal/multi-select-modal.component";
 import {GruppiService} from "../../services/gruppi.service";
-import { loggedUser } from "../../services/users.service";
+import {loggedUser} from "../../services/users.service";
+
+
+
+export interface CbTipoEvento
+{
+   id: number;
+   nome: string;
+}
+
 
 
 
@@ -73,8 +82,11 @@ import { loggedUser } from "../../services/users.service";
             })
 export class MainPageComponent implements OnInit, OnDestroy
 {
+   /*
    isLoadingEv: boolean = false;
    isLoadingSea: boolean = false;
+   */
+   isLoadingData: number = 0;
    listaEventi: Array<EventoElement> = [];
    currEvent: EventoElement | null = null;
    listaStagioni: Array<SeasonElement> = [];
@@ -88,10 +100,11 @@ export class MainPageComponent implements OnInit, OnDestroy
    fltrGruppoItems: Array<Gruppo> | null = null;
    fltrDlgRef: DynamicDialogRef | undefined;
    totRec: number = 0;
-   listaTipoEvento: Array<string> = [];
-   currTipoEvento: string | null = null;
+   listaTipoEvento: Array<CbTipoEvento> = [];
+   currTipoEvento: CbTipoEvento | null = null;
    windowHeight: number = 110;
    scrollHeight: string = "110px";
+   timerId: any;
    @ViewChild('eventsTable') pTable: Table | undefined;
 
 
@@ -107,6 +120,11 @@ export class MainPageComponent implements OnInit, OnDestroy
                 public fltrMessageService: MessageService)
    {
       this.currEvent = null;
+      //
+      this.listaTipoEvento = [];
+      this.listaTipoEvento.push({ id: 1, nome: "Solo Eventi classici" });
+      this.listaTipoEvento.push({ id: 2, nome: "Solo Eventi periodici" });
+      this.listaTipoEvento.push({ id: 3, nome: "Tutti i tipi" });
    }
 
 
@@ -116,14 +134,11 @@ export class MainPageComponent implements OnInit, OnDestroy
       {
          await this.GetWindowSize();
          //
-         this.listaTipoEvento.push("Solo Eventi classici");
-         this.listaTipoEvento.push("Solo Eventi periodici");
-         this.listaTipoEvento.push("Tutti i tipi");
-         //
-         const tmpTipo: string | null = utils.GetFromLocalStorage<string> ("RS_CurrTipoEvento");
+         const tmpTipo: CbTipoEvento | null = utils.GetFromLocalStorage<CbTipoEvento> ("RS_CurrTipoEvento");
          if (tmpTipo != null)
          {
-            this.currTipoEvento = this.listaTipoEvento.find (tipo => tipo === tmpTipo) || null;
+            this.currTipoEvento = this.listaTipoEvento.find (tipo => tipo.id == tmpTipo.id) || null;
+            this.cdr.detectChanges();
          }
          //
          await this.LoadFilters();
@@ -136,7 +151,7 @@ export class MainPageComponent implements OnInit, OnDestroy
             this.currSeason = this.listaStagioni.find (season => season.id === tmpSeason.id) || null;
          }
          //
-         this.isLoadingEv = true;
+         //this.isLoadingEv = true;
          await this.LoadEvents();
       }
       catch (e)
@@ -147,6 +162,7 @@ export class MainPageComponent implements OnInit, OnDestroy
       {
          //this.isLoadingSea = false;
          //this.isLoadingEv = false;
+         this.cdr.detectChanges();
       }
    }
 
@@ -160,9 +176,17 @@ export class MainPageComponent implements OnInit, OnDestroy
    }
 
 
+   async SetLoading (value: number)
+   {
+      console.info(`Loading: ${value}`);
+      this.isLoadingData = value;
+   }
+
+
    CheckLoading(): boolean
    {
-      return ((this.isLoadingEv) || (this.isLoadingSea));
+      //return ((this.isLoadingEv) || (this.isLoadingSea));
+      return (this.isLoadingData != 0);
    }
 
 
@@ -170,7 +194,8 @@ export class MainPageComponent implements OnInit, OnDestroy
    {
       try
       {
-         this.isLoadingSea = true;
+         //this.isLoadingSea = true;
+         await this.SetLoading(1);
          const dataSeas = await firstValueFrom(this.seasonServ.getAllData());
          if ((dataSeas) && (dataSeas.ok))
             this.listaStagioni = dataSeas.elements;
@@ -181,45 +206,53 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
       finally
       {
-         this.isLoadingSea = false;
+         //this.isLoadingSea = false;
+         await this.SetLoading(0);
          this.cdr.detectChanges ();
       }
    }
-
 
    async LoadEvents()
    {
       try
       {
-         this.isLoadingEv = true;
+         //this.isLoadingEv = true;
+         await this.SetLoading (2);
          this.totRec = 0;
-         let seasonId: number | null = (this.currSeason != null)?this.currSeason.id:null;
+         let seasonId: number | null = (this.currSeason != null) ? this.currSeason.id : null;
          let tipoEvnt: number | null = null;
          let risorsaId: Array<number> | null = null;
          let gruppoId: Array<number> | null = null;
          let giorno: Date | null = null;
          let masterId: number | null = null;
+         console.log ("A");
          if ((this.fltrRisorsaItems) && (this.fltrRisorsaItems.length > 0))
          {
             risorsaId = [];
             for (let i = 0; i < this.fltrRisorsaItems.length; i++)
                risorsaId.push (this.fltrRisorsaItems[i].id);
          }
+         console.log ("B");
          if ((this.fltrGruppoItems) && (this.fltrGruppoItems.length > 0))
          {
             gruppoId = [];
             for (let i = 0; i < this.fltrGruppoItems.length; i++)
                gruppoId.push (this.fltrGruppoItems[i].id);
          }
+         console.log ("C");
          if (this.currTipoEvento == this.listaTipoEvento[0])
             tipoEvnt = TipoEvento.EventoNormale;
          if (this.currTipoEvento == this.listaTipoEvento[1])
             tipoEvnt = -1;
-         const dataEvnt = await firstValueFrom(this.eventServ.getAllData (seasonId, tipoEvnt, risorsaId, gruppoId, giorno, masterId));
+         console.log ("Inizio " + new Date ().toLocaleTimeString ());
+         let dataEvnt: any;
+         dataEvnt = await firstValueFrom (this.eventServ.getAllData (seasonId, tipoEvnt, risorsaId, gruppoId, giorno, masterId));
+         console.log("Fine " + new Date().toLocaleTimeString());
          if (dataEvnt)
          {
             if (dataEvnt.ok)
             {
+               console.log(`Messaggio: '${dataEvnt.message}' ` + new Date().toLocaleTimeString());
                this.listaEventi = dataEvnt.elements;
                this.totRec = this.listaEventi.length;
                const prevSelected = utils.GetFromSessionStorage("RS_Editing_Event_Id");
@@ -266,7 +299,8 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
       finally
       {
-         this.isLoadingEv = false;
+         //this.isLoadingEv = false;
+         await this.SetLoading(0);
          this.cdr.detectChanges ();
       }
    }
@@ -274,13 +308,23 @@ export class MainPageComponent implements OnInit, OnDestroy
 
    async LoadFilters()
    {
-      const dataRis = await firstValueFrom(this.resourceService.getAllData());
-      if ((dataRis) && (dataRis.ok))
-         this.listaRisorse = dataRis.elements;
-      //
-      const dataGrp = await firstValueFrom(this.gruppiService.getAllData());
-      if ((dataGrp) && (dataGrp.ok))
-         this.listaGruppi = dataGrp.elements;
+      await this.SetLoading(3);
+      try
+      {
+         const dataRis = await firstValueFrom (this.resourceService.getAllData ());
+         if ((dataRis) && (dataRis.ok))
+            this.listaRisorse = dataRis.elements;
+         //
+         const dataGrp = await firstValueFrom (this.gruppiService.getAllData ());
+         if ((dataGrp) && (dataGrp.ok))
+            this.listaGruppi = dataGrp.elements;
+      }
+      catch(err)
+      {}
+      finally
+      {
+         await this.SetLoading(0);
+      }
    }
 
 
@@ -490,6 +534,25 @@ export class MainPageComponent implements OnInit, OnDestroy
    }
 
 
+   GetFormattedDate(evento: any, rowIndex: number): string
+   {
+      // Se è la prima riga, visualizza sempre la data
+      if (rowIndex === 0)
+      {
+         return this.FormattaData(evento.data);
+      }
+
+      // Recupera il valore della data dell'evento precedente
+      const previousEvent = this.listaEventi[rowIndex - 1];
+      const previousDate = this.FormattaData(previousEvent.data);
+      const currentDate = this.FormattaData(evento.data);
+
+      // Confronta le date. Se sono uguali, restituisci una stringa vuota.
+      // Altrimenti, restituisci la data formattata.
+      return currentDate === previousDate ? '' : currentDate;
+   }
+
+
    FormattaData (data: Date | string): string
    {
       try
@@ -578,14 +641,14 @@ export class MainPageComponent implements OnInit, OnDestroy
    OnSeasonChange(evento: any)
    {
       utils.SaveToLocalStorage("RS_CurrSeason", this.currSeason);
-      this.LoadEvents();
+      window.location.reload();
    }
 
 
    OnTipoEventoChange(evento: any)
    {
       utils.SaveToLocalStorage("RS_CurrTipoEvento", this.currTipoEvento);
-      this.LoadEvents();
+      window.location.reload();
    }
 
 
@@ -675,7 +738,7 @@ export class MainPageComponent implements OnInit, OnDestroy
    }
 
 
-   SelectAndScrollToEvent(idToSelect: number)
+   async SelectAndScrollToEvent(idToSelect: number)
    {
       let rowToSelect: EventoElement | null = null;
       let selectedIndex: number = -1;
@@ -698,7 +761,16 @@ export class MainPageComponent implements OnInit, OnDestroy
          let scr1: number = selectedIndex-rpp;
          if (scr1 > 0)
             rts = scr1 + (rpp/2);
-         this.pTable?.scrollTo({'top': 25*rts});
+         if (this.pTable)
+         {
+            console.log(`GoTo line ${rts}`)
+            // Lasciare le due righe che seguono: sia la chiamata diretta che quella con timeout
+            this.pTable.scrollTo ({'top': 25 * rts});
+            setTimeout (() => {
+               if (this.pTable)
+                  this.pTable.scrollTo ({'top': 25 * rts});
+            }, 0);
+         }
          this.currEvent = rowToSelect;
       }
       else
@@ -743,7 +815,8 @@ export class MainPageComponent implements OnInit, OnDestroy
             {
                // c'è più di un evento per il giorno selezionato:
                //  cancello l'evento
-               this.isLoadingEv = true;
+               //this.isLoadingEv = true;
+               await this.SetLoading(4);
                const response = await firstValueFrom (this.eventServ.DeleteData(this.currEvent.id));
 
                if (response.ok)
@@ -767,7 +840,8 @@ export class MainPageComponent implements OnInit, OnDestroy
             {
                // c'è solo un evento nel giorno selezionato
                //  azzero l'evento senza cancellare il record
-               this.isLoadingEv = true;
+               //this.isLoadingEv = true;
+               await this.SetLoading(5);
                const response = await firstValueFrom (this.eventServ.updateData (this.currEvent.id,
                                                                                  (this.currEvent.data) ? this.currEvent.data.toLocaleDateString ('ja-JP') : "",
                                                                                  `00:00`,
@@ -807,7 +881,8 @@ export class MainPageComponent implements OnInit, OnDestroy
          }
          finally
          {
-            this.isLoadingEv = false;
+            //this.isLoadingEv = false;
+            await this.SetLoading(0);
          }
       }
    }
