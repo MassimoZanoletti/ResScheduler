@@ -43,6 +43,7 @@ import {utils} from "../../common/utils";
 import {MultiSelectModalComponent} from "../../dialogs/multi-select-modal/multi-select-modal.component";
 import {GruppiService} from "../../services/gruppi.service";
 import {loggedUser} from "../../services/users.service";
+import { LogService } from "../../services/log.service";
 
 
 
@@ -117,7 +118,8 @@ export class MainPageComponent implements OnInit, OnDestroy
                 private messageDialogService: MessageDialogService,
                 private zone: NgZone,
                 public fltrDialogService: DialogService,
-                public fltrMessageService: MessageService)
+                public fltrMessageService: MessageService,
+                private logService: LogService)
    {
       this.currEvent = null;
       //
@@ -225,34 +227,28 @@ export class MainPageComponent implements OnInit, OnDestroy
          let gruppoId: Array<number> | null = null;
          let giorno: Date | null = null;
          let masterId: number | null = null;
-         console.log ("A");
          if ((this.fltrRisorsaItems) && (this.fltrRisorsaItems.length > 0))
          {
             risorsaId = [];
             for (let i = 0; i < this.fltrRisorsaItems.length; i++)
                risorsaId.push (this.fltrRisorsaItems[i].id);
          }
-         console.log ("B");
          if ((this.fltrGruppoItems) && (this.fltrGruppoItems.length > 0))
          {
             gruppoId = [];
             for (let i = 0; i < this.fltrGruppoItems.length; i++)
                gruppoId.push (this.fltrGruppoItems[i].id);
          }
-         console.log ("C");
          if (this.currTipoEvento == this.listaTipoEvento[0])
             tipoEvnt = TipoEvento.EventoNormale;
          if (this.currTipoEvento == this.listaTipoEvento[1])
             tipoEvnt = -1;
-         console.log ("Inizio " + new Date ().toLocaleTimeString ());
          let dataEvnt: any;
          dataEvnt = await firstValueFrom (this.eventServ.getAllData (seasonId, tipoEvnt, risorsaId, gruppoId, giorno, masterId));
-         console.log("Fine " + new Date().toLocaleTimeString());
          if (dataEvnt)
          {
             if (dataEvnt.ok)
             {
-               console.log(`Messaggio: '${dataEvnt.message}' ` + new Date().toLocaleTimeString());
                this.listaEventi = dataEvnt.elements;
                this.totRec = this.listaEventi.length;
                const prevSelected = utils.GetFromSessionStorage("RS_Editing_Event_Id");
@@ -288,6 +284,7 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
       catch (err)
       {
+         await this.logService.AddToLog (loggedUser, `Exception [LoadEvents]: '${JSON.stringify(err,null,-1)}'`);
          const dlgData: MessDlgData = {
             title:      'Exception',
             subtitle:   'Errore',
@@ -641,6 +638,7 @@ export class MainPageComponent implements OnInit, OnDestroy
    OnSeasonChange(evento: any)
    {
       utils.SaveToLocalStorage("RS_CurrSeason", this.currSeason);
+      this.logService.AddToLog (loggedUser, `Eventi: selezionata stagione '${this.currSeason?.nome}'`);
       window.location.reload();
    }
 
@@ -720,7 +718,7 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                                                        }
                                                                                     }
                                                                                     this.cdr.detectChanges ();
-                                                                                    this.LoadEvents();
+                                                                                    window.location.reload();
                                                                                  }
                                                                                  /*
                                                                                  else if (result === 'primary')
@@ -821,7 +819,8 @@ export class MainPageComponent implements OnInit, OnDestroy
 
                if (response.ok)
                {
-                  await this.LoadEvents();
+                  await this.logService.AddToLog (loggedUser, `Cancellato Evento '${this.currEvent.id}'`);
+                  window.location.reload();
                   this.cdr.detectChanges ();
                }
                else
@@ -859,7 +858,8 @@ export class MainPageComponent implements OnInit, OnDestroy
 
                if (response.ok)
                {
-                  await this.LoadEvents();
+                  //await this.LoadEvents();
+                  setTimeout(() => { window.location.reload(); }, 100);
                   this.cdr.detectChanges ();
                }
                else

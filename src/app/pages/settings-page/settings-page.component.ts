@@ -6,45 +6,71 @@ import {InputNumberModule} from 'primeng/inputnumber';
 import {ColorPickerModule} from 'primeng/colorpicker';
 import {CalendarModule} from 'primeng/calendar';
 import {DropdownModule} from 'primeng/dropdown';
+import {BlockUIModule} from "primeng/blockui";
+import {CardModule} from "primeng/card";
+import {CheckboxModule} from "primeng/checkbox";
+import {DividerModule} from "primeng/divider";
+import {NgIf} from "@angular/common";
+import {ProgressSpinnerModule} from "primeng/progressspinner";
+import {TableModule} from "primeng/table";
+import {TooltipModule} from "primeng/tooltip";
+import {Router} from "@angular/router";
+import {loggedUser} from "../../services/users.service";
 
 
 
 @Component ({
                selector:    'app-settings-page',
                standalone:  true,
-               imports:     [
+               imports: [
                   FormsModule,
                   InputTextModule,
                   FloatLabelModule,
                   InputNumberModule,
                   ColorPickerModule,
                   CalendarModule,
-                  DropdownModule
+                  DropdownModule,
+                  BlockUIModule,
+                  CardModule,
+                  CheckboxModule,
+                  DividerModule,
+                  NgIf,
+                  ProgressSpinnerModule,
+                  TableModule,
+                  TooltipModule
                ],
                templateUrl: './settings-page.component.html',
                styleUrl:    './settings-page.component.css'
             })
 export class SettingsPageComponent
 {
-   textValue: string | null;
-   numValue: number = 0;
-   colorValue: string = "#FF0000";
-   dateValue: Date;
-   timeValue: Date;
-   comboValue: string = "";
-   comboList: Array<string> = [
-      "Sarezzo",
-      "Gussago",
-      "Ome",
-      "Rodengo"
-   ];
 
 
-   constructor ()
+   constructor (public router: Router)
    {
-      this.textValue = "";
-      this.dateValue = new Date ();
-      this.timeValue = new Date ();
-      this.timeValue.setHours (0, 0, 0, 0);
+   }
+
+
+   CfgUtentiEnabled(): boolean
+   {
+      return (loggedUser.attributo >= 255);
+   }
+
+
+   CfgUtenteEnabled(): boolean
+   {
+      return ((loggedUser.attributo > 0) && (loggedUser.attributo < 255));
+   }
+
+
+   TabellaUtenti()
+   {
+      this.router.navigate ([`/userstable`]);
+   }
+
+
+   EditUtente()
+   {
+      this.router.navigate ([`/useraedit`], {state: {id: loggedUser.id, from: "single"}});
    }
 }

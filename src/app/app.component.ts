@@ -4,7 +4,7 @@ import {
    OnInit,
    AfterViewInit,
    ChangeDetectionStrategy,
-   ChangeDetectorRef
+   ChangeDetectorRef, isDevMode
 } from '@angular/core';
 import {
    RouterOutlet,
@@ -67,6 +67,9 @@ export class AppComponent implements AfterViewInit, OnInit
                 private primengConfig: PrimeNGConfig,
                 private logService: LogService)
    {
+      if (utils.IsDevMode == null)
+         utils.IsDevMode = isDevMode();
+      //
       this.mnuTabelle = [
          {
             label: "Normali",
@@ -81,10 +84,10 @@ export class AppComponent implements AfterViewInit, OnInit
          {
             label: "Base",
             items: [
-               {label: "Stagioni", icon: 'pi pi-table', routerLink: ['/seasonstable'] },
-               {label: "Società", icon: 'pi pi-table', routerLink: ['/societatable'] },
-               {label: "Ruoli", icon:  'pi pi-table', routerLink: ['/ruolitable'] },
-               {label: "Categorie", icon: 'pi pi-table', routerLink: ['/categorietable'] }
+               {label: "Stagioni", icon: 'pi pi-table', routerLink: ['/seasonstable']},
+               {label: "Società", icon: 'pi pi-table', routerLink: ['/societatable']},
+               {label: "Ruoli", icon: 'pi pi-table', routerLink: ['/ruolitable'], visible: this.IsAdmin ()},
+               {label: "Categorie", icon: 'pi pi-table', routerLink: ['/categorietable']}
             ]
          },
          {
@@ -93,14 +96,14 @@ export class AppComponent implements AfterViewInit, OnInit
          {
             label: "Sistema",
             items: [
-               {label: "Utenti", icon: 'pi pi-table', routerLink: ['/userstable'] },
-               {label: "Log", icon:  'pi pi-table', routerLink: ['/logtable'] },
-               {label: "Eventi Master", icon: 'pi pi-table', routerLink: ['/eventimastertable'] }
+               {label: "Eventi Master", icon: 'pi pi-table', routerLink: ['/eventimastertable']},
+               {label: "Log", icon: 'pi pi-table', routerLink: ['/logtable']}
             ]
          }
       ];
       //
-      this.appTitle = this.pkg.name;;
+      this.appTitle = this.pkg.name;
+      ;
       this.appVersion = `  (v. ${this.pkg.version})   `;
       this.appCopyrights = `${this.pkg.copyrights}`;
    }
@@ -124,7 +127,7 @@ export class AppComponent implements AfterViewInit, OnInit
    ngOnInit ()
    {
       this.cdr.detectChanges ();
-      console.log(`User: ${loggedUser.nome}`);
+      console.log (`User: ${loggedUser.nome}`);
    }
 
 
@@ -132,37 +135,48 @@ export class AppComponent implements AfterViewInit, OnInit
    {
       // Questo hook si esegue presto, prima che il menu sia nel DOM.
       // La logica di gestione del menu iniziale ora è nel setter di tabelleMenuRef.
-      this.primengConfig.setTranslation({
-                                           firstDayOfWeek: 1,
-                                           dayNames: ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
-                                           dayNamesShort: ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
-                                           dayNamesMin: ["D", "L", "M", "M", "G", "V", "S"],
-                                           monthNames: [
-                                              "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-                                              "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-                                           ],
-                                           monthNamesShort: [
-                                              "Gen", "Feb", "Mar", "Apr", "Mag", "Giu",
-                                              "Lug", "Ago", "Set", "Ott", "Nov", "Dic"
-                                           ],
-                                           today: 'Oggi',
-                                           clear: 'Pulisci',
-                                           dateFormat: 'dd/mm/yyyy'
-                                        });
+      this.primengConfig.setTranslation ({
+                                            firstDayOfWeek:  1,
+                                            dayNames:        ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
+                                            dayNamesShort:   ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
+                                            dayNamesMin:     ["D", "L", "M", "M", "G", "V", "S"],
+                                            monthNames:      [
+                                               "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+                                               "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+                                            ],
+                                            monthNamesShort: [
+                                               "Gen", "Feb", "Mar", "Apr", "Mag", "Giu",
+                                               "Lug", "Ago", "Set", "Ott", "Nov", "Dic"
+                                            ],
+                                            today:           'Oggi',
+                                            clear:           'Pulisci',
+                                            dateFormat:      'dd/mm/yyyy'
+                                         });
 
    }
 
 
    logout (): void
    {
-      this.logService.AddToLog(loggedUser, "Logout");
+      this.logService.AddToLog (loggedUser, "Logout");
       utils.removeFromSessionStorage ("RS_Logged_User");
-      InitLoggedUser();
+      InitLoggedUser ();
       this.cdr.detectChanges ();
       this.authService.logout ();
-      InitLoggedUser();
+      InitLoggedUser ();
       this.cdr.detectChanges ();
-      window.location.href = '/code/yessched/index.html';
+      if (utils.IsDevMode)
+      {
+         setTimeout (() => { window.location.reload(); }, 1500);
+         window.location.href = '/';
+         window.location.reload();
+      }
+      else
+      {
+         setTimeout (() => { window.location.reload(); }, 1500);
+         window.location.href = utils.startingPath;
+         window.location.reload();
+      }
    }
 
 
@@ -172,6 +186,12 @@ export class AppComponent implements AfterViewInit, OnInit
       // Qui `menu` è il riferimento valido passato dal template
       menu.toggle (event);
       this.cdr.detectChanges (); // Forziamo un ciclo di change detection
+   }
+
+
+   IsAdmin (): boolean
+   {
+      return (loggedUser.attributo >= 255);
    }
 
 

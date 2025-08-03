@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import {BlockUIModule} from "primeng/blockui";
 import {Button, ButtonModule} from "primeng/button";
 import {CardModule} from "primeng/card";
@@ -34,6 +34,8 @@ import {LogService} from "../../services/log.service";
 })
 export class LogTableComponent implements OnInit
 {
+   windowHeight: number = 110;
+   scrollHeight: string = "110px";
    isLoading: boolean = false;
    public tblData: Array<LogMessage> = [];
 
@@ -48,6 +50,8 @@ export class LogTableComponent implements OnInit
 
    ngOnInit (): void
    {
+      this.GetWindowSize ();
+      //
       this.isLoading = true;
       this.LoadData ();
    }
@@ -196,6 +200,24 @@ export class LogTableComponent implements OnInit
          return "row-bck-2";
       return "row-bck-0";
    }
+
+
+   async GetWindowSize ()
+   {
+      this.windowHeight = window.innerHeight;
+      let sh: number = this.windowHeight - 80 - 10 - 180;
+      if (sh < 110)
+         sh = 110;
+      this.scrollHeight = `${sh}px`;
+   }
+
+
+   @HostListener ('window:resize', ['$event'])
+   async onResize (event: any)
+   {
+      await this.GetWindowSize ();
+   }
+
 
 }
 

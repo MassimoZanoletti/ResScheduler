@@ -1,10 +1,11 @@
-import {Component} from '@angular/core';
+import {Component, isDevMode} from '@angular/core';
 import {AuthService} from '../../services/auth.service';
 import {Router, RouterModule} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {InputTextModule} from 'primeng/inputtext';
 import {ButtonModule} from 'primeng/button';
 import {NgIf} from '@angular/common';
+import {utils} from "../../common/utils";
 
 
 
@@ -22,7 +23,9 @@ export class LoginPageComponent
    loginFailed = false;
 
 
-   constructor (private authService: AuthService, private router: Router) {}
+   constructor (private authService: AuthService, private router: Router)
+   {
+   }
 
 
    async login ()

@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService} from "../../services/auth.service";
 import { Router} from "@angular/router";
-import {UserService} from "../../services/users.service";
+import {loggedUser, UserService} from "../../services/users.service";
 import {RuoliService} from "../../services/ruoli.service";
 import { MessDlgData,
    User,
@@ -23,6 +23,7 @@ import {PaginatorModule} from "primeng/paginator";
 import {PrimeTemplate} from "primeng/api";
 import {DropdownModule} from 'primeng/dropdown';
 import {utils} from "../../common/utils";
+import { LogService } from "../../services/log.service";
 
 
 
@@ -44,6 +45,7 @@ import {utils} from "../../common/utils";
 })
 export class UserEditComponent implements OnInit
 {
+   fromWhere: string = "";
    isLoading: boolean = false;
    id: number = 0;
    nome = '';
@@ -62,7 +64,8 @@ export class UserEditComponent implements OnInit
                 private ruoliService: RuoliService,
                 private router: Router,
                 private cdr: ChangeDetectorRef,
-                private messageDialogService: MessageDialogService)
+                private messageDialogService: MessageDialogService,
+                private logService: LogService)
    {
    }
 
@@ -70,6 +73,8 @@ export class UserEditComponent implements OnInit
    async ngOnInit ()
    {
       this.id = history.state.id;
+      if (history.state.from)
+         this.fromWhere = history.state.from;
       //
       this.ruoliService.getAllData().subscribe(data2 =>
                                                {
@@ -148,6 +153,7 @@ export class UserEditComponent implements OnInit
                                                                                      if (response.ok)
                                                                                      {
                                                                                         console.log ('Item aggiornato:', response);
+                                                                                        this.logService.AddToLog (loggedUser, `Modificato Utente '${this.id} : ${this.nome}'`);
                                                                                         this.router.navigate (['/userstable']);
                                                                                      }
                                                                                      else
@@ -188,6 +194,7 @@ export class UserEditComponent implements OnInit
                                                                                     if (response.ok)
                                                                                     {
                                                                                        console.log ('Item aggiunto:', response);
+                                                                                       this.logService.AddToLog (loggedUser, `Aggiunto Nuovo Utente '${this.nome}'`);
                                                                                        this.router.navigate (['/userstable']);
                                                                                     }
                                                                                     else
@@ -221,7 +228,15 @@ export class UserEditComponent implements OnInit
 
    async Annulla()
    {
-      this.router.navigate(['/userstable']);
+      if (this.fromWhere == "single")
+         this.router.navigate(['/settings']);
+      else
+         this.router.navigate(['/userstable']);
    }
 
+
+   ShowRuolo(): boolean
+   {
+      return (loggedUser.attributo >= 255);
+   }
 }

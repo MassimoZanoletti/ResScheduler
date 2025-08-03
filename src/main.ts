@@ -29,7 +29,9 @@ import {BrowserModule, provideClientHydration} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {provideHttpClient} from '@angular/common/http'; // Importa la funzione
 import { DialogService } from 'primeng/dynamicdialog';
+import { utils } from './app/common/utils';
 
+utils.startingPath = window.location.href;
 bootstrapApplication (AppComponent, {
    providers: [
       provideRouter (routes),

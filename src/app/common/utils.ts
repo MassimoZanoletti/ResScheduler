@@ -57,6 +57,8 @@ export class utils
    static BurnSessionCheckTimeout: boolean = false;
    static BurnSessionQuery_CheckLock: boolean = true;
    static BurnSessionQuery_CheckLockFreqS: number = 30; // seconds
+   static IsDevMode: boolean | null = null;
+   static startingPath: string = "/";
 
 
    static __internalFnCounter: number = 1;

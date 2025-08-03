@@ -80,12 +80,9 @@ export class EventiService
          qryMaster = `&master_id=${master}`;
       }
       const url: string = `${this.apiUrl}?operation=${operation}`+ qryStagione + qryEvento + qryRisorsa + qryGruppo + qryData + qryMaster;
-      console.log("Query al server " + new Date().toLocaleTimeString());
-      console.log(url);
       let rrr = this.http.get<EventoDb>(url).pipe (
-         tap (value => { console.log("Tap " + new Date().toLocaleTimeString()); }),
+         tap (value => {  }),
          map ((dataFromDb) => {
-            console.log("Dati ricevuti " + new Date().toLocaleTimeString());
             return {
                ok:         dataFromDb.ok,
                message:    dataFromDb.message,

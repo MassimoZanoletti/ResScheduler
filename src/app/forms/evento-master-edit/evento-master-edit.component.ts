@@ -19,6 +19,8 @@ import {
    TipoEvento
 } from "../../models/datamod";
 import { MessageDialogService } from "../../services/message-dialog.service";
+import { LogService } from "../../services/log.service";
+import {loggedUser} from "../../services/users.service";
 
 // PrimeNG modules
 import { InputTextModule } from 'primeng/inputtext';
@@ -87,7 +89,8 @@ export class EventoMasterEditComponent implements OnInit
                 private gruppiService: GruppiService,
                 private router: Router,
                 private cdr: ChangeDetectorRef,
-                private messageDialogService: MessageDialogService)
+                private messageDialogService: MessageDialogService,
+                private logService: LogService)
    {
    }
 
@@ -318,6 +321,7 @@ export class EventoMasterEditComponent implements OnInit
       catch (error: any)
       { // Cattura sia gli errori HTTP che altri errori di codice
          console.error("Errore durante l'inserimento dell'item:", error);
+         await this.logService.AddToLog (loggedUser, `Errore durante l'inserimento dell'item: '${JSON.stringify(error,null,-1)}'`);
          const dlgData: MessDlgData = {
             title: 'ERRORE',
             subtitle: "Errore nell'inserimento dei dati",

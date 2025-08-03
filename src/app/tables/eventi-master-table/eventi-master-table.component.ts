@@ -43,6 +43,7 @@ import {utils} from "../../common/utils";
 import {loggedUser} from "../../services/users.service";
 import {MultiSelectModalComponent} from "../../dialogs/multi-select-modal/multi-select-modal.component";
 import {EventiService} from "../../services/eventi.service";
+import { LogService } from "../../services/log.service";
 
 
 
@@ -103,7 +104,8 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
                 private messageDialogService: MessageDialogService,
                 private zone: NgZone,
                 public fltrDialogService: DialogService,
-                public fltrMessageService: MessageService)
+                public fltrMessageService: MessageService,
+                private logService: LogService)
    {
       this.currEvent = null;
    }
@@ -239,6 +241,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
       }
       catch (err)
       {
+         await this.logService.AddToLog (loggedUser, `Exception [EventiMaster::LoadEvents]: '${JSON.stringify(err,null,-1)}'`);
          const dlgData: MessDlgData = {
             title:      'Exception',
             subtitle:   'Errore',
@@ -441,6 +444,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    OnSeasonChange (evento: any)
    {
       utils.SaveToLocalStorage ("RS_CurrSeason", this.currSeason);
+      this.logService.AddToLog (loggedUser, `EventiMaster: selezionata stagione '${this.currSeason?.nome}'`);
       this.LoadEvents ();
    }
 
@@ -604,6 +608,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
 
             if (response.ok)
             {
+               await this.logService.AddToLog (loggedUser, `Cancellato Evento Master '${this.currEvent.id}'`);
                await this.LoadEvents ();
                this.cdr.detectChanges ();
             }

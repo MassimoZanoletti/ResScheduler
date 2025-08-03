@@ -10,6 +10,8 @@ import { Router} from "@angular/router";
 import { RisorseService } from "../../services/risorse.service";
 import { GruppiService } from "../../services/gruppi.service";
 import { EventiService } from "../../services/eventi.service";
+import { LogService } from "../../services/log.service";
+import { loggedUser } from "../../services/users.service";
 import {
    MessDlgData,
    SeasonElement,
@@ -74,9 +76,8 @@ export class EventoEditComponent implements OnInit
    indirizzo: string = "";
    commento: string = "";
    arbitraggio: boolean = false;
-   isLoadingRisorse: boolean = false;
-   isLoadingGrup: boolean = false;
-
+   lastGroup: number | null = 0;
+   lastResource: number | null = 0;
 
 
    constructor (private authService: AuthService,
@@ -85,7 +86,8 @@ export class EventoEditComponent implements OnInit
                 private gruppiService: GruppiService,
                 private router: Router,
                 private cdr: ChangeDetectorRef,
-                private messageDialogService: MessageDialogService)
+                private messageDialogService: MessageDialogService,
+                private logService: LogService)
    {
    }
 
@@ -99,6 +101,13 @@ export class EventoEditComponent implements OnInit
       this.day = Number(history.state.day);
       this.request = history.state.request.toString();
       this.season_id = Number(history.state.season_id);
+      //
+      this.lastGroup = utils.GetFromSessionStorage("RS_Editing_Event_LastGroup");
+      if (this.lastGroup == null)
+         this.lastGroup = 0;
+      this.lastResource = utils.GetFromSessionStorage("RS_Editing_Event_LastResource");
+      if (this.lastResource == null)
+         this.lastResource = 0;
       //
       const dataRis = await firstValueFrom(this.resourceService.getAllData());
       const dataGrp = await firstValueFrom(this.gruppiService.getAllData());
@@ -119,13 +128,31 @@ export class EventoEditComponent implements OnInit
             this.orainizio = await this.TimeFromString((dataRes.elements as EventoElement).data, (dataRes.elements as EventoElement).orainizio);
             this.orafine = await this.TimeFromString((dataRes.elements as EventoElement).data, (dataRes.elements as EventoElement).orafine);
             this.risorsa_id = (dataRes.elements as EventoElement).risorsa_id;
-            const currr = this.listaRisorse.findIndex(elemento => elemento.id == this.risorsa_id);
-            if (currr != -1)
-               this.currRisorsa = this.listaRisorse[currr];
+            if (this.risorsa_id > 0)
+            {
+               const currr = this.listaRisorse.findIndex (elemento => elemento.id == this.risorsa_id);
+               if (currr != -1)
+                  this.currRisorsa = this.listaRisorse[currr];
+            }
+            else if (this.lastResource > 0)
+            {
+               const currr = this.listaRisorse.findIndex (elemento => elemento.id == this.lastResource);
+               if (currr != -1)
+                  this.currRisorsa = this.listaRisorse[currr];
+            }
             this.gruppo_id = (dataRes.elements as EventoElement).gruppo_id;
-            const currg = this.listaRisorse.findIndex(elemento => elemento.id == this.gruppo_id);
-            if (currg != -1)
-               this.currGruppo = this.listaGruppi[currg];
+            if (this.gruppo_id > 0)
+            {
+               const currg = this.listaRisorse.findIndex (elemento => elemento.id == this.gruppo_id);
+               if (currg != -1)
+                  this.currGruppo = this.listaGruppi[currg];
+            }
+            else if (this.lastGroup > 0)
+            {
+               const currg = this.listaRisorse.findIndex(elemento => elemento.id == this.lastGroup);
+               if (currg != -1)
+                  this.currGruppo = this.listaGruppi[currg];
+            }
             this.casa = (dataRes.elements as EventoElement).casa;
             this.ospite = (dataRes.elements as EventoElement).ospite;
             this.indirizzo = (dataRes.elements as EventoElement).luogo;
@@ -150,6 +177,10 @@ export class EventoEditComponent implements OnInit
          //
          this.orafine = new Date(this.data);
          this.orafine.setHours(0,0,0,0);
+         //
+         const currg = this.listaRisorse.findIndex(elemento => elemento.id == this.lastGroup);
+         if (currg != -1)
+            this.currGruppo = this.listaGruppi[currg];
       }
       this.cdr.detectChanges();
    }
@@ -175,6 +206,10 @@ export class EventoEditComponent implements OnInit
          if (this.currRisorsa)
          {
             this.risorsa_id = this.currRisorsa.id;
+            if (this.currRisorsa.nome != "Trasferta")
+            {
+               utils.SaveToSessionStorage("RS_Editing_Event_LastResource", this.risorsa_id);
+            }
          }
          else
             this.risorsa_id = 0;
@@ -185,6 +220,7 @@ export class EventoEditComponent implements OnInit
          }
          else
             this.gruppo_id = 0;
+         utils.SaveToSessionStorage("RS_Editing_Event_LastGroup", this.gruppo_id);
          //
          console.log(this.arbitraggio);
          //
@@ -207,6 +243,7 @@ export class EventoEditComponent implements OnInit
             if (response.ok)
             {
                console.log ('Item aggiunto:', response);
+               await this.logService.AddToLog (loggedUser, `Aggiunto Nuovo Evento `);
                this.router.navigate (['/']);
             }
             else
@@ -241,6 +278,7 @@ export class EventoEditComponent implements OnInit
             if (response.ok)
             {
                console.log ('Item aggiornato:', response);
+               await this.logService.AddToLog (loggedUser, `Modificato Evento '${this.id}'`);
                this.router.navigate (['/']);
             }
             else
@@ -259,6 +297,7 @@ export class EventoEditComponent implements OnInit
       catch (error: any)
       { // Cattura sia gli errori HTTP che altri errori di codice
          console.error("Errore durante l'inserimento dell'item:", error);
+         await this.logService.AddToLog (loggedUser, `Errore durante l'inserimento dell'item: '${JSON.stringify(error,null,-1)}'`);
          const dlgData: MessDlgData = {
             title: 'ERRORE',
             subtitle: "Errore nell'inserimento dei dati",
@@ -397,4 +436,14 @@ export class EventoEditComponent implements OnInit
       if ((this.currRisorsa) && (this.currRisorsa.indirizzo != ""))
          this.indirizzo = this.currRisorsa.indirizzo;
    }
+
+
+   SetTrasferta()
+   {
+      const currr = this.listaRisorse.findIndex(elemento => elemento.nome == "Trasferta");
+      if (currr != -1)
+         this.currRisorsa = this.listaRisorse[currr];
+   }
+
+
 }

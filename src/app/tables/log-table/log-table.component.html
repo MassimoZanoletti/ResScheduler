@@ -1,5 +1,4 @@
-<div id="main_container"
-     style="background-color: red !important;">
+<div id="main_container">
 
    <div class="card flex justify-content-start"
         id="div-page-header">
@@ -14,15 +13,6 @@
                pTooltip="Refresh"
                tooltipPosition="top"
                (click)="LoadData()"
-            ></p-button>
-            <p-button
-               *ngIf="AddEnabled()"
-               class="p-button-table"
-               icon="pi pi-plus"
-               severity="primary"
-               pTooltip="Aggiungi"
-               tooltipPosition="top"
-               (click)="onAdd()"
             ></p-button>
          </div>
       </p-card>
@@ -42,7 +32,7 @@
             class="custom-header-table"
             styleClass="p-datatable-gridlines"
             [scrollable]="true"
-            scrollHeight="600px"
+            [scrollHeight]="scrollHeight"
             [value]="tblData"
             dataKey="id"
             [tableStyle]="{ 'min-width': '50rem' }">

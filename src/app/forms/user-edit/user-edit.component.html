@@ -21,7 +21,8 @@
                    #theError="ngModel"/>
          </div>
 
-         <div class="form-group">
+         <div class="form-group"
+              *ngIf="ShowRuolo()">
             <label for="nome">Ruolo:</label>
             <p-dropdown
                [style]="{'min-width': '255px'}"
