@@ -444,7 +444,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    OnSeasonChange (evento: any)
    {
       utils.SaveToLocalStorage ("RS_CurrSeason", this.currSeason);
-      this.logService.AddToLog (loggedUser, `EventiMaster: selezionata stagione '${this.currSeason?.nome}'`);
+      //this.logService.AddToLog (loggedUser, `EventiMaster: selezionata stagione '${this.currSeason?.nome}'`);
       this.LoadEvents ();
    }
 

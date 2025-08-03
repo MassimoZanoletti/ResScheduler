@@ -639,14 +639,14 @@ export class MainPageComponent implements OnInit, OnDestroy
    {
       utils.SaveToLocalStorage("RS_CurrSeason", this.currSeason);
       this.logService.AddToLog (loggedUser, `Eventi: selezionata stagione '${this.currSeason?.nome}'`);
-      window.location.reload();
+      this.RefreshData();
    }
 
 
    OnTipoEventoChange(evento: any)
    {
       utils.SaveToLocalStorage("RS_CurrTipoEvento", this.currTipoEvento);
-      window.location.reload();
+      this.RefreshData();
    }
 
 
@@ -718,7 +718,7 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                                                        }
                                                                                     }
                                                                                     this.cdr.detectChanges ();
-                                                                                    window.location.reload();
+                                                                                    this.RefreshData();
                                                                                  }
                                                                                  /*
                                                                                  else if (result === 'primary')
@@ -820,7 +820,7 @@ export class MainPageComponent implements OnInit, OnDestroy
                if (response.ok)
                {
                   await this.logService.AddToLog (loggedUser, `Cancellato Evento '${this.currEvent.id}'`);
-                  window.location.reload();
+                  this.RefreshData();
                   this.cdr.detectChanges ();
                }
                else
@@ -859,7 +859,7 @@ export class MainPageComponent implements OnInit, OnDestroy
                if (response.ok)
                {
                   //await this.LoadEvents();
-                  setTimeout(() => { window.location.reload(); }, 100);
+                  await this.RefreshData();
                   this.cdr.detectChanges ();
                }
                else
@@ -942,7 +942,7 @@ export class MainPageComponent implements OnInit, OnDestroy
             {
                this.fltrRisorsa = (this.fltrRisorsaItems)?((this.fltrRisorsaItems.length > 0)?true:false):false;
                this.cdr.detectChanges ();
-               this.LoadEvents();
+               this.RefreshData();
             }
          });
       }
@@ -1010,7 +1010,7 @@ export class MainPageComponent implements OnInit, OnDestroy
             {
                this.fltrGruppo = (this.fltrGruppoItems)?((this.fltrGruppoItems.length > 0)?true:false):false;
                this.cdr.detectChanges ();
-               this.LoadEvents();
+               this.RefreshData();
             }
          });
       }
@@ -1039,6 +1039,13 @@ export class MainPageComponent implements OnInit, OnDestroy
    async onResize(event: any)
    {
       await this.GetWindowSize();
+   }
+
+
+   async RefreshData()
+   {
+      setTimeout(() => { console.log("RICARICO"); window.location.reload(); }, 50);
+      window.location.reload();
    }
 
 
