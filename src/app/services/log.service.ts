@@ -12,7 +12,7 @@ import { utils } from "../common/utils";
 })
 export class LogService
 {
-   private apiUrl = 'https://www.basketsarezzo.com/code/yessched/backend/log/api.php'; // Assicurati che questo sia corretto
+   private apiUrl = 'https://www.basketsarezzo.com/code/backend/yessched/log/api.php'; // Assicurati che questo sia corretto
 
    constructor(private http: HttpClient)
    {

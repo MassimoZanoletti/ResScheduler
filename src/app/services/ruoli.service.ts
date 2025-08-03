@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
             })
 export class RuoliService
 {
-   private apiUrl = 'https://www.basketsarezzo.com/code/yessched/backend/ruoli/api.php'; // Assicurati che questo sia corretto
+   private apiUrl = 'https://www.basketsarezzo.com/code/backend/yessched/ruoli/api.php'; // Assicurati che questo sia corretto
 
    constructor(private http: HttpClient)
    {

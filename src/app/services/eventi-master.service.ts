@@ -14,7 +14,7 @@ import {map,
              })
 export class EventiMasterService
 {
-   private apiUrl = 'https://www.basketsarezzo.com/code/yessched/backend/eventi_master/api.php'; // Assicurati che questo sia corretto
+   private apiUrl = 'https://www.basketsarezzo.com/code/backend/yessched/eventi_master/api.php'; // Assicurati che questo sia corretto
 
    constructor (private http: HttpClient)
    {

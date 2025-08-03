@@ -7,13 +7,13 @@
 
 .form-group {
    margin-bottom: 15px;
-   width: 300px; /* Imposta una larghezza fissa per allineare gli elementi */
+   width: 300px;
 }
 
 label {
    display: block;
    margin-bottom: 5px;
-   text-align: left; /* Allinea il testo della label a sinistra */
+   text-align: left;
 }
 
 input[type="text"],
@@ -21,8 +21,8 @@ input[type="password"] {
    padding: 8px;
    border: 1px solid #ccc;
    border-radius: 4px;
-   width: 100%; /* Fai in modo che l'input occupi tutta la larghezza del form-group */
-   box-sizing: border-box; /* Assicura che padding e border siano inclusi nella larghezza */
+   width: 100%;
+   box-sizing: border-box;
 }
 
 button {
@@ -32,8 +32,6 @@ button {
    background-color: #007bff;
    color: white;
    cursor: pointer;
-   /* width: 100%; Rimuovi questa riga */
-   /* width: 150px; Puoi aggiungere una larghezza fissa se vuoi */
 }
 
 button:hover {

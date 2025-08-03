@@ -14,7 +14,7 @@ import {
              })
 export class SeasonsService
 {
-   private apiUrl = 'https://www.basketsarezzo.com/code/yessched/backend/season/api.php';
+   private apiUrl = 'https://www.basketsarezzo.com/code/backend/yessched/season/api.php';
 
    constructor (private http: HttpClient)
    {

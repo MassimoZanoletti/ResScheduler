@@ -10,7 +10,7 @@ import cors from 'cors';
             })
 export class CategorieService
 {
-   private apiUrl = 'https://www.basketsarezzo.com/code/yessched/backend/categorie/api.php'; // Assicurati che questo sia corretto
+   private apiUrl = 'https://www.basketsarezzo.com/code/backend/yessched/categorie/api.php'; // Assicurati che questo sia corretto
 
    constructor(private http: HttpClient)
    {

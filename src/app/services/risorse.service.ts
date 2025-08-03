@@ -9,7 +9,7 @@ import { Resource } from '../models/datamod';
             })
 export class RisorseService
 {
-   private apiUrl = 'https://www.basketsarezzo.com/code/yessched/backend/risorse/api.php'; // Assicurati che questo sia corretto
+   private apiUrl = 'https://www.basketsarezzo.com/code/backend/yessched/risorse/api.php'; // Assicurati che questo sia corretto
 
    constructor(private http: HttpClient)
    {
