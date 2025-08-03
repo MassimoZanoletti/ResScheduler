@@ -26,6 +26,7 @@
                 "input": "public",
                 "output": "/assets/"
               },
+               "src/assets",
               {
                 "glob": "*.png",
                 "input": "./node_modules/primeng/resources/images",

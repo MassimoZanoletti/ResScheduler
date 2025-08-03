@@ -1,8 +1,37 @@
+/* Aggiungi queste nuove regole per il contenitore principale */
+.app-container {
+   /* Imposta l'immagine di sfondo */
+   background-image: url('/assets/ResScheduler.jpg');
+
+   /* Adatta l'immagine a tutto lo spazio disponibile */
+   background-size: cover;
+
+   /* Posiziona l'immagine al centro */
+   background-position: center;
+
+   /* Impedisci all'immagine di ripetersi */
+   background-repeat: no-repeat;
+
+   /* Assicura che il contenitore occupi l'intera altezza dello schermo */
+   min-height: 100vh;
+
+   /* Stili Flexbox per allineare il contenuto al centro */
+   display: flex;
+   justify-content: center; /* Centra orizzontalmente */
+   align-items: center;     /* Centra verticalmente */
+}
+
+/* Applica uno stile al contenitore del form per renderlo più leggibile */
 .login-container {
    display: flex;
    flex-direction: column;
    align-items: center;
    margin-top: 50px;
+   /* Aggiungi uno sfondo semitrasparente per migliorare la leggibilità */
+   background-color: rgba(107, 0, 107, 0.75);
+   padding: 30px;
+   border-radius: 10px;
+   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .form-group {
