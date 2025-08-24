@@ -70,8 +70,12 @@ export class EventiService
       }
       if (gruppo != null)
       {
+         /*
          for (let i=0;   i<gruppo.length;   i++)
-            qryRisorsa += `&gruppo[]=${gruppo[i]}`;
+            qryGruppo += `&gruppo[]=${gruppo[i]}`;
+         */
+         qryGruppo = gruppo.map(id => `gruppo[]=${id}`).join('&');
+         qryGruppo = "&"+qryGruppo;
       }
       if (data != null)
          qryData = `&data=${this.FormattaData(data)}`;

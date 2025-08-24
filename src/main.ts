@@ -25,7 +25,8 @@ import {AppComponent} from './app/app.component';
 import {importProvidersFrom} from '@angular/core';
 import {provideRouter} from '@angular/router';
 import {routes} from './app/app.routes';
-import {BrowserModule, provideClientHydration} from '@angular/platform-browser';
+import {BrowserModule,
+   /*provideClientHydration*/} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {provideHttpClient} from '@angular/common/http'; // Importa la funzione
 import { DialogService } from 'primeng/dynamicdialog';
@@ -36,7 +37,7 @@ bootstrapApplication (AppComponent, {
    providers: [
       provideRouter (routes),
       importProvidersFrom (BrowserAnimationsModule, BrowserModule),
-      provideClientHydration (),
+      //provideClientHydration (),
       provideHttpClient(), // Usa la funzione al posto del modulo
       DialogService
    ]

@@ -1,7 +1,7 @@
 /* Aggiungi queste nuove regole per il contenitore principale */
 .app-container {
    /* Imposta l'immagine di sfondo */
-   background-image: url('/assets/ResScheduler.jpg');
+   background-image: url('../../../assets/ResScheduler.jpg');
 
    /* Adatta l'immagine a tutto lo spazio disponibile */
    background-size: cover;

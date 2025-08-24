@@ -25,7 +25,7 @@
                   [style]="{'min-width': '255px'}"
                   [options]="listaStagioni"
                   optionLabel="nome"
-                  [(ngModel)]="currSeason"
+                  [(ngModel)]="theLocalStorage?.data.currSeason"
                   [checkmark]="true"
                   [showClear]="false"
                   [scrollHeight]="'300px'"
@@ -50,7 +50,7 @@
                   [style]="{'min-width': '280px'}"
                   [options]="listaTipoEvento"
                   optionLabel="nome"
-                  [(ngModel)]="currTipoEvento"
+                  [(ngModel)]="this.theLocalStorage?.data.currTipoEvento"
                   [checkmark]="true"
                   [showClear]="false"
                   [scrollHeight]="'300px'"
@@ -93,7 +93,7 @@
                              type="button"
                              icon="pi pi-filter"
                              class="p-button-icon-only my-tiny-button"
-                             [ngClass]="{ 'p-button-success': fltrRisorsa, 'p-button-secondary': !fltrRisorsa }"
+                             [ngClass]="{ 'p-button-success': FiltroRisorseOn(), 'p-button-secondary': !FiltroRisorseOn() }"
                              (click)="OnFilterRisorsa()"></button>
                   </th>
                   <th style="width: 100px;">Gruppo
@@ -101,7 +101,7 @@
                              type="button"
                              icon="pi pi-filter"
                              class="p-button-icon-only my-tiny-button"
-                             [ngClass]="{ 'p-button-success': fltrGruppo, 'p-button-secondary': !fltrGruppo }"
+                             [ngClass]="{ 'p-button-success': FiltroGruppiOn(), 'p-button-secondary': !FiltroGruppiOn() }"
                              (click)="OnFilterGruppo()"></button>
                   </th>
                   <th>Casa</th>

@@ -9,7 +9,7 @@ import {ChangeDetectorRef,
 import {FormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {Router} from "@angular/router";
-import {firstValueFrom} from "rxjs";
+import {firstValueFrom, lastValueFrom} from "rxjs";
 
 // primeng
 import {Table,
@@ -44,6 +44,7 @@ import {MultiSelectModalComponent} from "../../dialogs/multi-select-modal/multi-
 import {GruppiService} from "../../services/gruppi.service";
 import {loggedUser} from "../../services/users.service";
 import { LogService } from "../../services/log.service";
+import { globs } from "../../common/globals";
 
 
 
@@ -91,18 +92,22 @@ export class MainPageComponent implements OnInit, OnDestroy
    listaEventi: Array<EventoElement> = [];
    currEvent: EventoElement | null = null;
    listaStagioni: Array<SeasonElement> = [];
-   currSeason: SeasonElement | null = null;
+   //currSeason: SeasonElement | null = null;
+   theLocalStorage: globs.TLocalStorage | null = null;
+   theSessionStorage: globs.TSessionStorage | null = null;
    listaRisorse: Array<Resource> = [];
    listaGruppi: Array<Gruppo> = [];
    debug: number = 0;
-   fltrRisorsa: boolean = false;
-   fltrRisorsaItems: Array<Resource> | null = null;
+   /*
+   fltrGruppo: boolean = false;
+   fltrGruppoItems: Array<Resource> | null = null;
    fltrGruppo: boolean = false;
    fltrGruppoItems: Array<Gruppo> | null = null;
+   */
    fltrDlgRef: DynamicDialogRef | undefined;
    totRec: number = 0;
    listaTipoEvento: Array<CbTipoEvento> = [];
-   currTipoEvento: CbTipoEvento | null = null;
+   //currTipoEvento: CbTipoEvento | null = null;
    windowHeight: number = 110;
    scrollHeight: string = "110px";
    timerId: any;
@@ -125,8 +130,8 @@ export class MainPageComponent implements OnInit, OnDestroy
       //
       this.listaTipoEvento = [];
       this.listaTipoEvento.push({ id: 1, nome: "Solo Eventi classici" });
-      this.listaTipoEvento.push({ id: 2, nome: "Solo Eventi periodici" });
-      this.listaTipoEvento.push({ id: 3, nome: "Tutti i tipi" });
+      this.listaTipoEvento.push({ id: 3, nome: "Solo Eventi periodici" });
+      this.listaTipoEvento.push({ id: -1, nome: "Tutti i tipi" });
    }
 
 
@@ -134,24 +139,37 @@ export class MainPageComponent implements OnInit, OnDestroy
    {
       try
       {
+         this.theLocalStorage = new globs.TLocalStorage();
+         await this.theLocalStorage.Load();
+         this.theSessionStorage = new globs.TSessionStorage();
+         await this.theSessionStorage.Load();
+         //
          await this.GetWindowSize();
          //
+         /*
          const tmpTipo: CbTipoEvento | null = utils.GetFromLocalStorage<CbTipoEvento> ("RS_CurrTipoEvento");
          if (tmpTipo != null)
          {
             this.currTipoEvento = this.listaTipoEvento.find (tipo => tipo.id == tmpTipo.id) || null;
             this.cdr.detectChanges();
          }
+         */
          //
          await this.LoadFilters();
          //
          await this.LoadSeasons();
          //
+         /*
          const tmpSeason: SeasonElement | null = utils.GetFromLocalStorage<SeasonElement> ("RS_CurrSeason");
          if (tmpSeason != null)
          {
             this.currSeason = this.listaStagioni.find (season => season.id === tmpSeason.id) || null;
          }
+         */
+         this.theLocalStorage.data.currSeason = this.listaStagioni.find (season => season.id === this.theLocalStorage?.data.currSeason.id) || null;
+         this.theLocalStorage.data.currTipoEvento = this.listaTipoEvento.find (event => event.id === this.theLocalStorage?.data.currTipoEvento.id) || null;
+         if (this.theLocalStorage.data.currTipoEvento == null)
+            this.theLocalStorage.data.currTipoEvento = this.listaTipoEvento[0];
          //
          //this.isLoadingEv = true;
          await this.LoadEvents();
@@ -221,30 +239,42 @@ export class MainPageComponent implements OnInit, OnDestroy
          //this.isLoadingEv = true;
          await this.SetLoading (2);
          this.totRec = 0;
-         let seasonId: number | null = (this.currSeason != null) ? this.currSeason.id : null;
+         let seasonId: number | null = null;
+         if ((this.theLocalStorage) && (this.theLocalStorage.data) && (this.theLocalStorage.data.currSeason))
+            seasonId = this.theLocalStorage.data.currSeason.id;
          let tipoEvnt: number | null = null;
-         let risorsaId: Array<number> | null = null;
+         let risorsaid: Array<number> | null = null;
          let gruppoId: Array<number> | null = null;
          let giorno: Date | null = null;
          let masterId: number | null = null;
-         if ((this.fltrRisorsaItems) && (this.fltrRisorsaItems.length > 0))
+         if (this.theSessionStorage)
          {
-            risorsaId = [];
-            for (let i = 0; i < this.fltrRisorsaItems.length; i++)
-               risorsaId.push (this.fltrRisorsaItems[i].id);
+            if (this.theSessionStorage.data.fltrRisorsaItems.length > 0)
+            {
+               risorsaid = [];
+               for (let i = 0; i < this.theSessionStorage.data.fltrRisorsaItems.length; i++)
+                  risorsaid.push (this.theSessionStorage.data.fltrRisorsaItems[i].id);
+            }
          }
-         if ((this.fltrGruppoItems) && (this.fltrGruppoItems.length > 0))
+         if (this.theSessionStorage)
          {
-            gruppoId = [];
-            for (let i = 0; i < this.fltrGruppoItems.length; i++)
-               gruppoId.push (this.fltrGruppoItems[i].id);
+            if (this.theSessionStorage.data.fltrGruppoItems.length > 0)
+            {
+               gruppoId = [];
+               for (let i = 0; i < this.theSessionStorage.data.fltrGruppoItems.length; i++)
+                  gruppoId.push (this.theSessionStorage.data.fltrGruppoItems[i].id);
+            }
          }
-         if (this.currTipoEvento == this.listaTipoEvento[0])
-            tipoEvnt = TipoEvento.EventoNormale;
-         if (this.currTipoEvento == this.listaTipoEvento[1])
-            tipoEvnt = -1;
+         tipoEvnt = -1;
+         if ((this.theLocalStorage) && (this.theLocalStorage.data) && (this.theLocalStorage.data.currTipoEvento))
+         {
+            if (this.theLocalStorage?.data.currTipoEvento == this.listaTipoEvento[0])
+               tipoEvnt = TipoEvento.EventoNormale;
+            if (this.theLocalStorage?.data.currTipoEvento == this.listaTipoEvento[1])
+               tipoEvnt = TipoEvento.EventoPeriodico;
+         }
          let dataEvnt: any;
-         dataEvnt = await firstValueFrom (this.eventServ.getAllData (seasonId, tipoEvnt, risorsaId, gruppoId, giorno, masterId));
+         dataEvnt = await firstValueFrom(this.eventServ.getAllData (seasonId, tipoEvnt, risorsaid, gruppoId, giorno, masterId));
          if (dataEvnt)
          {
             if (dataEvnt.ok)
@@ -400,8 +430,8 @@ export class MainPageComponent implements OnInit, OnDestroy
          let _id: number = 0;
          let rqst: string = "add";
          let si: number = 0;
-         if (this.currSeason)
-            si = this.currSeason.id;
+         if (this.theLocalStorage?.data.currSeason)
+            si = this.theLocalStorage?.data.currSeason.id;
          for (let i=0;   i<listaGiorno.length;   i++)
          {
             if (listaGiorno[i].tipoevento == 1)
@@ -455,8 +485,8 @@ export class MainPageComponent implements OnInit, OnDestroy
          let _id: number = 0;
          let rqst: string = "";
          let si: number = 0;
-         if (this.currSeason)
-            si = this.currSeason.id;
+         if (this.theLocalStorage?.data.currSeason)
+            si = this.theLocalStorage?.data.currSeason.id;
          if (this.currEvent.tipoevento == 0)
          {
             // è un evento vuoto
@@ -637,27 +667,29 @@ export class MainPageComponent implements OnInit, OnDestroy
 
    OnSeasonChange(evento: any)
    {
-      utils.SaveToLocalStorage("RS_CurrSeason", this.currSeason);
-      this.logService.AddToLog (loggedUser, `Eventi: selezionata stagione '${this.currSeason?.nome}'`);
+      //utils.SaveToLocalStorage("RS_CurrSeason", this.currSeason);
+      this.theLocalStorage?.Save();
+      this.logService.AddToLog (loggedUser, `Eventi: selezionata stagione '${this.theLocalStorage?.data.currSeason?.nome}'`);
       this.RefreshData();
    }
 
 
    OnTipoEventoChange(evento: any)
    {
-      utils.SaveToLocalStorage("RS_CurrTipoEvento", this.currTipoEvento);
+      //utils.SaveToLocalStorage("RS_CurrTipoEvento", this.currTipoEvento);
+      this.theLocalStorage?.Save();
       this.RefreshData();
    }
 
 
    CreaEventiStagione()
    {
-      if (this.currSeason != null)
+      if (this.theLocalStorage?.data.currSeason != null)
       {
          const dlgData: MessDlgData = {
             title:               'Creazione Eventi Stagione',
             subtitle:            '',
-            message:             `Sei sicuro di voloer aggiungere gli eventi vuoti per la stagione\n'<b>${this.currSeason?.nome}</b>'\nnel database?</b>`,
+            message:             `Sei sicuro di voloer aggiungere gli eventi vuoti per la stagione\n'<b>${this.theLocalStorage?.data.currSeason?.nome}</b>'\nnel database?</b>`,
             messtype:            'warning',
             btncaption:          'Annulla',
             showCancelButton:    true,
@@ -668,12 +700,12 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                                               {
                                                                                  if (result === 'secondary')
                                                                                  {
-                                                                                    if (this.currSeason != null)
+                                                                                    if (this.theLocalStorage?.data.currSeason != null)
                                                                                     {
                                                                                        let goOn: boolean = false;
                                                                                        let strData: string;
-                                                                                       let currDay: Date = new Date (this.currSeason.datainizio);
-                                                                                       let dayToStop: Date = new Date (this.currSeason.datafine);
+                                                                                       let currDay: Date = new Date (this.theLocalStorage?.data.currSeason.datainizio);
+                                                                                       let dayToStop: Date = new Date (this.theLocalStorage?.data.currSeason.datafine);
                                                                                        let esisteGia: boolean = false;
                                                                                        dayToStop.setDate (dayToStop.getDate () + 1);
                                                                                        currDay.setHours(0,0,0,0);
@@ -705,7 +737,7 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                                                                                         "",
                                                                                                                         false,
                                                                                                                         TipoEvento.EventoVuoto,
-                                                                                                                        this.currSeason.id,
+                                                                                                                        this.theLocalStorage?.data.currSeason.id,
                                                                                                                         0).subscribe (data =>
                                                                                                                                                        {
                                                                                                                                                           goOn = true;
@@ -890,61 +922,90 @@ export class MainPageComponent implements OnInit, OnDestroy
 
    OnFilterRisorsa()
    {
-      this.fltrRisorsa = (this.fltrRisorsaItems)?((this.fltrRisorsaItems.length > 0)?true:false):false;
+      if (this.theSessionStorage)
+      {
+         if (this.theSessionStorage.data.fltrRisorsaItems.length > 0)
+            this.theSessionStorage.data.fltrRisorsa = true;
+         else
+            this.theSessionStorage.data.fltrRisorsa = false;
+      }
       try
       {
-         this.fltrDlgRef = this.fltrDialogService.open(MultiSelectModalComponent, {
-            //header: 'Filtro Risorse',
-            width: '600px',
-            height: '650px',
-            position: 'topleft',
-            styleClass: 'custom-dlg-class',
-            data: {
-               options: this.listaRisorse,
-               preSelectedOptions: this.fltrRisorsaItems,
-               customTitle: 'Filtro per Risorse'
-            }
-         });
-         //
-         this.fltrDlgRef.onClose.subscribe((result: { action: string, selectedOptions: any[] | null } | null) => {
-            // Controlla se 'result' non è null (cioè la modale non è stata chiusa con la 'x' o ESC senza passare valori)
-            try
-            {
-               if (result)
-               {
-                  if (result.action === 'ok' && result.selectedOptions)
-                  {
-                     // Se l'utente ha premuto OK e ci sono opzioni selezionate
-                     this.fltrRisorsaItems = result.selectedOptions;
-                     console.log('Opzioni selezionate (OK):', this.fltrRisorsaItems);
-                     this.fltrMessageService.add({severity:'success', summary:'Confermato', detail:'Selezione salvata!'});
-                  }
-                  else if (result.action === 'cancel')
-                  {
-                     // Se l'utente ha premuto Annulla
-                     console.log('Modale annullata. Mantenute le selezioni precedenti.');
-                     this.fltrMessageService.add({severity:'warn', summary:'Annullato', detail:'Selezione precedente mantenuta.'});
-                     // Non facciamo nulla con this.selectedItemsFromModal, così conserva il suo stato precedente
-                  }
+         if (this.theSessionStorage)
+         {
+            this.fltrDlgRef = this.fltrDialogService.open (MultiSelectModalComponent, {
+               //header: 'Filtro Risorse',
+               width:      '600px',
+               height:     '750px',
+               position:   'topleft',
+               styleClass: 'custom-dlg-class',
+               data:       {
+                  options:            this.listaRisorse,
+                  preSelectedOptions: (this.theSessionStorage)?this.theSessionStorage.data.fltrRisorsaItems:[],
+                  customTitle:        'Filtro per Risorse'
                }
-               else
-               {
-                  // Questo caso si verifica se la modale è stata chiusa senza un'azione esplicita (es. clic su 'x' o tasto ESC)
-                  console.log('Modale chiusa senza azione specifica (es. X o ESC). Mantenute le selezioni precedenti.');
-                  this.fltrMessageService.add({severity:'info', summary:'Chiusa', detail:'Nessuna modifica alla selezione.'});
-               }
-            }
-            catch (e)
-            {
+            });
+            //
+            this.fltrDlgRef.onClose.subscribe ((result: { action: string, selectedOptions: any[] | null } | null) =>
+                                               {
+                                                  // Controlla se 'result' non è null (cioè la modale non è stata chiusa con la 'x' o ESC senza passare valori)
+                                                  try
+                                                  {
+                                                     if (result)
+                                                     {
+                                                        if (result.action === 'ok' && result.selectedOptions)
+                                                        {
+                                                           // Se l'utente ha premuto OK e ci sono opzioni selezionate
+                                                           if ((this.theSessionStorage) && (this.theSessionStorage.data))
+                                                           {
+                                                              this.theSessionStorage.data.fltrRisorsaItems = result.selectedOptions;
+                                                              console.log ('Opzioni selezionate (OK):', this.theSessionStorage.data.fltrRisorsaItems);
+                                                           }
+                                                           this.fltrMessageService.add ({severity:  'success',
+                                                                                           summary: 'Confermato',
+                                                                                           detail:  'Selezione salvata!'
+                                                                                        });
+                                                        }
+                                                        else if (result.action === 'cancel')
+                                                        {
+                                                           // Se l'utente ha premuto Annulla
+                                                           console.log ('Modale annullata. Mantenute le selezioni precedenti.');
+                                                           this.fltrMessageService.add ({severity:  'warn',
+                                                                                           summary: 'Annullato',
+                                                                                           detail:  'Selezione precedente mantenuta.'
+                                                                                        });
+                                                           // Non facciamo nulla con this.selectedItemsFromModal, così conserva il suo stato precedente
+                                                        }
+                                                     }
+                                                     else
+                                                     {
+                                                        // Questo caso si verifica se la modale è stata chiusa senza un'azione esplicita (es. clic su 'x' o tasto ESC)
+                                                        console.log ('Modale chiusa senza azione specifica (es. X o ESC). Mantenute le selezioni precedenti.');
+                                                        this.fltrMessageService.add ({severity:  'info',
+                                                                                        summary: 'Chiusa',
+                                                                                        detail:  'Nessuna modifica alla selezione.'
+                                                                                     });
+                                                     }
+                                                  }
+                                                  catch (e)
+                                                  {
 
-            }
-            finally
-            {
-               this.fltrRisorsa = (this.fltrRisorsaItems)?((this.fltrRisorsaItems.length > 0)?true:false):false;
-               this.cdr.detectChanges ();
-               this.RefreshData();
-            }
-         });
+                                                  }
+                                                  finally
+                                                  {
+                                                     if (this.theSessionStorage)
+                                                     {
+                                                        if (this.theSessionStorage.data.fltrRisorsaItems.length > 0)
+                                                           this.theSessionStorage.data.fltrRisorsa = true;
+                                                        else
+                                                           this.theSessionStorage.data.fltrRisorsa = false;
+                                                     }
+                                                     this.theSessionStorage?.Save();
+                                                     this.cdr.detectChanges ();
+                                                     this.RefreshData ();
+                                                  }
+                                               });
+         }
       }
       catch (e)
       {
@@ -952,13 +1013,20 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
       finally
       {
-         //this.fltrRisorsa = (this.fltrRisorsaItems)?((this.fltrRisorsaItems.length > 0)?true:false):false;
+         this.theSessionStorage?.Save();
       }
    }
 
 
-   OnFilterGruppo()
+   async OnFilterGruppo()
    {
+      if (this.theSessionStorage)
+      {
+         if (this.theSessionStorage.data.fltrGruppoItems.length > 0)
+            this.theSessionStorage.data.fltrGruppo = true;
+         else
+            this.theSessionStorage.data.fltrGruppo = false;
+      }
       try
       {
          this.fltrDlgRef = this.fltrDialogService.open(MultiSelectModalComponent, {
@@ -969,7 +1037,7 @@ export class MainPageComponent implements OnInit, OnDestroy
             styleClass: 'custom-dlg-class',
             data: {
                options: this.listaGruppi,
-               preSelectedOptions: this.fltrGruppoItems,
+               preSelectedOptions: (this.theSessionStorage)?this.theSessionStorage.data.fltrGruppoItems:[],
                customTitle: 'Filtro per Gruppi'
             }
          });
@@ -983,8 +1051,11 @@ export class MainPageComponent implements OnInit, OnDestroy
                   if (result.action === 'ok' && result.selectedOptions)
                   {
                      // Se l'utente ha premuto OK e ci sono opzioni selezionate
-                     this.fltrGruppoItems = result.selectedOptions;
-                     console.log('Opzioni selezionate (OK):', this.fltrGruppoItems);
+                     if ((this.theSessionStorage) && (this.theSessionStorage.data))
+                     {
+                        this.theSessionStorage.data.fltrGruppoItems = result.selectedOptions;
+                        console.log ('Opzioni selezionate (OK):', this.theSessionStorage.data.fltrGruppoItems);
+                     }
                      this.fltrMessageService.add({severity:'success', summary:'Confermato', detail:'Selezione salvata!'});
                   }
                   else if (result.action === 'cancel')
@@ -1008,9 +1079,17 @@ export class MainPageComponent implements OnInit, OnDestroy
             }
             finally
             {
-               this.fltrGruppo = (this.fltrGruppoItems)?((this.fltrGruppoItems.length > 0)?true:false):false;
+               if (this.theSessionStorage)
+               {
+                  if (this.theSessionStorage.data.fltrGruppoItems.length > 0)
+                     this.theSessionStorage.data.fltrGruppo = true;
+                  else
+                     this.theSessionStorage.data.fltrGruppo = false;
+               }
+               this.theSessionStorage?.Save();
                this.cdr.detectChanges ();
                this.RefreshData();
+               this.cdr.detectChanges ();
             }
          });
       }
@@ -1020,7 +1099,7 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
       finally
       {
-         //this.fltrGruppo = (this.fltrGruppoItems)?((this.fltrGruppoItems.length > 0)?true:false):false;
+         //this.theSessionStorage?.Save();
       }
    }
 
@@ -1044,9 +1123,46 @@ export class MainPageComponent implements OnInit, OnDestroy
 
    async RefreshData()
    {
-      setTimeout(() => { console.log("RICARICO"); window.location.reload(); }, 50);
+      //await this.LoadFilters();
+      await this.LoadEvents();
+      this.cdr.detectChanges ();
+      setTimeout(() => {
+         console.log("RICARICO");
+         window.location.reload();
+         }, 100);
       window.location.reload();
    }
 
+
+   FiltroRisorseOn(): boolean
+   {
+      let result: boolean = false;
+      try
+      {
+         if ((this.theSessionStorage) && (this.theSessionStorage.data) && (this.theSessionStorage.data.fltrRisorsaItems.length > 0))
+            result = true;
+      }
+      catch(e)
+      {
+         result = false;
+      }
+      return result;
+   }
+
+
+   FiltroGruppiOn(): boolean
+   {
+      let result: boolean = false;
+      try
+      {
+         if ((this.theSessionStorage) && (this.theSessionStorage.data) && (this.theSessionStorage.data.fltrGruppoItems.length > 0))
+            result = true;
+      }
+      catch(e)
+      {
+         result = false;
+      }
+      return result;
+   }
 
 }
