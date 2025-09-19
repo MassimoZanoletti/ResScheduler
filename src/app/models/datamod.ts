@@ -100,6 +100,56 @@ export interface Gruppo
 }
 
 
+export interface Iscritto
+{
+   id: number;
+   cognome: string;
+   nome: string;
+   anno: number;
+   seasonid: number;
+   season: string;
+   gruppoid: number;
+   gruppo: string;
+   societaid: number;
+   societa: string;
+   categoriaid: number;
+   categoria: string;
+   nummaglia: string;
+   visitafatta: string;
+   visitascadenza: string;
+   tesserato: boolean;
+   myfip: boolean;
+   pagamenti: string;
+   recapiti: string;
+   note: string;
+}
+
+
+export interface IscrittoDb
+{
+   id: number;
+   cognome: string;
+   nome: string;
+   anno: number;
+   seasonid_link: number;
+   season: string;
+   gruppoid_link: number;
+   gruppo: string;
+   societaid_link: number;
+   societa: string;
+   categoriaid_link: number;
+   categoria: string;
+   nummaglia: string;
+   visitafatta: Date;
+   visitascadenza: Date;
+   tesserato: number;
+   myfip: number;
+   pagamenti: string;
+   recapiti: string;
+   note: string;
+}
+
+
 export namespace TipoEvento
 {
    export const EventoVuoto: number = 0;

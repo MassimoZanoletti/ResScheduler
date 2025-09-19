@@ -76,6 +76,7 @@ export class UserEditComponent implements OnInit
       if (history.state.from)
          this.fromWhere = history.state.from;
       //
+      this.isLoading = true;
       this.ruoliService.getAllData().subscribe(data2 =>
                                                {
                                                   if (data2)
@@ -99,7 +100,7 @@ export class UserEditComponent implements OnInit
       {
          this.operazione = "Modifica ";
          while (this.isLoading) // necessario per attendere che tutti i ruoli siano caricati nell'array
-            await utils.Dlt_Sleep(50);
+            await utils.Dlt_Sleep(150);
          this.isLoading = true;
          this.resourceService.getSingleData (this.id).subscribe (data =>
                                                                  {

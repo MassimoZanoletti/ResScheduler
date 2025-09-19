@@ -1,0 +1,160 @@
+::ng-deep .p-button-table .p-button {
+   max-height: 28px !important;
+   min-height: 28px !important;
+   height: 28px !important;
+   line-height: 28px !important;
+   margin-top: 1px !important;
+   margin-bottom: 1px !important;
+   margin-right: 8px !important;
+}
+
+::ng-deep .custom-header-table .p-datatable-thead > tr > th {
+   background-color: #422d6b !important; /* blu scuro */
+   color: #ffe378 !important; /* testo bianco */
+   font-weight: bold;
+   font-size: 1.2em;
+   border-bottom: 2px solid #3949ab; /* bordo inferiore */
+}
+
+
+::ng-deep .custom-header-table .p-button {
+   min-height: 2.5rem;
+}
+
+
+::ng-deep .action-button {
+   width: 2.5rem;
+   height: 2.5rem;
+   padding: 0;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   font-size: 1.2rem;
+   border: none;
+   border-radius: 50%;
+   cursor: pointer;
+}
+
+::ng-deep .edit-button {
+   /*background-color: #1976d2;*/
+   color: white;
+}
+
+::ng-deep .delete-button {
+   /*background-color: #d32f2f;*/
+   color: white;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+   padding-top: 0.08rem;
+   padding-bottom: 0.08rem;
+   line-height: 1.0;
+}
+
+::ng-deep .p-card .p-card-body {
+   padding: 1px !important;
+   margin-top: 12px !important;
+   margin-bottom: 6px !important;
+   /*
+   margin-left: 4px !important;
+   margin-right: 4px !important;
+   */
+   /*background-color: white !important;*/
+}
+
+
+::ng-deep .p-card .p-card-content {
+   padding-top: 1px !important;
+   padding-bottom: 1px !important;
+   margin-top: 1px !important;
+   margin-bottom: 1px !important;
+   /*background-color: green !important;*/
+}
+
+
+.row-bck-0 {
+   background-color: #161c2d; /* Un rosso chiaro */
+}
+
+.row-bck-1 {
+   background-color: #1a2136; /* Un verde chiaro */
+}
+
+.row-bck-2 {
+   background-color: #1e273f; /* Un giallo chiaro */
+}
+
+.margin-left {
+   margin-left: 1rem !important;
+}
+
+
+::ng-deep .p-selectable-row {
+   transition: background-color 0.3s ease;
+}
+
+
+/* Quando la riga è selezionata, sovrascrive il colore */
+::ng-deep .p-selectable-row.p-highlight {
+   background-color: #ab7a39 !important; /* colore selezione */
+   color: #2a134d !important;
+}
+
+
+/*------------------------   Dialog Specs -----------------------*/
+
+.dialog-container
+{
+   display: flex;
+   justify-content: center;   /* allineamento orizzontale centrato */
+   align-items: start;        /* allineamento verticale in alto */
+   /*height: 100vh;*/
+   margin-top: 15px !important;
+
+   mat-card {
+      width: 400px;
+      color: white;
+   }
+
+   mat-form-field {
+      width: 100%;
+      margin-bottom: 8px;
+      margin-top: 8px;
+   }
+
+}
+
+.dialog-error-message {
+   color: red;
+   background-color: #ffe378;
+   margin-bottom: 16px;
+   margin-top: 16px;
+   padding: 8px;
+   font-weight: bold;
+}
+
+
+.form-group {
+   display: flex;
+   align-items: center;
+   margin-bottom: 0.25rem;
+}
+
+.form-group label {
+   width: 120px; /* larghezza fissa per allineamento */
+   margin-right: 1rem;
+   font-weight: bold;
+}
+
+.form-group input,
+.form-group p-calendar {
+   flex: 1;
+}
+
+.dialog-footer-buttons {
+   display: flex;
+   justify-content: flex-end;
+   gap: 0.5rem;
+}
+
+/* ----------------------------------------- */

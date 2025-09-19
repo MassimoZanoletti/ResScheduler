@@ -143,7 +143,7 @@ export class EventoEditComponent implements OnInit
             this.gruppo_id = (dataRes.elements as EventoElement).gruppo_id;
             if (this.gruppo_id > 0)
             {
-               const currg = this.listaRisorse.findIndex (elemento => elemento.id == this.gruppo_id);
+               const currg = this.listaGruppi.findIndex (elemento => elemento.id == this.gruppo_id);
                if (currg != -1)
                   this.currGruppo = this.listaGruppi[currg];
             }

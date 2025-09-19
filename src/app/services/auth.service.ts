@@ -6,7 +6,9 @@ import {
 import {MessDlgData,
    User,
    LogMessage} from "../models/datamod";
-import {firstValueFrom} from "rxjs";
+import { firstValueFrom,
+         BehaviorSubject,
+         Observable } from "rxjs";
 import {utils} from "../common/utils";
 import * as util from "node:util";
 import {LogService} from "./log.service";
@@ -19,7 +21,8 @@ import {LogService} from "./log.service";
 export class AuthService
 {
    private loggedIn = false;
-
+   private userSource = new BehaviorSubject<User | null>(null);
+   public currentUser = this.userSource.asObservable();
    constructor (private userServ: UserService,
                 private logService: LogService)
    {
@@ -60,6 +63,7 @@ export class AuthService
          this.loggedIn = true;
          utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
          await this.logService.AddToLog(loggedUser, "Login");
+         this.userSource.next(loggedUser);
          return true;
       }
       else if ((username == superUserName) && (password == superUserPassword))
@@ -73,6 +77,7 @@ export class AuthService
          this.loggedIn = true;
          utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
          await this.logService.AddToLog(loggedUser, "Login");
+         this.userSource.next(loggedUser);
          return true;
       }
       else
@@ -91,6 +96,7 @@ export class AuthService
                this.loggedIn = true;
                utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
                await this.logService.AddToLog(loggedUser, "Login");
+               this.userSource.next(loggedUser);
                return true;
             }
             else
@@ -131,6 +137,7 @@ export class AuthService
    {
       InitLoggedUser();
       this.loggedIn = false;
+      this.userSource.next(null);
    }
 
 

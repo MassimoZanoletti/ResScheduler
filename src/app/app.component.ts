@@ -27,6 +27,8 @@ import * as currentPackage from "../../package.json";
 import {InitLoggedUser, loggedUser} from "./services/users.service";
 import {utils} from "./common/utils";
 import {LogService} from "./services/log.service";
+import { Subscription } from 'rxjs';
+import { AuthGuard } from "./auth.guard";
 
 
 
@@ -49,6 +51,11 @@ import {LogService} from "./services/log.service";
             })
 export class AppComponent implements AfterViewInit, OnInit
 {
+
+   private userSubscription: Subscription | undefined;
+
+   protected readonly loggedUser = loggedUser;
+
    public pkg: { name: string; version: string; copyrights: string } = currentPackage;
 
    title = 'ResSchedulerAuth';
@@ -67,40 +74,13 @@ export class AppComponent implements AfterViewInit, OnInit
                 private primengConfig: PrimeNGConfig,
                 private logService: LogService)
    {
+      this.userSubscription = this.authService.currentUser.subscribe(user => {
+         this.InitMenu();
+      });      //
       if (utils.IsDevMode == null)
          utils.IsDevMode = isDevMode();
       //
-      this.mnuTabelle = [
-         {
-            label: "Normali",
-            items: [
-               {label: "Risorse", icon: 'pi pi-table', routerLink: ['/risorsetable']},
-               {label: "Gruppi", icon: 'pi pi-table', routerLink: ['/gruppitable']}
-            ]
-         },
-         {
-            separator: true
-         },
-         {
-            label: "Base",
-            items: [
-               {label: "Stagioni", icon: 'pi pi-table', routerLink: ['/seasonstable']},
-               {label: "Società", icon: 'pi pi-table', routerLink: ['/societatable']},
-               {label: "Ruoli", icon: 'pi pi-table', routerLink: ['/ruolitable'], visible: this.IsAdmin ()},
-               {label: "Categorie", icon: 'pi pi-table', routerLink: ['/categorietable']}
-            ]
-         },
-         {
-            separator: true
-         },
-         {
-            label: "Sistema",
-            items: [
-               {label: "Eventi Master", icon: 'pi pi-table', routerLink: ['/eventimastertable']},
-               {label: "Log", icon: 'pi pi-table', routerLink: ['/logtable']}
-            ]
-         }
-      ];
+      this.InitMenu();
       //
       this.appTitle = this.pkg.name;
       ;
@@ -152,7 +132,7 @@ export class AppComponent implements AfterViewInit, OnInit
                                             clear:           'Pulisci',
                                             dateFormat:      'dd/mm/yyyy'
                                          });
-
+      //
    }
 
 
@@ -191,9 +171,54 @@ export class AppComponent implements AfterViewInit, OnInit
 
    IsAdmin (): boolean
    {
-      return (loggedUser.attributo >= 255);
+      utils.Dlt_Sleep(100);
+      const result: boolean = (loggedUser.attributo >= 255);
+      return result;
    }
 
 
-   protected readonly loggedUser = loggedUser;
+   IsDirigente (): boolean
+   {
+      utils.Dlt_Sleep(100);
+      const result: boolean = (loggedUser.attributo >= 2);
+      return result;
+   }
+
+
+   InitMenu()
+   {
+      this.mnuTabelle = [
+         {
+            label: "Normali",
+            items: [
+               {label: "Risorse", icon: 'pi pi-table', routerLink: ['/risorsetable']},
+               {label: "Gruppi", icon: 'pi pi-table', routerLink: ['/gruppitable']}
+            ]
+         },
+         {
+            separator: true
+         },
+         {
+            label: "Base",
+            items: [
+               {label: "Stagioni", icon: 'pi pi-table', routerLink: ['/seasonstable']},
+               {label: "Società", icon: 'pi pi-table', routerLink: ['/societatable']},
+               {label: "Categorie", icon: 'pi pi-table', routerLink: ['/categorietable']},
+               {label: "Iscritti", icon: 'pi pi-table', routerLink: ['/iscrittitable'], visible: this.IsDirigente ()},
+               {label: "Ruoli", icon: 'pi pi-table', routerLink: ['/ruolitable'], visible: this.IsAdmin ()}
+            ]
+         },
+         {
+            separator: true
+         },
+         {
+            label: "Sistema",
+            items: [
+               {label: "Eventi Master", icon: 'pi pi-table', routerLink: ['/eventimastertable']},
+               {label: "Log", icon: 'pi pi-table', routerLink: ['/logtable']}
+            ]
+         }
+      ];
+   }
 }
+

@@ -1,0 +1,324 @@
+
+<div class="card flex justify-content-start">
+   <p-card [style]="{ width: '100%' }"
+           contentStyleClass="card-contenuto-ridotto">
+      <div style="display: flex; align-items: center;">
+         <h2 style="margin-left: 15px; margin-right: 30px; margin-bottom: 0px; margin-top: 0px; padding-bottom: 0px; padding-top: 0px;">Utenti</h2>
+         <p-button
+            class="p-button-table"
+            icon="pi pi-refresh"
+            severity="secondary"
+            pTooltip="Refresh"
+            tooltipPosition="top"
+            (click)="LoadData()"
+         ></p-button>
+         <p-button
+            *ngIf="AddEnabled()"
+            class="p-button-table margin-left"
+            icon="pi pi-plus"
+            severity="primary"
+            pTooltip="Aggiungi nuovo iscritto"
+            tooltipPosition="top"
+            label="Aggiungi iscritto"
+            (click)="onAdd()"
+         ></p-button>
+         <p-button
+            *ngIf="AddEnabled()"
+            class="p-button-table"
+            icon="pi pi-pencil"
+            severity="primary"
+            pTooltip="Modifica iscritto selezionato"
+            tooltipPosition="top"
+            label="Modifica"
+            (click)="onEdit()"
+         ></p-button>
+         <p-button
+            *ngIf="AddEnabled()"
+            class="p-button-table margin-left"
+            icon="pi pi-trash"
+            severity="warning"
+            pTooltip="Elimina iscritto selezionato"
+            tooltipPosition="top"
+            label="Elimina"
+            (click)="onDelete()"
+         ></p-button>
+      </div>
+   </p-card>
+</div>
+
+<!--
+<div *ngIf="isLoading" class="card flex justify-content-center">
+   -->
+<p-blockUI [blocked]="isLoading">
+   <p-progressSpinner></p-progressSpinner>
+</p-blockUI>
+
+<!--
+   id: number;
+   cognome: string;
+   nome: string;
+   anno: number;
+   seasonid: number;
+   season: string;
+   gruppoid: number;
+   gruppo: string;
+   societaid: number;
+   societa: string;
+   categoriaid: number;
+   categoria: string;
+   nummaglia: string;
+   visitafatta: string;
+   visitascadenza: string;
+   tesserato: boolean;
+   myfip: boolean;
+   pagamenti: string;
+   recapiti: string;
+   note: string;
+-->
+<div class="card">
+   <p-table
+      id="iscrittiTable"
+      #iscrittiTable
+      class="custom-header-table"
+      styleClass="p-datatable-gridlines"
+      [scrollable]="true"
+      scrollHeight="600px"
+      [value]="tblData"
+      selectionMode="single"
+      [(selection)]="currSelected"
+      (onRowSelect)="OnRowSelected($event)"
+      (onRowUnselect)="OnRowUnselected($event)"
+      dataKey="id"
+      sortMode="multiple"
+      [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template pTemplate="header">
+         <tr>
+            <th style="width: 65px;">Id</th>
+            <th pSortableColumn="nummaglia" style="width: 150px;">N. Ma.<p-sortIcon field="nummaglia" /></th>
+            <th pSortableColumn="cognome" style="width: 250px;">Cognome <p-sortIcon field="cognome" /></th>
+            <th style="width: 250px;">Nome</th>
+            <th pSortableColumn="anno" style="width: 250px;">Anno <p-sortIcon field="anno" /></th>
+            <th pSortableColumn="gruppo" style="width: 250px;">Gruppo <p-sortIcon field="gruppo" /></th>
+            <th pSortableColumn="societa" style="width: 250px;">Società <p-sortIcon field="societa" /></th>
+            <th pSortableColumn="categoria" style="width: 250px;">Categoria <p-sortIcon field="categoria" /></th>
+            <th style="width: 250px;">Visita fatta</th>
+            <th pSortableColumn="visitascadenza" style="width: 250px;">Scadenza <p-sortIcon field="visitascadenza" /></th>
+            <th style="width: 90px;">Tess.</th>
+            <th style="width: 90px;">MyFIP</th>
+            <th style="width: 250px;">Pagamenti</th>
+            <th style="width: 250px;">Recapiti</th>
+            <th style="width: 250px;">Note</th>
+         </tr>
+      </ng-template>
+      <ng-template pTemplate="body"
+                   let-elemento
+                   let-rowIndex="rowIndex">
+         <tr [pSelectableRow]="elemento"
+            [ngClass]="getRowColorClass(rowIndex)">
+            <td><span style="font-size: 0.6em;">{{ elemento.id }}</span></td>
+            <td>{{ elemento.nummaglia }}</td>
+            <td>{{ elemento.cognome }}</td>
+            <td>{{ elemento.nome }}</td>
+            <td>{{ elemento.anno }}</td>
+            <td>{{ elemento.gruppo }}</td>
+            <td>{{ elemento.societa }}</td>
+            <td>{{ elemento.categoria }}</td>
+            <td>{{ elemento.visitafatta }}</td>
+            <td>{{ elemento.visitascadenza }}</td>
+            <td>
+               <p-checkbox
+                  [binary]="true"
+                  [ngModel]="elemento.tesserato" [disabled]="true">
+               </p-checkbox>
+            </td>
+            <td>
+               <p-checkbox
+                  [binary]="true"
+                  [ngModel]="elemento.myfip" [disabled]="true">
+               </p-checkbox>
+            </td>
+            <td>{{ elemento.pagamenti }}</td>
+            <td>{{ elemento.recapiti }}</td>
+            <td>{{ elemento.note }}</td>
+         </tr>
+      </ng-template>
+   </p-table>
+</div>
+
+
+
+
+
+<!-----------------------------------------------------------------
+               DIALOG ISCRITTO
+------------------------------------------------------------------>
+<p-dialog id="dialog-iscritto"
+          header="Iscritto"
+          [modal]="true"
+          [(visible)]="dialogVisible_Iscritto"
+          [closable]="false"
+          [style]="{ width: '35rem', padding: '10px', 'background-color': '#1f2937' }">
+   <div class="dialog-container">
+      <p-card header="{{dialogTitle}}">
+         <ng-template pTemplate="content">
+            <div class="form-group">
+               <label for="nome">Cognome:</label>
+               <input type="text"
+                      id="cognome"
+                      [(ngModel)]="dialogValue.cognome"
+                      pInputText
+                      required
+                      #dialogError="ngModel"/>
+            </div>
+
+            <div class="form-group">
+               <label for="nome">Nome:</label>
+               <input type="text"
+                      id="nome"
+                      [(ngModel)]="dialogValue.nome"
+                      pInputText
+                      required
+                      #dialogError="ngModel"/>
+            </div>
+
+            <div class="form-group">
+               <label for="nome">Num. Maglia:</label>
+               <input type="text"
+                      id="nummaglia"
+                      [(ngModel)]="dialogValue.nummaglia"
+                      pInputText
+                      required
+                      #dialogError="ngModel"/>
+            </div>
+
+            <div class="form-group">
+               <label for="abbrev">Anno:</label>
+               <input type="number"
+                      id="anno"
+                      [(ngModel)]="dialogValue.anno"
+                      pInputText
+                      #dialogError="ngModel"/>
+            </div>
+
+            <div class="form-group">
+               <label for="nome">Società:</label>
+               <p-dropdown
+                  [style]="{'min-width': '255px'}"
+                  [options]="listaSocieta"
+                  optionLabel="nome"
+                  [(ngModel)]="currSocieta"
+                  [checkmark]="true"
+                  [showClear]="false"
+                  [scrollHeight]="'500px'"/>
+            </div>
+
+            <div class="form-group">
+               <label for="nome">Categoria:</label>
+               <p-dropdown
+                  [style]="{'min-width': '255px'}"
+                  [options]="listaCategorie"
+                  optionLabel="nome"
+                  [(ngModel)]="currCategoria"
+                  [checkmark]="true"
+                  [showClear]="false"
+                  [scrollHeight]="'500px'"/>
+            </div>
+
+            <div class="form-group">
+               <label for="nome">Gruppo:</label>
+               <p-dropdown
+                  [style]="{'min-width': '255px'}"
+                  [options]="listaGruppi"
+                  optionLabel="nome"
+                  [(ngModel)]="currGruppo"
+                  [checkmark]="true"
+                  [showClear]="false"
+                  [scrollHeight]="'500px'"/>
+            </div>
+
+            <div class="form-group">
+               <label for="abbrev">Visita fatta:</label>
+               <input type="text"
+                      id="visitafatta"
+                      [(ngModel)]="dialogValue.visitafatta"
+                      pInputText
+                      #dialogError="ngModel"/>
+            </div>
+
+            <div class="form-group">
+               <label for="abbrev">Scsadenza:</label>
+               <input type="text"
+                      id="scasdenza"
+                      [(ngModel)]="dialogValue.visitascadenza"
+                      pInputText
+                      #dialogError="ngModel"/>
+            </div>
+
+            <div class="form-group">
+               <label for="tesserato">Tesserato:</label>
+               <p-checkbox
+                  [(ngModel)]="dialogValue.tesserato"
+                  [binary]="true"
+                  inputId="binary" />
+            </div>
+
+            <div class="form-group">
+               <label for="myfip">MyFIP:</label>
+               <p-checkbox
+                  [(ngModel)]="dialogValue.myfip"
+                  [binary]="true"
+                  inputId="binary" />
+            </div>
+
+            <div class="form-group">
+               <label for="abbrev">Recapiti:</label>
+               <input type="text"
+                      id="recapiti"
+                      [(ngModel)]="dialogValue.recapiti"
+                      pInputText
+                      #dialogError="ngModel"/>
+            </div>
+
+            <div class="form-group">
+               <label for="abbrev">Pagamenti:</label>
+               <input type="text"
+                      id="pagamenti"
+                      [(ngModel)]="dialogValue.pagamenti"
+                      pInputText
+                      #dialogError="ngModel"/>
+            </div>
+
+            <div class="form-group">
+               <label for="abbrev">Note:</label>
+               <input type="text"
+                      id="note"
+                      [(ngModel)]="dialogValue.note"
+                      pInputText
+                      #dialogError="ngModel"/>
+            </div>
+
+            <div *ngIf="dialogError.invalid && dialogError.touched" class="dialog-error-message">{{ dialogErrorMessage }}</div>
+         </ng-template>
+
+         <ng-template pTemplate="footer">
+            <div class="dialog-footer-buttons">
+               <button
+                  pButton
+                  type="button"
+                  label="Annulla"
+                  class="p-button-secondary"
+                  (click)="DialogAnnulla('player')"
+               ></button>
+               <button
+                  pButton
+                  type="button"
+                  label="OK"
+                  class="p-button-primary"
+                  (click)="DialogSalva('player')"
+               ></button>
+            </div>
+         </ng-template>
+      </p-card>
+   </div>
+</p-dialog>
+<!--   FINE DIALOG ISCRITTO   --->
