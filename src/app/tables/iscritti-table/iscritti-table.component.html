@@ -23,7 +23,7 @@
             (click)="onAdd()"
          ></p-button>
          <p-button
-            *ngIf="AddEnabled()"
+            *ngIf="EditEnabled()"
             class="p-button-table"
             icon="pi pi-pencil"
             severity="primary"
@@ -33,7 +33,7 @@
             (click)="onEdit()"
          ></p-button>
          <p-button
-            *ngIf="AddEnabled()"
+            *ngIf="DeleteEnabled()"
             class="p-button-table margin-left"
             icon="pi pi-trash"
             severity="warning"
@@ -82,7 +82,7 @@
       class="custom-header-table"
       styleClass="p-datatable-gridlines"
       [scrollable]="true"
-      scrollHeight="600px"
+      [scrollHeight]="scrollHeight"
       [value]="tblData"
       selectionMode="single"
       [(selection)]="currSelected"

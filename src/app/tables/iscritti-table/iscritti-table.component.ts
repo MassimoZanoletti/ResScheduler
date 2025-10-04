@@ -2,7 +2,7 @@ import {
    ChangeDetectorRef,
    ChangeDetectionStrategy,
    Component,
-   OnInit, ViewChild
+   OnInit, ViewChild, HostListener
 } from '@angular/core';
 import {
    CommonModule,
@@ -88,6 +88,8 @@ export class IscrittiTableComponent implements OnInit
    currSocieta: any | null = null;
    listaCategorie: Array<Categoria> = [];
    currCategoria: any | null = null;
+   windowHeight: number = 110;
+   scrollHeight: string = "110px";
 
    constructor (public router: Router,
                 private cdr: ChangeDetectorRef,
@@ -104,6 +106,9 @@ export class IscrittiTableComponent implements OnInit
    async ngOnInit ()
    {
       this.isLoading = true;
+      //
+      await this.GetWindowSize();
+      //
       this.theLocalStorage = new globs.TLocalStorage();
       await this.theLocalStorage.Load();
       this.theSessionStorage = new globs.TSessionStorage();
@@ -167,21 +172,38 @@ export class IscrittiTableComponent implements OnInit
    }
 
 
+   async GetWindowSize()
+   {
+      this.windowHeight = window.innerHeight;
+      let sh: number = this.windowHeight - 110 - 90 - 180;
+      if (sh < 110)
+         sh = 110;
+      this.scrollHeight = `${sh}px`;
+   }
+
+
+   @HostListener('window:resize', ['$event'])
+   async onResize(event: any)
+   {
+      await this.GetWindowSize();
+   }
+
+
    AddEnabled (): boolean
    {
-      return (loggedUser.attributo == 255);
+      return (loggedUser.attributo >= 2);
    }
 
 
-   EditEnabled (row: any): boolean
+   EditEnabled (): boolean
    {
-      return (loggedUser.attributo > 0);
+      return (loggedUser.attributo >= 2);
    }
 
 
-   DeleteEnabled (row: any): boolean
+   DeleteEnabled (): boolean
    {
-      return (loggedUser.attributo == 255);
+      return (loggedUser.attributo >= 2);
    }
 
 
