@@ -111,6 +111,7 @@ export class MainPageComponent implements OnInit, OnDestroy
    windowHeight: number = 110;
    scrollHeight: string = "110px";
    timerId: any;
+   resizeDebounceTimer: any;
    @ViewChild('eventsTable') pTable: Table | undefined;
 
 
@@ -192,6 +193,10 @@ export class MainPageComponent implements OnInit, OnDestroy
       if (this.fltrDlgRef)
       {
          this.fltrDlgRef.destroy();
+      }
+      if (this.resizeDebounceTimer)
+      {
+         clearTimeout(this.resizeDebounceTimer);
       }
    }
 
@@ -1115,9 +1120,19 @@ export class MainPageComponent implements OnInit, OnDestroy
 
 
    @HostListener('window:resize', ['$event'])
-   async onResize(event: any)
+   onResize(event: any)
    {
-      await this.GetWindowSize();
+      // Su iOS Safari la barra degli indirizzi si nasconde/mostra durante lo
+      // scroll, generando molti eventi 'resize' ravvicinati con innerHeight
+      // diverso: senza debounce la tabella ricalcola l'altezza in continuazione
+      // e "salta" visivamente. Il debounce riduce il ricalcolo a fine attivita'.
+      if (this.resizeDebounceTimer)
+         clearTimeout(this.resizeDebounceTimer);
+      this.resizeDebounceTimer = setTimeout(async () =>
+      {
+         await this.GetWindowSize();
+         this.cdr.detectChanges();
+      }, 250);
    }
 
 

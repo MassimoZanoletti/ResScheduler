@@ -110,7 +110,9 @@ export class EventoEditComponent implements OnInit
          this.lastResource = 0;
       //
       const dataRis = await firstValueFrom(this.resourceService.getAllData());
+      await utils.Dlt_Sleep(100);
       const dataGrp = await firstValueFrom(this.gruppiService.getAllData());
+      await utils.Dlt_Sleep(100);
       if ((dataRis) && (dataRis.ok))
          this.listaRisorse = dataRis.elements;
       if ((dataGrp) && (dataGrp.ok))
@@ -177,10 +179,22 @@ export class EventoEditComponent implements OnInit
          //
          this.orafine = new Date(this.data);
          this.orafine.setHours(0,0,0,0);
+         await utils.Dlt_Sleep(100);
+
          //
-         const currg = this.listaRisorse.findIndex(elemento => elemento.id == this.lastGroup);
-         if (currg != -1)
-            this.currGruppo = this.listaGruppi[currg];
+         if (this.lastGroup > 0)
+         {
+            const currg = this.listaGruppi.findIndex (elemento => elemento.id == this.lastGroup);
+            if (currg != -1)
+               this.currGruppo = this.listaGruppi[currg];
+         }
+         //
+         if (this.lastResource > 0)
+         {
+            const currr = this.listaRisorse.findIndex (elemento => elemento.id == this.lastResource);
+            if (currr != -1)
+               this.currRisorsa = this.listaRisorse[currr];
+         }
       }
       this.cdr.detectChanges();
    }

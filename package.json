@@ -1,7 +1,7 @@
 {
   "name": "Resource Scheduler",
-  "version": "1.0.0.510041",
-  "copyrights": "© 2025/2026 by Massimo Zanoletti",
+  "version": "1.0.1.608301",
+  "copyrights": "© 2025/2027 by Massimo Zanoletti",
   "scripts": {
     "clean": ".bin\\clean.bat",
     "clean-all": ".bin\\clean-all.bat",

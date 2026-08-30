@@ -89,7 +89,7 @@ export class UserService
               aPassword: string): Observable<any>
    {
       const operation: string = "check";
-      const url: string = `${this.apiUrl}?operation=${operation}&nome=${aName}&password=${aPassword}`;
+      const url: string = `${this.apiUrl}?operation=${operation}&nome=${encodeURIComponent(aName)}&password=${encodeURIComponent(aPassword)}`;
       return this.http.get<any>(url);
    }
 
