@@ -156,6 +156,7 @@ export class MainPageComponent implements OnInit, OnDestroy
          }
          */
          //
+         await this.SetLoading(99);
          await this.LoadFilters();
          //
          await this.LoadSeasons();
@@ -183,6 +184,7 @@ export class MainPageComponent implements OnInit, OnDestroy
       {
          //this.isLoadingSea = false;
          //this.isLoadingEv = false;
+         await this.SetLoading(0);
          this.cdr.detectChanges();
       }
    }
@@ -220,7 +222,6 @@ export class MainPageComponent implements OnInit, OnDestroy
       try
       {
          //this.isLoadingSea = true;
-         await this.SetLoading(1);
          const dataSeas = await firstValueFrom(this.seasonServ.getAllData());
          if ((dataSeas) && (dataSeas.ok))
             this.listaStagioni = dataSeas.elements;
@@ -232,7 +233,6 @@ export class MainPageComponent implements OnInit, OnDestroy
       finally
       {
          //this.isLoadingSea = false;
-         await this.SetLoading(0);
          this.cdr.detectChanges ();
       }
    }
@@ -340,7 +340,6 @@ export class MainPageComponent implements OnInit, OnDestroy
 
    async LoadFilters()
    {
-      await this.SetLoading(3);
       try
       {
          const dataRis = await firstValueFrom (this.resourceService.getAllData ());
@@ -353,10 +352,6 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
       catch(err)
       {}
-      finally
-      {
-         await this.SetLoading(0);
-      }
    }
 
 
