@@ -120,6 +120,13 @@ export class MainPageComponent implements OnInit, OnDestroy
    windowHeight: number = 110;
    scrollHeight: string = "110px";
    timerId: any;
+   // Solo su iOS: la tendina delle combo (p-dropdown) ignora gli eventi di scroll.
+   // Su iPhone il tocco provoca uno scroll che PrimeNG interpreta come "chiudi",
+   // quindi la tendina si apriva e si richiudeva subito. Sugli altri dispositivi
+   // resta undefined, cioe' il comportamento standard di PrimeNG.
+   comboOverlayOptions: any = utils.IsIOS ()
+                              ? { listener: (event: Event, opts: { type: string, valid: boolean }) => (opts.type === 'scroll') ? false : opts.valid }
+                              : undefined;
    resizeDebounceTimer: any;
    @ViewChild('eventsTable') pTable: Table | undefined;
 

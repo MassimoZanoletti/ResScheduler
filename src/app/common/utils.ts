@@ -61,6 +61,29 @@ export class utils
    static startingPath: string = "/";
 
 
+   /*-------------------------------------------
+      IsIOS
+         true se il dispositivo e' un iPhone / iPad / iPod (qualsiasi browser:
+         su iOS tutti i browser usano il motore di Safari).
+         Gli iPad recenti si presentano come "Macintosh": si riconoscono
+         perche' hanno lo schermo touch (un Mac non ne ha).
+   -------------------------------------------*/
+   static IsIOS (): boolean
+   {
+      try
+      {
+         const ua: string = navigator.userAgent || "";
+         if (/iPad|iPhone|iPod/.test (ua))
+            return true;
+         return ((/Macintosh/.test (ua)) && (navigator.maxTouchPoints > 1));
+      }
+      catch (e)
+      {
+         return false;
+      }
+   }
+
+
    static __internalFnCounter: number = 1;
    static __internalEngCmdCounter: number = 0;
 
