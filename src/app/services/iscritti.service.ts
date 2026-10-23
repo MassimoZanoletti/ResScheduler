@@ -43,9 +43,9 @@ export class IscrittiService
       if (gruppo != null)
          qryGruppo = `&gruppo=${gruppo}`;
       if (societa != null)
-         qrySocieta = `&season=${societa}`;
+         qrySocieta = `&societa=${societa}`;
       if (categoria != null)
-         qryCategoria = `&season=${categoria}`;
+         qryCategoria = `&categoria=${categoria}`;
       const url: string = `${this.apiUrl}?operation=${operation}`+ qryStagione + qryGruppo + qryCategoria + qrySocieta;
       let rrr = this.http.get<any>(url).pipe (
          tap (value => {  }),
