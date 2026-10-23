@@ -28,7 +28,9 @@ import {routes} from './app/app.routes';
 import {BrowserModule,
    /*provideClientHydration*/} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {provideHttpClient} from '@angular/common/http'; // Importa la funzione
+import {provideHttpClient,
+        withInterceptors} from '@angular/common/http'; // Importa la funzione
+import {httpTimeoutInterceptor} from './app/common/http-timeout.interceptor';
 import { DialogService } from 'primeng/dynamicdialog';
 import { utils } from './app/common/utils';
 
@@ -38,7 +40,7 @@ bootstrapApplication (AppComponent, {
       provideRouter (routes),
       importProvidersFrom (BrowserAnimationsModule, BrowserModule),
       //provideClientHydration (),
-      provideHttpClient(), // Usa la funzione al posto del modulo
+      provideHttpClient (withInterceptors ([httpTimeoutInterceptor])), // timeout + gestione errori su tutte le chiamate
       DialogService
    ]
 }).catch (err => console.error (err));

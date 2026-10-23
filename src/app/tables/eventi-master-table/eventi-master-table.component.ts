@@ -47,6 +47,15 @@ import { LogService } from "../../services/log.service";
 
 
 
+
+// Formattatore date creato UNA sola volta: creare un Intl.DateTimeFormat e' molto costoso
+// e veniva fatto per ogni riga della tabella ad ogni ciclo di change detection.
+const FMT_DATA_BREVE: Intl.DateTimeFormat = new Intl.DateTimeFormat ('it-IT', {
+   weekday: 'short',
+   day:     '2-digit',
+   month:   'short'
+});
+
 @Component ({
                selector:    'app-eventi-master-table',
                standalone:  true,
@@ -457,14 +466,16 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
          return this.FormattaData(evento.data);
       }
 
-      // Recupera il valore della data dell'evento precedente
+      // Recupera la data dell'evento precedente e confronta giorno/mese/anno
+      // (confronto numerico: evita di formattare due stringhe per ogni riga)
       const previousEvent = this.listaEventi[rowIndex - 1];
-      const previousDate = this.FormattaData(previousEvent.data);
-      const currentDate = this.FormattaData(evento.data);
-
-      // Confronta le date. Se sono uguali, restituisci una stringa vuota.
-      // Altrimenti, restituisci la data formattata.
-      return currentDate === previousDate ? '' : currentDate;
+      const prev = new Date (previousEvent.data);
+      const curr = new Date (evento.data);
+      if ((prev.getFullYear() == curr.getFullYear()) &&
+          (prev.getMonth() == curr.getMonth()) &&
+          (prev.getDate() == curr.getDate()))
+         return '';
+      return this.FormattaData(evento.data);
    }
 
 
@@ -474,11 +485,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
       {
          const d = new Date (data);
 
-         return new Intl.DateTimeFormat ('it-IT', {
-            weekday: 'short',
-            day:     '2-digit',
-            month:   'short'
-         }).format (d);
+         return FMT_DATA_BREVE.format (d);
       }
       catch (e)
       {

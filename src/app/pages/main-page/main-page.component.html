@@ -129,10 +129,9 @@
                   <td [ngStyle]="ColoreTipoEvento(evento)">{{ evento.luogo }}</td>
                   <td>{{ evento.commento }}</td>
                   <td>
-                     <p-checkbox
-                        [binary]="true"
-                        [ngModel]="evento.arbitraggio" [disabled]="true">
-                     </p-checkbox>
+                     <!-- Icona di sola lettura al posto di <p-checkbox [ngModel]>: con centinaia di righe
+                          ogni ngModel scatenava cicli di change detection extra (2 per riga) bloccando la pagina -->
+                     <i class="pi" [ngClass]="evento.arbitraggio ? 'pi-check-square' : 'pi-stop'" style="opacity: 0.8;"></i>
                   </td>
                </tr>
             </ng-template>

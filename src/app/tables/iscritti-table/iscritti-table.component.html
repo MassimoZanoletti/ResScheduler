@@ -125,17 +125,13 @@
             <td>{{ elemento.categoria }}</td>
             <td>{{ elemento.visitafatta }}</td>
             <td>{{ elemento.visitascadenza }}</td>
+            <!-- Icone di sola lettura al posto di <p-checkbox [ngModel]>: con molte righe
+                 ogni ngModel scatenava cicli di change detection extra bloccando la pagina -->
             <td>
-               <p-checkbox
-                  [binary]="true"
-                  [ngModel]="elemento.tesserato" [disabled]="true">
-               </p-checkbox>
+               <i class="pi" [ngClass]="elemento.tesserato ? 'pi-check-square' : 'pi-stop'" style="opacity: 0.8;"></i>
             </td>
             <td>
-               <p-checkbox
-                  [binary]="true"
-                  [ngModel]="elemento.myfip" [disabled]="true">
-               </p-checkbox>
+               <i class="pi" [ngClass]="elemento.myfip ? 'pi-check-square' : 'pi-stop'" style="opacity: 0.8;"></i>
             </td>
             <td>{{ elemento.pagamenti }}</td>
             <td>{{ elemento.recapiti }}</td>

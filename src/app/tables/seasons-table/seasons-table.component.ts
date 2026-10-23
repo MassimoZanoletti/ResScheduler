@@ -29,6 +29,15 @@ import { loggedUser } from "../../services/users.service";
 
 
 
+
+// Formattatore date creato UNA sola volta: creare un Intl.DateTimeFormat e' molto costoso
+// e veniva fatto per ogni riga della tabella ad ogni ciclo di change detection.
+const FMT_DATA_BREVE: Intl.DateTimeFormat = new Intl.DateTimeFormat ('it-IT', {
+   weekday: 'short',
+   day:     '2-digit',
+   month:   'short'
+});
+
 @Component ({
                selector:    'app-seasons-table',
                standalone:  true,
@@ -207,11 +216,7 @@ export class SeasonsTableComponent implements OnInit
    {
       const d = new Date (data);
 
-      return new Intl.DateTimeFormat ('it-IT', {
-         weekday: 'short',
-         day:     '2-digit',
-         month:   'short'
-      }).format (d);
+      return FMT_DATA_BREVE.format (d);
    }
 
 
