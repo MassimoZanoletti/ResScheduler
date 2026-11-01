@@ -226,7 +226,7 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
       catch (e)
       {
-
+         this.MostraErrore ("Errore durante l'apertura della pagina", e);
       }
       finally
       {
@@ -296,6 +296,44 @@ export class MainPageComponent implements OnInit, OnDestroy
    }
 
 
+   /*
+      Mostra un errore all'utente, lo scrive in console e nel log sul server.
+      err puo' essere un messaggio (es. 'message' di una risposta ok:false) o un'eccezione.
+   */
+   MostraErrore (sottotitolo: string,
+                 err: unknown)
+   {
+      let testo: string;
+      if (typeof err === 'string')
+         testo = err;
+      else if (err instanceof Error)
+         testo = err.message;
+      else
+      {
+         try
+         {
+            testo = JSON.stringify (err);
+         }
+         catch
+         {
+            testo = `${err}`;
+         }
+      }
+      console.error (`${sottotitolo}:`, err);
+      // Senza await: il log non deve bloccare. Se fallisce anche il log (es. server irraggiungibile)
+      // l'errore e' gia' stato mostrato all'utente e scritto in console.
+      this.logService.AddToLog (loggedUser, `${sottotitolo}: '${testo}'`).catch (logErr => console.error ("AddToLog:", logErr));
+      const dlgData: MessDlgData = {
+         title:      'ERRORE',
+         subtitle:   sottotitolo,
+         message:    EscapeHtml (testo),
+         messtype:   'error',
+         btncaption: 'Chiudi'
+      };
+      this.messageDialogService.showMessage (dlgData, '600px');
+   }
+
+
    async LoadSeasons()
    {
       try
@@ -304,10 +342,12 @@ export class MainPageComponent implements OnInit, OnDestroy
          const dataSeas = await firstValueFrom(this.seasonServ.getAllData());
          if ((dataSeas) && (dataSeas.ok))
             this.listaStagioni = dataSeas.elements;
+         else
+            this.MostraErrore ("Errore durante il caricamento delle stagioni", dataSeas?.message ?? 'No data returned');
       }
       catch (err)
       {
-
+         this.MostraErrore ("Errore durante il caricamento delle stagioni", err);
       }
       finally
       {
@@ -480,11 +520,17 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                         firstValueFrom (this.gruppiService.getAllData ())]);
          if ((dataRis) && (dataRis.ok))
             this.listaRisorse = dataRis.elements;
+         else
+            this.MostraErrore ("Errore durante il caricamento delle palestre", dataRis?.message ?? 'No data returned');
          if ((dataGrp) && (dataGrp.ok))
             this.listaGruppi = dataGrp.elements;
+         else
+            this.MostraErrore ("Errore durante il caricamento dei gruppi", dataGrp?.message ?? 'No data returned');
       }
       catch(err)
-      {}
+      {
+         this.MostraErrore ("Errore durante il caricamento di palestre e gruppi", err);
+      }
    }
 
 
@@ -1070,7 +1116,7 @@ export class MainPageComponent implements OnInit, OnDestroy
          }
          catch(e)
          {
-
+            this.MostraErrore ("Errore durante la cancellazione dell'evento", e);
          }
          finally
          {
@@ -1150,7 +1196,7 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                   }
                                                   catch (e)
                                                   {
-
+                                                     this.MostraErrore ("Errore nell'applicazione del filtro palestre", e);
                                                   }
                                                   finally
                                                   {
@@ -1170,7 +1216,7 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
       catch (e)
       {
-
+         this.MostraErrore ("Errore nell'apertura del filtro palestre", e);
       }
       finally
       {
@@ -1236,7 +1282,7 @@ export class MainPageComponent implements OnInit, OnDestroy
             }
             catch (e)
             {
-
+               this.MostraErrore ("Errore nell'applicazione del filtro gruppi", e);
             }
             finally
             {
@@ -1256,7 +1302,7 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
       catch (e)
       {
-
+         this.MostraErrore ("Errore nell'apertura del filtro gruppi", e);
       }
       finally
       {

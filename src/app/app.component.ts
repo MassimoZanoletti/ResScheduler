@@ -136,27 +136,23 @@ export class AppComponent implements AfterViewInit, OnInit
    }
 
 
-   logout (): void
+   async logout ()
    {
-      this.logService.AddToLog (loggedUser, "Logout");
+      // Il log va scritto PRIMA di ricaricare la pagina: prima la richiesta partiva senza
+      // attenderla e il reload immediato poteva annullarla.
+      try
+      {
+         await this.logService.AddToLog (loggedUser, "Logout");
+      }
+      catch (e)
+      {
+         console.error ("Logout - scrittura log non riuscita:", e);
+      }
       utils.removeFromSessionStorage ("RS_Logged_User");
-      InitLoggedUser ();
-      this.cdr.detectChanges ();
-      this.authService.logout ();
-      InitLoggedUser ();
-      this.cdr.detectChanges ();
-      if (utils.IsDevMode)
-      {
-         setTimeout (() => { window.location.reload(); }, 1500);
-         window.location.href = '/';
-         window.location.reload();
-      }
-      else
-      {
-         setTimeout (() => { window.location.reload(); }, 1500);
-         window.location.href = utils.startingPath;
-         window.location.reload();
-      }
+      await this.authService.logout ();
+      // Ricarica completa dell'app dall'indirizzo di partenza: azzera lo stato di tutte le pagine.
+      // Basta una sola navigazione (prima: href + reload() immediato + altro reload dopo 1,5 s).
+      window.location.assign ((utils.IsDevMode) ? '/' : utils.startingPath);
    }
 
 
@@ -171,7 +167,6 @@ export class AppComponent implements AfterViewInit, OnInit
 
    IsAdmin (): boolean
    {
-      utils.Dlt_Sleep(100);
       const result: boolean = (loggedUser.attributo >= 255);
       return result;
    }
@@ -179,7 +174,6 @@ export class AppComponent implements AfterViewInit, OnInit
 
    IsDirigente (): boolean
    {
-      utils.Dlt_Sleep(100);
       const result: boolean = (loggedUser.attributo >= 2);
       return result;
    }
