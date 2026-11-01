@@ -158,3 +158,12 @@
 .my-tiny-button.p-button.p-button-text {
    color: var(--primary-color, #1E88E5) !important; /* Esempio: usa il colore primario del tema */
 }
+
+
+/* Orario di un evento che si sovrappone a un altro nella stessa palestra.
+   Il colore resta visibile anche sulla riga selezionata (lo sfondo e' sulla cella, non sulla riga). */
+td.ora-sovrapposta {
+   background-color: #c62828;
+   color: #ffffff;
+   cursor: help;
+}

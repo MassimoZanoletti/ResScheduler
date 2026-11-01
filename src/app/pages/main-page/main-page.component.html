@@ -122,7 +122,8 @@
                    [ngClass]="GetRowColorClass(evento)">
                   <td><span style="font-size: 0.6em;">{{ evento.id }}</span></td>
                   <td>{{ GetFormattedDate(evento, rowIndex) }}</td>
-                  <td><b>{{ FormattaOrario (evento.orainizio) }}</b></td>
+                  <td [class.ora-sovrapposta]="sovrapposizioni.has(evento.id)"
+                      [attr.title]="sovrapposizioni.get(evento.id) ?? null"><b>{{ FormattaOrario (evento.orainizio) }}</b></td>
                   <td><span style="font-size: 0.7em;">{{ FormattaOrario (evento.orafine) }}</span></td>
                   <td [ngStyle]="ColoreRisorsa(evento)">{{ evento.risorsa }}</td>
                   <td [ngStyle]="ColoreGruppo(evento)">{{ evento.gruppo }}</td>

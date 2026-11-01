@@ -29,6 +29,14 @@ import { InputGroupModule } from "primeng/inputgroup";
 import { CheckboxModule } from 'primeng/checkbox';
 import {utils} from "../../common/utils";
 import {firstValueFrom} from "rxjs";
+import {DescriviEvento,
+        EscapeHtml,
+        IdRisorseTrasferta,
+        IntervalliSovrapposti,
+        IntervalloMinuti,
+        OccupaRisorsa,
+        StessoGiorno} from "../../common/sovrapposizioni";
+
 
 
 
@@ -236,6 +244,9 @@ export class EventoEditComponent implements OnInit
             this.gruppo_id = 0;
          utils.SaveToSessionStorage("RS_Editing_Event_LastGroup", this.gruppo_id);
          //
+         if (!(await this.ConfermaSovrapposizioni ()))
+            return;
+         //
          console.log(this.arbitraggio);
          //
          if (this.isAdd)
@@ -411,6 +422,94 @@ export class EventoEditComponent implements OnInit
          }
       }
       */
+   }
+
+
+   /*
+      Controllo sovrapposizioni (lato client).
+      Prima di salvare cerca gli altri eventi nella stessa palestra, nello stesso
+      giorno, con orario che si accavalla. Se ne trova, chiede conferma all'utente.
+      Ritorna true se si puo' procedere con il salvataggio.
+   */
+   async ConfermaSovrapposizioni (): Promise<boolean>
+   {
+      const conflitti: Array<EventoElement> | null = await this.CercaSovrapposizioni ();
+      let dlgData: MessDlgData;
+
+      if ((conflitti != null) && (conflitti.length == 0))
+         return true;
+      if (conflitti == null)
+      {
+         dlgData = {
+            title:               'ATTENZIONE',
+            subtitle:            'Controllo sovrapposizioni',
+            message:             'Non è stato possibile verificare se la palestra è già occupata in quell\'orario.\nSalvare comunque?',
+            messtype:            'warning',
+            btncaption:          'Annulla',
+            showCancelButton:    true,
+            cancelButtonCaption: 'Sì, salva'
+         };
+      }
+      else
+      {
+         const righe: string = conflitti.map (ev => `• ${EscapeHtml (DescriviEvento (ev))}`).join ('\n');
+         dlgData = {
+            title:               'ATTENZIONE',
+            subtitle:            'Palestra già occupata',
+            message:             `In <b>${EscapeHtml (this.currRisorsa?.nome ?? '')}</b> ci sono già eventi che si sovrappongono a questo orario:\n\n${righe}\n\nSalvare comunque?`,
+            messtype:            'warning',
+            btncaption:          'Annulla',
+            showCancelButton:    true,
+            cancelButtonCaption: 'Sì, salva'
+         };
+      }
+      const result = await firstValueFrom (this.messageDialogService.showMessage (dlgData, '600px', true));
+      return (result === 'secondary');
+   }
+
+
+   /*
+      Ritorna gli eventi in conflitto (array vuoto se nessuno),
+      oppure null se non e' stato possibile caricare i dati dal server.
+   */
+   async CercaSovrapposizioni (): Promise<Array<EventoElement> | null>
+   {
+      // Senza palestra, in trasferta o senza orario non c'e' nulla da controllare
+      if ((this.data == null) || (this.risorsa_id <= 0))
+         return [];
+      const trasferte: Set<number> = IdRisorseTrasferta (this.listaRisorse);
+      if (trasferte.has (Number (this.risorsa_id)))
+         return [];
+      const nuovo = IntervalloMinuti (this.orainizio, this.orafine);
+      if (nuovo == null)
+         return [];
+
+      try
+      {
+         const giorno: Date = this.data;
+         const stagione: number | null = (this.season_id > 0) ? this.season_id : null;
+         // tipoevento -1 = tutti i tipi: anche eventi periodici ed extra occupano la palestra
+         const resp = await firstValueFrom (this.eventiService.getAllData (stagione, -1, [this.risorsa_id], null, giorno, null));
+         if ((!resp) || (!resp.ok))
+            return null;
+         // I filtri vengono riapplicati qui: non si fa affidamento sul filtro per data del server
+         return (resp.elements as Array<EventoElement>).filter (ev =>
+         {
+            if (ev.id == this.id)
+               return false;
+            if ((!OccupaRisorsa (ev, trasferte)) || (ev.risorsa_id != this.risorsa_id))
+               return false;
+            if (!StessoGiorno (ev.data, giorno))
+               return false;
+            const altro = IntervalloMinuti (ev.orainizio, ev.orafine);
+            return ((altro != null) && (IntervalliSovrapposti (nuovo, altro)));
+         });
+      }
+      catch (e)
+      {
+         console.error ("CercaSovrapposizioni:", e);
+         return null;
+      }
    }
 
 

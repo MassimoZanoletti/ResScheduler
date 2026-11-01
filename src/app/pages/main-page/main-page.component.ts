@@ -45,6 +45,10 @@ import {GruppiService} from "../../services/gruppi.service";
 import {loggedUser} from "../../services/users.service";
 import { LogService } from "../../services/log.service";
 import { globs } from "../../common/globals";
+import {CalcolaSovrapposizioni,
+        DescriviEvento,
+        IdRisorseTrasferta,
+        OccupaRisorsa} from "../../common/sovrapposizioni";
 
 
 
@@ -129,6 +133,10 @@ export class MainPageComponent implements OnInit, OnDestroy
                               : undefined;
    resizeDebounceTimer: any;
    @ViewChild('eventsTable') pTable: Table | undefined;
+   // Eventi che si sovrappongono ad altri nella stessa palestra: id evento -> testo del tooltip
+   sovrapposizioni: Map<number, string> = new Map<number, string> ();
+   // Serve a scartare il risultato di un calcolo superato da un caricamento piu' recente
+   private sovrapposizioniReqId: number = 0;
 
 
    constructor (public router: Router,
@@ -302,6 +310,8 @@ export class MainPageComponent implements OnInit, OnDestroy
             {
                this.listaEventi = dataEvnt.elements;
                this.totRec = this.listaEventi.length;
+               // Non si attende: la tabella compare subito, le evidenziazioni arrivano appena pronte
+               this.AggiornaSovrapposizioni (seasonId, tipoEvnt, (gruppoId != null));
                const prevSelected = utils.GetFromSessionStorage("RS_Editing_Event_Id");
                utils.removeFromSessionStorage("RS_Editing_Event_Id");
                if (prevSelected != null)
@@ -351,6 +361,59 @@ export class MainPageComponent implements OnInit, OnDestroy
          await this.SetLoading(0);
          this.cdr.detectChanges ();
       }
+   }
+
+
+   /*
+      Calcola quali eventi della lista si sovrappongono ad altri nella stessa palestra.
+      La lista visibile puo' essere filtrata (per gruppo o per tipo evento): in quel caso
+      gli eventi nascosti, ad esempio di altri gruppi o extra, non ci sono. Per non perdere
+      conflitti con loro si caricano a parte TUTTI gli eventi della stagione per le palestre visibili.
+   */
+   async AggiornaSovrapposizioni (seasonId: number | null,
+                                  tipoEvnt: number | null,
+                                  filtroGruppi: boolean)
+   {
+      const reqId: number = ++this.sovrapposizioniReqId;
+      let tutti: Array<EventoElement> = this.listaEventi;
+      // Le trasferte non occupano palestre nostre: vanno escluse dal controllo
+      const trasferte: Set<number> = IdRisorseTrasferta (this.listaRisorse);
+      try
+      {
+         // Senza filtro per gruppo e con tutti i tipi evento la lista visibile e' gia' completa
+         if ((filtroGruppi) || (tipoEvnt != -1))
+         {
+            const risorse: Array<number> = [...new Set (this.listaEventi.filter (ev => OccupaRisorsa (ev, trasferte)).map (ev => ev.risorsa_id))];
+            if (risorse.length == 0)
+            {
+               tutti = [];
+            }
+            else
+            {
+               const resp = await firstValueFrom (this.eventServ.getAllData (seasonId, -1, risorse, null, null, null));
+               if ((!resp) || (!resp.ok))
+               {
+                  console.warn (`Sovrapposizioni non calcolate: ${resp?.message}`);
+                  tutti = [];
+               }
+               else
+                  tutti = resp.elements;
+            }
+         }
+         if (reqId != this.sovrapposizioniReqId)
+            return;
+         const info = new Map<number, string> ();
+         for (const [id, altri] of CalcolaSovrapposizioni (tutti, trasferte))
+            info.set (id, `Sovrapposto con:\n${altri.map (ev => DescriviEvento (ev)).join ('\n')}`);
+         this.sovrapposizioni = info;
+      }
+      catch (err)
+      {
+         console.error ("AggiornaSovrapposizioni:", err);
+         if (reqId == this.sovrapposizioniReqId)
+            this.sovrapposizioni = new Map<number, string> ();
+      }
+      this.cdr.detectChanges ();
    }
 
 
