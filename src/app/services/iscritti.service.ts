@@ -143,21 +143,21 @@ export class IscrittiService
       const operation: string = "edit";
       const url: string = `${this.apiUrl}?operation=${operation}` +
          `&id=${aId}` +
-         `&cognome=${aCognome}` +
-         `&nome=${aNome}` +
+         `&cognome=${encodeURIComponent(aCognome)}` +
+         `&nome=${encodeURIComponent(aNome)}` +
          `&anno=${aAnno}` +
          `&season_id=${aSeasonId}` +
          `&gruppo_id=${aGruppoId}` +
          `&categoria_id=${aCategoriaId}` +
          `&societa_id=${aSocietaId}` +
-         `&nummaglia=${aNumMaglia}` +
-         `&visitafatta=${aVisitaFatta}` +
-         `&visitascadenza=${aVisitaScadenza}` +
+         `&nummaglia=${encodeURIComponent(aNumMaglia)}` +
+         `&visitafatta=${encodeURIComponent(aVisitaFatta)}` +
+         `&visitascadenza=${encodeURIComponent(aVisitaScadenza)}` +
          `&tesserato=${Number(aTesserato)}` +
          `&myfip=${Number(aMyFip)}` +
-         `&pagamenti=${aPagamenti}` +
-         `&recapiti=${aRecapiti}` +
-         `&note=${aNote}`
+         `&pagamenti=${encodeURIComponent(aPagamenti)}` +
+         `&recapiti=${encodeURIComponent(aRecapiti)}` +
+         `&note=${encodeURIComponent(aNote)}`
       ;
       return this.http.get<any>(url);
    }
@@ -181,21 +181,21 @@ export class IscrittiService
    {
       const operation: string = "add";
       const url: string = `${this.apiUrl}?operation=${operation}` +
-         `&cognome=${aCognome}` +
-         `&nome=${aNome}` +
+         `&cognome=${encodeURIComponent(aCognome)}` +
+         `&nome=${encodeURIComponent(aNome)}` +
          `&anno=${aAnno}` +
          `&season_id=${aSeasonId}` +
          `&gruppo_id=${aGruppoId}` +
          `&categoria_id=${aCategoriaId}` +
          `&societa_id=${aSocietaId}` +
-         `&nummaglia=${aNumMaglia}` +
-         `&visitafatta=${aVisitaFatta}` +
-         `&visitascadenza=${aVisitaScadenza}` +
+         `&nummaglia=${encodeURIComponent(aNumMaglia)}` +
+         `&visitafatta=${encodeURIComponent(aVisitaFatta)}` +
+         `&visitascadenza=${encodeURIComponent(aVisitaScadenza)}` +
          `&tesserato=${Number(aTesserato)}` +
          `&myfip=${Number(aMyFip)}` +
-         `&pagamenti=${aPagamenti}` +
-         `&recapiti=${aRecapiti}` +
-         `&note=${aNote}`
+         `&pagamenti=${encodeURIComponent(aPagamenti)}` +
+         `&recapiti=${encodeURIComponent(aRecapiti)}` +
+         `&note=${encodeURIComponent(aNote)}`
       return this.http.get<any>(url);
    }
 

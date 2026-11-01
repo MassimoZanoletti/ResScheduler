@@ -177,13 +177,13 @@ export class EventiMasterService
       const operation: string = "edit";
       const url: string = `${this.apiUrl}?operation=${operation}` +
          `&id=${aId}` +
-         `&data=${aData}` +
-         `&datafine=${aDataFine}` +
-         `&orainizio=${aOraInizio}` +
-         `&orafine=${aOraFine}` +
+         `&data=${encodeURIComponent(aData)}` +
+         `&datafine=${encodeURIComponent(aDataFine)}` +
+         `&orainizio=${encodeURIComponent(aOraInizio)}` +
+         `&orafine=${encodeURIComponent(aOraFine)}` +
          `&risorsa_id=${aRisorsaId}` +
          `&gruppo_id=${aGruppoId}` +
-         `&commento=${aCommento}` +
+         `&commento=${encodeURIComponent(aCommento)}` +
          `&season_id=${aSeasonId}`
       ;
       return this.http.get<any> (url);
@@ -201,13 +201,13 @@ export class EventiMasterService
    {
       const operation: string = "add";
       const url: string = `${this.apiUrl}?operation=${operation}` +
-         `&data=${aData}` +
-         `&datafine=${aDataFine}` +
-         `&orainizio=${aOraInizio}` +
-         `&orafine=${aOraFine}` +
+         `&data=${encodeURIComponent(aData)}` +
+         `&datafine=${encodeURIComponent(aDataFine)}` +
+         `&orainizio=${encodeURIComponent(aOraInizio)}` +
+         `&orafine=${encodeURIComponent(aOraFine)}` +
          `&risorsa_id=${aRisorsaId}` +
          `&gruppo_id=${aGruppoId}` +
-         `&commento=${aCommento}` +
+         `&commento=${encodeURIComponent(aCommento)}` +
          `&season_id=${aSeasonId}`
       return this.http.get<any> (url);
    }

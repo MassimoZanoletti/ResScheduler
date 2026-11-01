@@ -40,6 +40,22 @@ import {DescriviEvento,
 
 
 
+// Minuti dalla mezzanotte (0 se l'orario non e' indicato)
+function MinutiDelGiorno (d: Date | null): number
+{
+   return (d != null) ? (d.getHours () * 60 + d.getMinutes ()) : 0;
+}
+
+
+// Orario nel formato atteso dal database: "HH:MM" ("00:00" se non indicato)
+function OraPerDb (d: Date | null): string
+{
+   if (d == null)
+      return "00:00";
+   return `${String (d.getHours ()).padStart (2, '0')}:${String (d.getMinutes ()).padStart (2, '0')}`;
+}
+
+
 @Component({
   selector:    'app-evento-edit',
   standalone:  true,
@@ -159,7 +175,7 @@ export class EventoEditComponent implements OnInit
             }
             else if (this.lastGroup > 0)
             {
-               const currg = this.listaRisorse.findIndex(elemento => elemento.id == this.lastGroup);
+               const currg = this.listaGruppi.findIndex (elemento => elemento.id == this.lastGroup);
                if (currg != -1)
                   this.currGruppo = this.listaGruppi[currg];
             }
@@ -225,6 +241,19 @@ export class EventoEditComponent implements OnInit
       try
       {
          console.log("Salva");
+         const errori: string = this.Valida ();
+         if (errori != "")
+         {
+            const dlgData: MessDlgData = {
+               title:      'ATTENZIONE',
+               subtitle:   'Dati incompleti o non validi',
+               message:    errori,
+               messtype:   'warning',
+               btncaption: 'Chiudi'
+            };
+            this.messageDialogService.showMessage (dlgData, '600px');
+            return;
+         }
          if (this.currRisorsa)
          {
             this.risorsa_id = this.currRisorsa.id;
@@ -252,8 +281,8 @@ export class EventoEditComponent implements OnInit
          if (this.isAdd)
          {
             const response = await firstValueFrom (this.eventiService.addNewData((this.data) ? this.data.toLocaleDateString ('ja-JP') : "",
-                                                                                 `${this.orainizio?.getHours ()}:${this.orainizio?.getMinutes ()}`,
-                                                                                 `${this.orafine?.getHours ()}:${this.orafine?.getMinutes ()}`,
+                                                                                 OraPerDb (this.orainizio),
+                                                                                 OraPerDb (this.orafine),
                                                                                  this.risorsa_id,
                                                                                  this.gruppo_id,
                                                                                  this.casa,
@@ -287,8 +316,8 @@ export class EventoEditComponent implements OnInit
          {
             const response = await firstValueFrom (this.eventiService.updateData (this.id,
                                                                                   (this.data) ? this.data.toLocaleDateString ('ja-JP') : "",
-                                                                                  `${this.orainizio?.getHours ()}:${this.orainizio?.getMinutes ()}`,
-                                                                                  `${this.orafine?.getHours ()}:${this.orafine?.getMinutes ()}`,
+                                                                                  OraPerDb (this.orainizio),
+                                                                                  OraPerDb (this.orafine),
                                                                                   this.risorsa_id,
                                                                                   this.gruppo_id,
                                                                                   this.casa,
@@ -510,6 +539,31 @@ export class EventoEditComponent implements OnInit
          console.error ("CercaSovrapposizioni:", e);
          return null;
       }
+   }
+
+
+   /*
+      Controlli prima del salvataggio. Ritorna l'elenco degli errori (una riga ciascuno),
+      stringa vuota se e' tutto a posto.
+      L'orario non e' obbligatorio (00:00 = non indicato) e nemmeno l'ora di fine,
+      ma se la fine e' indicata deve essere dopo l'inizio.
+   */
+   Valida (): string
+   {
+      const errori: Array<string> = [];
+      if (this.data == null)
+         errori.push ("• Indicare il giorno.");
+      if (this.currRisorsa == null)
+         errori.push ("• Selezionare la palestra (oppure \"Trasferta\").");
+      if (this.currGruppo == null)
+         errori.push ("• Selezionare il gruppo.");
+      const inizio: number = MinutiDelGiorno (this.orainizio);
+      const fine: number = MinutiDelGiorno (this.orafine);
+      if ((inizio == 0) && (fine > 0))
+         errori.push ("• È indicata l'ora di fine ma non quella di inizio.");
+      else if ((fine > 0) && (fine <= inizio))
+         errori.push ("• L'ora di fine deve essere successiva all'ora di inizio.");
+      return errori.join ("\n");
    }
 
 

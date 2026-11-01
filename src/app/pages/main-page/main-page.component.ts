@@ -47,6 +47,8 @@ import { LogService } from "../../services/log.service";
 import { globs } from "../../common/globals";
 import {CalcolaSovrapposizioni,
         DescriviEvento,
+        EscapeHtml,
+        StessoGiorno,
         IdRisorseTrasferta,
         OccupaRisorsa} from "../../common/sovrapposizioni";
 
@@ -500,30 +502,24 @@ export class MainPageComponent implements OnInit, OnDestroy
          yyyy = this.currEvent.data.getFullYear();
          mmmm = this.currEvent.data.getMonth() + 1;
          dddd = this.currEvent.data.getDate();
-         let listaGiorno: Array<EventoElement> = [];
-         listaGiorno = this.EventiDelGiorno (this.currEvent.data);
-         // controllo se nell'elenco degli eventi del giorno esiste almeno un evento con tipo 1
-         //  se esiste, allora devo fare un vero add
-         //  altrimenti devo cercare quello con tipo zero e fare update in quello
-         let isAdd: boolean = false;
+         // Eventi del giorno letti dal server senza i filtri della tabella:
+         // con un filtro attivo il giorno vuoto potrebbe essere nascosto.
+         const listaGiorno: Array<EventoElement> | null = await this.EventiDelGiornoDalServer (this.currEvent.data);
+         if (listaGiorno == null)
+            return;
+         // Se il giorno ha ancora il suo evento vuoto (tipo 0) si riusa quello (update),
+         // altrimenti si aggiunge un nuovo record.
+         let isAdd: boolean = true;
          let _id: number = 0;
          let rqst: string = "add";
          let si: number = 0;
          if (this.theLocalStorage?.data.currSeason)
             si = this.theLocalStorage?.data.currSeason.id;
-         for (let i=0;   i<listaGiorno.length;   i++)
+         const vuoto: EventoElement | undefined = listaGiorno.find (ev => ev.tipoevento == TipoEvento.EventoVuoto);
+         if (vuoto)
          {
-            if (listaGiorno[i].tipoevento == 1)
-               isAdd = true;
-         }
-         // cerco l'evento vuoto del giorno e prendo il suo id
-         if (isAdd == false)
-         {
-            for (let i=0;   i<listaGiorno.length;   i++)
-            {
-               if (listaGiorno[i].tipoevento == 0)
-                  _id = listaGiorno[i].id;
-            }
+            isAdd = false;
+            _id = vuoto.id;
          }
          console.log ('Nuovo evento:');
          this.router.navigate ([`/eventoedit`], {state: {
@@ -776,59 +772,7 @@ export class MainPageComponent implements OnInit, OnDestroy
          this.messageDialogService.showMessage (dlgData, '', true).subscribe (async result =>
                                                                               {
                                                                                  if (result === 'secondary')
-                                                                                 {
-                                                                                    if (this.theLocalStorage?.data.currSeason != null)
-                                                                                    {
-                                                                                       let goOn: boolean = false;
-                                                                                       let strData: string;
-                                                                                       let currDay: Date = new Date (this.theLocalStorage?.data.currSeason.datainizio);
-                                                                                       let dayToStop: Date = new Date (this.theLocalStorage?.data.currSeason.datafine);
-                                                                                       let esisteGia: boolean = false;
-                                                                                       dayToStop.setDate (dayToStop.getDate () + 1);
-                                                                                       currDay.setHours(0,0,0,0);
-                                                                                       dayToStop.setHours(0,0,0,0);
-                                                                                       while (currDay.getTime () < dayToStop.getTime ())
-                                                                                       {
-                                                                                          esisteGia = false;
-                                                                                          currDay.setHours (0, 0, 0, 0);
-                                                                                          strData = `${currDay.getFullYear()}-${currDay.getMonth()+1}-${currDay.getDate()}`;
-                                                                                          for (let ggg=0;   ggg<this.listaEventi.length;   ggg++)
-                                                                                          {
-                                                                                             if (strData == `${this.listaEventi[ggg].data.getFullYear()}-${this.listaEventi[ggg].data.getMonth()+1}-${this.listaEventi[ggg].data.getDate()}`)
-                                                                                             {
-                                                                                                esisteGia = true;
-                                                                                                break;
-                                                                                             }
-                                                                                          }
-                                                                                          if (esisteGia == false)
-                                                                                          {
-                                                                                             goOn = false;
-                                                                                             this.eventServ.addNewData (strData,
-                                                                                                                        "00:00",
-                                                                                                                        "00:00",
-                                                                                                                        0,
-                                                                                                                        0,
-                                                                                                                        "",
-                                                                                                                        "",
-                                                                                                                        "",
-                                                                                                                        "",
-                                                                                                                        false,
-                                                                                                                        TipoEvento.EventoVuoto,
-                                                                                                                        this.theLocalStorage?.data.currSeason.id,
-                                                                                                                        0).subscribe (data =>
-                                                                                                                                                       {
-                                                                                                                                                          goOn = true;
-                                                                                                                                                       });
-                                                                                             //
-                                                                                             while (goOn == false)
-                                                                                                await utils.Dlt_Sleep (10);
-                                                                                          }
-                                                                                          currDay.setDate(currDay.getDate() + 1);
-                                                                                       }
-                                                                                    }
-                                                                                    this.cdr.detectChanges ();
-                                                                                    this.RefreshData();
-                                                                                 }
+                                                                                    await this.EseguiCreaEventiStagione ();
                                                                                  /*
                                                                                  else if (result === 'primary')
                                                                                  {
@@ -841,6 +785,77 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                                                  }
                                                                                  */
                                                                               });
+      }
+   }
+
+
+   /*
+      Crea un evento vuoto (tipo 0) per ogni giorno della stagione che non ha ancora eventi.
+      I giorni esistenti si leggono dal server SENZA i filtri della tabella: con un filtro
+      attivo i giorni con eventi nascosti sembrerebbero mancanti e verrebbero duplicati.
+   */
+   async EseguiCreaEventiStagione ()
+   {
+      const stagione = this.theLocalStorage?.data.currSeason;
+      if (stagione == null)
+         return;
+      const chiave = (d: Date): string => `${d.getFullYear ()}-${d.getMonth () + 1}-${d.getDate ()}`;
+      let creati: number = 0;
+      let errori: number = 0;
+      let ultimoErrore: string = "";
+      try
+      {
+         await this.SetLoading (6);
+         const resp = await firstValueFrom (this.eventServ.getAllData (stagione.id, -1, null, null, null, null));
+         if ((!resp) || (!resp.ok))
+         {
+            errori++;
+            ultimoErrore = `${resp?.message ?? 'No data returned'}`;
+            return;
+         }
+         const giorniEsistenti: Set<string> = new Set<string> ((resp.elements as Array<EventoElement>).map (ev => chiave (ev.data)));
+         const currDay: Date = new Date (stagione.datainizio);
+         const dayToStop: Date = new Date (stagione.datafine);
+         dayToStop.setDate (dayToStop.getDate () + 1);
+         currDay.setHours (0, 0, 0, 0);
+         dayToStop.setHours (0, 0, 0, 0);
+         while (currDay.getTime () < dayToStop.getTime ())
+         {
+            const strData: string = chiave (currDay);
+            if (!giorniEsistenti.has (strData))
+            {
+               const r = await firstValueFrom (this.eventServ.addNewData (strData, "00:00", "00:00", 0, 0, "", "", "", "", false,
+                                                                          TipoEvento.EventoVuoto, stagione.id, 0));
+               if ((r) && (r.ok))
+                  creati++;
+               else
+               {
+                  errori++;
+                  ultimoErrore = `${r?.message}`;
+               }
+            }
+            currDay.setDate (currDay.getDate () + 1);
+         }
+      }
+      catch (err)
+      {
+         errori++;
+         ultimoErrore = `${err}`;
+      }
+      finally
+      {
+         await this.SetLoading (0);
+         if (creati > 0)
+            await this.logService.AddToLog (loggedUser, `Creati ${creati} eventi vuoti per la stagione '${stagione.nome}'`);
+         const dlgData: MessDlgData = {
+            title:      (errori > 0) ? 'ATTENZIONE' : 'Creazione Eventi Stagione',
+            subtitle:   '',
+            message:    `Giorni aggiunti: <b>${creati}</b>` + ((errori > 0) ? `\nErrori: <b>${errori}</b>\nUltimo errore: ${EscapeHtml (ultimoErrore)}` : ''),
+            messtype:   (errori > 0) ? 'warning' : 'info',
+            btncaption: 'Chiudi'
+         };
+         this.messageDialogService.showMessage (dlgData, '600px');
+         await this.RefreshData ();
       }
    }
 
@@ -887,26 +902,27 @@ export class MainPageComponent implements OnInit, OnDestroy
    }
 
 
-   EventiDelGiorno (aDay: Date): Array<EventoElement>
+   /*
+      Tutti gli eventi di un giorno letti dal server, SENZA i filtri attivi nella tabella
+      (con un filtro per palestra o gruppo la tabella mostra solo una parte del giorno).
+      Ritorna null in caso di errore, dopo aver mostrato il messaggio all'utente.
+   */
+   async EventiDelGiornoDalServer (aDay: Date): Promise<Array<EventoElement> | null>
    {
-      let result: Array<EventoElement> = [];
-      try
+      const resp = await firstValueFrom (this.eventServ.getAllData (null, -1, null, null, aDay, null));
+      if ((!resp) || (!resp.ok))
       {
-         for (let iii=0;   iii<this.listaEventi.length;   iii++)
-         {
-            if ((this.listaEventi[iii].data.getFullYear() == aDay.getFullYear()) &&
-                (this.listaEventi[iii].data.getMonth() == aDay.getMonth()) &&
-                (this.listaEventi[iii].data.getDate() == aDay.getDate()))
-            {
-               result.push(this.listaEventi[iii]);
-            }
-         }
+         const dlgData: MessDlgData = {
+            title:      'ERRORE',
+            subtitle:   'Errore durante la lettura degli eventi del giorno',
+            message:    `${resp?.message ?? 'No data returned'}`,
+            messtype:   'error',
+            btncaption: 'Chiudi'
+         };
+         this.messageDialogService.showMessage (dlgData, '600px');
+         return null;
       }
-      catch (e)
-      {
-         result = [];
-      }
-      return result;;
+      return (resp.elements as Array<EventoElement>).filter (ev => StessoGiorno (ev.data, aDay));
    }
 
 
@@ -916,9 +932,19 @@ export class MainPageComponent implements OnInit, OnDestroy
       {
          try
          {
-            let listaGiorno: Array<EventoElement> = [];
-            listaGiorno = this.EventiDelGiorno (this.currEvent.data);
-            if (listaGiorno.length > 1)
+            const evento: EventoElement = this.currEvent;
+            await this.SetLoading(4);
+            // Eventi del giorno letti dal server senza i filtri della tabella
+            const listaGiorno: Array<EventoElement> | null = await this.EventiDelGiornoDalServer (evento.data);
+            if (listaGiorno == null)
+               return;
+            // Il record si cancella solo se nel giorno resta un altro evento normale o vuoto,
+            // cosi' il giorno continua a comparire in tabella. Gli eventi periodici non contano:
+            // con il filtro "Solo eventi classici" non si vedono.
+            const altri: Array<EventoElement> = listaGiorno.filter (ev => (ev.id != evento.id) &&
+                                                                           ((ev.tipoevento == TipoEvento.EventoNormale) ||
+                                                                            (ev.tipoevento == TipoEvento.EventoVuoto)));
+            if (altri.length > 0)
             {
                // c'è più di un evento per il giorno selezionato:
                //  cancello l'evento
