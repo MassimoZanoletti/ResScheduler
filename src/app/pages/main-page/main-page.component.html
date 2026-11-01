@@ -117,19 +117,19 @@
                      -->
                </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-evento let-rowIndex="rowIndex">
+            <ng-template pTemplate="body" let-evento>
                <tr [pSelectableRow]="evento"
-                   [ngClass]="GetRowColorClass(evento)">
+                   [ngClass]="evento.vista.classe">
                   <td><span style="font-size: 0.6em;">{{ evento.id }}</span></td>
-                  <td>{{ GetFormattedDate(evento, rowIndex) }}</td>
+                  <td>{{ evento.vista.data }}</td>
                   <td [class.ora-sovrapposta]="sovrapposizioni.has(evento.id)"
-                      [attr.title]="sovrapposizioni.get(evento.id) ?? null"><b>{{ FormattaOrario (evento.orainizio) }}</b></td>
-                  <td><span style="font-size: 0.7em;">{{ FormattaOrario (evento.orafine) }}</span></td>
-                  <td [ngStyle]="ColoreRisorsa(evento)">{{ evento.risorsa }}</td>
-                  <td [ngStyle]="ColoreGruppo(evento)">{{ evento.gruppo }}</td>
-                  <td [ngStyle]="ColoreTipoEvento(evento)">{{ evento.casa }}</td>
-                  <td [ngStyle]="ColoreTipoEvento(evento)">{{ evento.ospite }}</td>
-                  <td [ngStyle]="ColoreTipoEvento(evento)">{{ evento.luogo }}</td>
+                      [attr.title]="sovrapposizioni.get(evento.id) ?? null"><b>{{ evento.vista.ora }}</b></td>
+                  <td><span style="font-size: 0.7em;">{{ evento.vista.fine }}</span></td>
+                  <td [ngStyle]="evento.vista.stileRisorsa">{{ evento.risorsa }}</td>
+                  <td [ngStyle]="evento.vista.stileGruppo">{{ evento.gruppo }}</td>
+                  <td [ngStyle]="evento.vista.stileTipo">{{ evento.casa }}</td>
+                  <td [ngStyle]="evento.vista.stileTipo">{{ evento.ospite }}</td>
+                  <td [ngStyle]="evento.vista.stileTipo">{{ evento.luogo }}</td>
                   <td>{{ evento.commento }}</td>
                   <td>
                      <!-- Icona di sola lettura al posto di <p-checkbox [ngModel]>: con centinaia di righe

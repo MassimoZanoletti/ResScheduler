@@ -1,4 +1,5 @@
 
+import {utils} from "../../common/utils";
 import {
    ChangeDetectorRef, Component,
    OnInit
@@ -94,8 +95,8 @@ export class SeasonEditComponent implements OnInit
             if ((this.dataInizio != null) && (this.dataFine != null))
                this.resourceService.updateData (this.id,
                                                 this.nome,
-                                                this.dataInizio.toLocaleDateString('ja-JP'),
-                                                this.dataFine.toLocaleDateString('ja-JP')).subscribe ({
+                                                utils.DataPerDb (this.dataInizio),
+                                                utils.DataPerDb (this.dataFine)).subscribe ({
                                                                                                         next:  (response) =>
                                                                                                                   {
                                                                                                                      if (response.ok)
@@ -133,8 +134,8 @@ export class SeasonEditComponent implements OnInit
             // ADD NEW
             if ((this.dataInizio != null) && (this.dataFine != null))
                this.resourceService.addNewData(this.nome,
-                                               this.dataInizio.toLocaleDateString('ja-JP'),
-                                               this.dataFine.toLocaleDateString('ja-JP')).subscribe ({
+                                               utils.DataPerDb (this.dataInizio),
+                                               utils.DataPerDb (this.dataFine)).subscribe ({
                                                                                                        next:  (response) =>
                                                                                                                  {
                                                                                                                     if (response.ok)

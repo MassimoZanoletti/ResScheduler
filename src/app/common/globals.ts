@@ -10,7 +10,7 @@ export namespace globs
    {
       public keyName: string = "RS_LocStor";
       public data: any = {
-         currSeason:         {},
+         currSeason:         null,
          currTipoEvento:     {}
       };
 
@@ -21,28 +21,14 @@ export namespace globs
          if (this.data == null)
          {
             this.data = {};
-            this.data.currSeason = {
-               "id":         "5",
-               "nome":       "2025/2026",
-               "datainizio": "2025-09-01T00:00:00.000Z",
-               "datafine":   "2026-06-30T00:00:00.000Z"
-            };
+            // Nessuna stagione predefinita: la pagina principale sceglie quella in corso
+            this.data.currSeason = null;
             this.data.currTipoEvento = {"id": 1, "nome": "Solo Eventi classici"};
             //
             await this.Save ();
          }
          else
          {
-            if (this.data.currSeason == null)
-            {
-               this.data.currSeason = {};
-               this.data.currSeason = {
-                  "id":         "5",
-                  "nome":       "2025/2026",
-                  "datainizio": "2025-09-01T00:00:00.000Z",
-                  "datafine":   "2026-06-30T00:00:00.000Z"
-               };
-            }
             if (this.data.currTipoEvento == null)
             {
                this.data.currTipoEvento = {};

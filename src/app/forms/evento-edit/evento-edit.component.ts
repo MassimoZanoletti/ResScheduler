@@ -133,10 +133,9 @@ export class EventoEditComponent implements OnInit
       if (this.lastResource == null)
          this.lastResource = 0;
       //
-      const dataRis = await firstValueFrom(this.resourceService.getAllData());
-      await utils.Dlt_Sleep(100);
-      const dataGrp = await firstValueFrom(this.gruppiService.getAllData());
-      await utils.Dlt_Sleep(100);
+      // Palestre e gruppi sono indipendenti: si caricano in parallelo
+      const [dataRis, dataGrp] = await Promise.all ([firstValueFrom (this.resourceService.getAllData ()),
+                                                     firstValueFrom (this.gruppiService.getAllData ())]);
       if ((dataRis) && (dataRis.ok))
          this.listaRisorse = dataRis.elements;
       if ((dataGrp) && (dataGrp.ok))
@@ -203,7 +202,6 @@ export class EventoEditComponent implements OnInit
          //
          this.orafine = new Date(this.data);
          this.orafine.setHours(0,0,0,0);
-         await utils.Dlt_Sleep(100);
 
          //
          if (this.lastGroup > 0)
@@ -280,7 +278,7 @@ export class EventoEditComponent implements OnInit
          //
          if (this.isAdd)
          {
-            const response = await firstValueFrom (this.eventiService.addNewData((this.data) ? this.data.toLocaleDateString ('ja-JP') : "",
+            const response = await firstValueFrom (this.eventiService.addNewData((this.data) ? utils.DataPerDb (this.data) : "",
                                                                                  OraPerDb (this.orainizio),
                                                                                  OraPerDb (this.orafine),
                                                                                  this.risorsa_id,
@@ -315,7 +313,7 @@ export class EventoEditComponent implements OnInit
          else
          {
             const response = await firstValueFrom (this.eventiService.updateData (this.id,
-                                                                                  (this.data) ? this.data.toLocaleDateString ('ja-JP') : "",
+                                                                                  (this.data) ? utils.DataPerDb (this.data) : "",
                                                                                   OraPerDb (this.orainizio),
                                                                                   OraPerDb (this.orafine),
                                                                                   this.risorsa_id,

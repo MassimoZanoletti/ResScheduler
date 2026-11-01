@@ -331,6 +331,21 @@ export class utils
 
 
    /*-------------------------------------------
+      DataPerDb
+         Data nel formato usato dal database e dalle API: "YYYY-MM-DD"
+         (usa giorno/mese/anno locali, cioe' quelli che vede l'utente).
+         Da usare per TUTTE le date inviate al server, al posto di
+         toLocaleDateString('ja-JP') che dipende dal browser.
+            DataPerDb(new Date(2025, 8, 1))   ->   "2025-09-01"
+   -------------------------------------------*/
+   static DataPerDb (data: Date | string): string
+   {
+      const d: Date = new Date (data);
+      return `${d.getFullYear ()}-${String (d.getMonth () + 1).padStart (2, '0')}-${String (d.getDate ()).padStart (2, '0')}`;
+   }
+
+
+   /*-------------------------------------------
       Dlt_RandomNumber
          Returns a random integer number between aMin and aMax, including both aMin and aMax
    -------------------------------------------*/

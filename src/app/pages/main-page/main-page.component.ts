@@ -61,6 +61,28 @@ export interface CbTipoEvento
 }
 
 
+/*
+   Valori mostrati in una riga della tabella eventi, calcolati UNA volta al caricamento.
+   Prima il template chiamava 6-8 metodi per ogni riga a ogni ciclo di change detection.
+*/
+export interface VistaEvento
+{
+   classe: string;         // colore della riga in base al giorno della settimana
+   data: string;           // vuota se la riga e' dello stesso giorno della precedente
+   ora: string;
+   fine: string;
+   stileRisorsa: object;
+   stileGruppo: object;
+   stileTipo: object;
+}
+
+
+export interface RigaEvento extends EventoElement
+{
+   vista: VistaEvento;
+}
+
+
 
 
 
@@ -104,7 +126,7 @@ export class MainPageComponent implements OnInit, OnDestroy
    isLoadingSea: boolean = false;
    */
    isLoadingData: number = 0;
-   listaEventi: Array<EventoElement> = [];
+   listaEventi: Array<RigaEvento> = [];
    currEvent: EventoElement | null = null;
    listaStagioni: Array<SeasonElement> = [];
    //currSeason: SeasonElement | null = null;
@@ -183,9 +205,8 @@ export class MainPageComponent implements OnInit, OnDestroy
          */
          //
          await this.SetLoading(99);
-         await this.LoadFilters();
-         //
-         await this.LoadSeasons();
+         // Filtri (palestre, gruppi) e stagioni sono indipendenti: si caricano in parallelo
+         await Promise.all ([this.LoadFilters (), this.LoadSeasons ()]);
          //
          /*
          const tmpSeason: SeasonElement | null = utils.GetFromLocalStorage<SeasonElement> ("RS_CurrSeason");
@@ -194,7 +215,8 @@ export class MainPageComponent implements OnInit, OnDestroy
             this.currSeason = this.listaStagioni.find (season => season.id === tmpSeason.id) || null;
          }
          */
-         this.theLocalStorage.data.currSeason = this.listaStagioni.find (season => season.id === this.theLocalStorage?.data.currSeason.id) || null;
+         this.theLocalStorage.data.currSeason = this.ScegliStagione (this.theLocalStorage.data.currSeason);
+         this.theLocalStorage.Save ();
          this.theLocalStorage.data.currTipoEvento = this.listaTipoEvento.find (event => event.id === this.theLocalStorage?.data.currTipoEvento.id) || null;
          if (this.theLocalStorage.data.currTipoEvento == null)
             this.theLocalStorage.data.currTipoEvento = this.listaTipoEvento[0];
@@ -240,6 +262,37 @@ export class MainPageComponent implements OnInit, OnDestroy
    {
       //return ((this.isLoadingEv) || (this.isLoadingSea));
       return (this.isLoadingData != 0);
+   }
+
+
+   /*
+      Stagione da mostrare all'apertura della pagina:
+       - quella scelta in precedenza dall'utente, se esiste ancora e non e' finita
+         (cosi' si puo' preparare in anticipo la stagione successiva);
+       - se quella salvata e' finita, o non c'e', la stagione in corso oggi;
+       - se oggi non c'e' una stagione in corso, quella salvata (se esiste),
+         altrimenti la piu' recente gia' iniziata, altrimenti la prima dell'elenco.
+      Le date si confrontano come testo "YYYY-MM-DD", quindi solo per giorno.
+   */
+   ScegliStagione (salvata: any): SeasonElement | null
+   {
+      const oggi: string = utils.DataPerDb (new Date ());
+      const inizio = (s: SeasonElement): string => utils.DataPerDb (s.datainizio);
+      const fine = (s: SeasonElement): string => utils.DataPerDb (s.datafine);
+
+      const trovata: SeasonElement | undefined = (salvata != null) ? this.listaStagioni.find (s => s.id == salvata.id) : undefined;
+      if ((trovata) && (oggi <= fine (trovata)))
+         return trovata;
+      const inCorso: SeasonElement | undefined = this.listaStagioni.find (s => (inizio (s) <= oggi) && (oggi <= fine (s)));
+      if (inCorso)
+         return inCorso;
+      if (trovata)
+         return trovata;
+      const iniziate: Array<SeasonElement> = this.listaStagioni.filter (s => inizio (s) <= oggi)
+                                                               .sort ((a, b) => inizio (b).localeCompare (inizio (a)));
+      if (iniziate.length > 0)
+         return iniziate[0];
+      return (this.listaStagioni.length > 0) ? this.listaStagioni[0] : null;
    }
 
 
@@ -310,7 +363,7 @@ export class MainPageComponent implements OnInit, OnDestroy
          {
             if (dataEvnt.ok)
             {
-               this.listaEventi = dataEvnt.elements;
+               this.listaEventi = this.PreparaRighe (dataEvnt.elements);
                this.totRec = this.listaEventi.length;
                // Non si attende: la tabella compare subito, le evidenziazioni arrivano appena pronte
                this.AggiornaSovrapposizioni (seasonId, tipoEvnt, (gruppoId != null));
@@ -423,11 +476,10 @@ export class MainPageComponent implements OnInit, OnDestroy
    {
       try
       {
-         const dataRis = await firstValueFrom (this.resourceService.getAllData ());
+         const [dataRis, dataGrp] = await Promise.all ([firstValueFrom (this.resourceService.getAllData ()),
+                                                        firstValueFrom (this.gruppiService.getAllData ())]);
          if ((dataRis) && (dataRis.ok))
             this.listaRisorse = dataRis.elements;
-         //
-         const dataGrp = await firstValueFrom (this.gruppiService.getAllData ());
          if ((dataGrp) && (dataGrp.ok))
             this.listaGruppi = dataGrp.elements;
       }
@@ -636,24 +688,30 @@ export class MainPageComponent implements OnInit, OnDestroy
    }
 
 
-   GetFormattedDate(evento: any, rowIndex: number): string
+   /*
+      Aggiunge a ogni evento i valori gia' pronti per la visualizzazione (campo 'vista').
+      La data compare solo sulla prima riga di ogni giorno (la lista arriva ordinata dal server).
+   */
+   PreparaRighe (eventi: Array<EventoElement>): Array<RigaEvento>
    {
-      // Se è la prima riga, visualizza sempre la data
-      if (rowIndex === 0)
+      const result: Array<RigaEvento> = [];
+      let precedente: Date | null = null;
+      for (const ev of eventi)
       {
-         return this.FormattaData(evento.data);
+         const nuovoGiorno: boolean = ((precedente == null) || (!StessoGiorno (precedente, ev.data)));
+         precedente = ev.data;
+         const vista: VistaEvento = {
+            classe:       this.GetRowColorClass (ev),
+            data:         nuovoGiorno ? this.FormattaData (ev.data) : '',
+            ora:          this.FormattaOrario (ev.orainizio),
+            fine:         this.FormattaOrario (ev.orafine),
+            stileRisorsa: this.ColoreRisorsa (ev),
+            stileGruppo:  this.ColoreGruppo (ev),
+            stileTipo:    this.ColoreTipoEvento (ev)
+         };
+         result.push (Object.assign (ev, { vista: vista }));
       }
-
-      // Recupera la data dell'evento precedente e confronta giorno/mese/anno
-      // (confronto numerico: evita di formattare due stringhe per ogni riga)
-      const previousEvent = this.listaEventi[rowIndex - 1];
-      const prev = new Date (previousEvent.data);
-      const curr = new Date (evento.data);
-      if ((prev.getFullYear() == curr.getFullYear()) &&
-          (prev.getMonth() == curr.getMonth()) &&
-          (prev.getDate() == curr.getDate()))
-         return '';
-      return this.FormattaData(evento.data);
+      return result;
    }
 
 
@@ -799,7 +857,7 @@ export class MainPageComponent implements OnInit, OnDestroy
       const stagione = this.theLocalStorage?.data.currSeason;
       if (stagione == null)
          return;
-      const chiave = (d: Date): string => `${d.getFullYear ()}-${d.getMonth () + 1}-${d.getDate ()}`;
+      const chiave = (d: Date): string => utils.DataPerDb (d);
       let creati: number = 0;
       let errori: number = 0;
       let ultimoErrore: string = "";
@@ -977,7 +1035,7 @@ export class MainPageComponent implements OnInit, OnDestroy
                //this.isLoadingEv = true;
                await this.SetLoading(5);
                const response = await firstValueFrom (this.eventServ.updateData (this.currEvent.id,
-                                                                                 (this.currEvent.data) ? this.currEvent.data.toLocaleDateString ('ja-JP') : "",
+                                                                                 (this.currEvent.data) ? utils.DataPerDb (this.currEvent.data) : "",
                                                                                  `00:00`,
                                                                                  `00:00`,
                                                                                  0,

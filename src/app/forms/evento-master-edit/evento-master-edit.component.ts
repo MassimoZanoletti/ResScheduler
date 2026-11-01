@@ -196,8 +196,8 @@ export class EventoMasterEditComponent implements OnInit
          //
          if (this.isAdd)
          {
-            const response = await firstValueFrom (this.eventiService.addNewData((this.data) ? this.data.toLocaleDateString ('ja-JP') : "",
-                                                                                 (this.datafine) ? this.datafine.toLocaleDateString ('ja-JP') : "",
+            const response = await firstValueFrom (this.eventiService.addNewData((this.data) ? utils.DataPerDb (this.data) : "",
+                                                                                 (this.datafine) ? utils.DataPerDb (this.datafine) : "",
                                                                                  `${this.orainizio?.getHours ()}:${this.orainizio?.getMinutes ()}`,
                                                                                  `${this.orafine?.getHours ()}:${this.orafine?.getMinutes ()}`,
                                                                                  this.risorsa_id,
@@ -229,7 +229,7 @@ export class EventoMasterEditComponent implements OnInit
                      currDay.setHours(0);
                      currDay.setMinutes(0);
                      currDay.setSeconds(0);
-                     await firstValueFrom (this.eventoFiglioService.addNewData(currDay.toLocaleDateString ('ja-JP'),
+                     await firstValueFrom (this.eventoFiglioService.addNewData(utils.DataPerDb (currDay),
                                                                                `${this.orainizio.getHours ()}:${this.orainizio.getMinutes ()}`,
                                                                                `${this.orafine.getHours ()}:${this.orafine.getMinutes ()}`,
                                                                                this.risorsa_id,
@@ -263,8 +263,8 @@ export class EventoMasterEditComponent implements OnInit
          else
          {
             const response = await firstValueFrom (this.eventiService.updateData (this.id,
-                                                                                  (this.data) ? this.data.toLocaleDateString ('ja-JP') : "",
-                                                                                  (this.datafine) ? this.datafine.toLocaleDateString ('ja-JP') : "",
+                                                                                  (this.data) ? utils.DataPerDb (this.data) : "",
+                                                                                  (this.datafine) ? utils.DataPerDb (this.datafine) : "",
                                                                                   `${this.orainizio?.getHours ()}:${this.orainizio?.getMinutes ()}`,
                                                                                   `${this.orafine?.getHours ()}:${this.orafine?.getMinutes ()}`,
                                                                                   this.risorsa_id,
@@ -286,7 +286,7 @@ export class EventoMasterEditComponent implements OnInit
                      currDay.setHours(0);
                      currDay.setMinutes(0);
                      currDay.setSeconds(0);
-                     await firstValueFrom (this.eventoFiglioService.addNewData(currDay.toLocaleDateString ('ja-JP'),
+                     await firstValueFrom (this.eventoFiglioService.addNewData(utils.DataPerDb (currDay),
                                                                                `${this.orainizio.getHours ()}:${this.orainizio.getMinutes ()}`,
                                                                                `${this.orafine.getHours ()}:${this.orafine.getMinutes ()}`,
                                                                                this.risorsa_id,

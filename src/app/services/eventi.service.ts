@@ -1,4 +1,5 @@
 
+import {utils} from "../common/utils";
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -24,7 +25,7 @@ export class EventiService
    {
       const d = new Date (data);
 
-      return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+      return utils.DataPerDb (d);
    }
 
 
