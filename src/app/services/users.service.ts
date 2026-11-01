@@ -1,4 +1,5 @@
 
+import {environment} from "../../environments/environment";
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -33,7 +34,7 @@ export function InitLoggedUser()
             })
 export class UserService
 {
-   private apiUrl = 'https://www.basketsarezzo.com/code/backend/yessched/users/api.php'; // Assicurati che questo sia corretto
+   private apiUrl: string = `${environment.apiBaseUrl}/users/api.php`;
 
    constructor(private http: HttpClient)
    {

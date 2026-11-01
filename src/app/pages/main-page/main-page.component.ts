@@ -33,6 +33,7 @@ import {DialogService,
          DynamicDialogModule,
          DynamicDialogRef} from 'primeng/dynamicdialog';
 import {MessageService} from 'primeng/api';
+import {ToastModule} from 'primeng/toast';
 
 // other
 import {SeasonsService} from "../../services/seasons.service";
@@ -94,6 +95,9 @@ const FMT_DATA_BREVE: Intl.DateTimeFormat = new Intl.DateTimeFormat ('it-IT', {
    month:   'short'
 });
 
+// Chiave del toast che mostra i dettagli delle sovrapposizioni (stessa usata nel template: key="sovrapposizioni")
+const TOAST_SOVRAPPOSIZIONI: string = 'sovrapposizioni';
+
 @Component ({
                selector:    'app-main-page',
                standalone:  true,
@@ -110,7 +114,8 @@ const FMT_DATA_BREVE: Intl.DateTimeFormat = new Intl.DateTimeFormat ('it-IT', {
                   DividerModule,
                   CheckboxModule,
                   DialogModule,
-                  DynamicDialogModule
+                  DynamicDialogModule,
+                  ToastModule
                ],
                providers: [
                   DialogService, // Fornisci il servizio per DynamicDialog
@@ -725,11 +730,35 @@ export class MainPageComponent implements OnInit, OnDestroy
    {
       if (this.currEvent != null)
          utils.SaveToSessionStorage ("RS_Editing_Event_Id", this.currEvent.id);
+      this.MostraSovrapposizioni (evento?.data ?? this.currEvent);
+   }
+
+
+   /*
+      Se l'evento selezionato si sovrappone ad altri, mostra i dettagli in un avviso a comparsa.
+      Serve soprattutto su telefono e tablet, dove il tooltip della cella Ora (al passaggio
+      del mouse) non e' disponibile. Usa un toast dedicato (key) per non mostrare gli altri
+      messaggi della pagina.
+   */
+   MostraSovrapposizioni (ev: EventoElement | null)
+   {
+      this.fltrMessageService.clear (TOAST_SOVRAPPOSIZIONI);
+      if (ev == null)
+         return;
+      const dettagli: string | undefined = this.sovrapposizioni.get (ev.id);
+      if (dettagli == null)
+         return;
+      this.fltrMessageService.add ({key:      TOAST_SOVRAPPOSIZIONI,
+                                    severity: 'warn',
+                                    summary:  'Palestra già occupata',
+                                    detail:   dettagli,
+                                    life:     8000});
    }
 
 
    OnRowUnselected (evento: any)
    {
+      this.fltrMessageService.clear (TOAST_SOVRAPPOSIZIONI);
       utils.removeFromSessionStorage("RS_Editing_Event_Id");
    }
 

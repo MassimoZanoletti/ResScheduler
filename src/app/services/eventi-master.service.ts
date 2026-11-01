@@ -1,3 +1,4 @@
+import {environment} from "../../environments/environment";
 import {utils} from "../common/utils";
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
@@ -15,7 +16,7 @@ import {map,
              })
 export class EventiMasterService
 {
-   private apiUrl = 'https://www.basketsarezzo.com/code/backend/yessched/eventi_master/api.php'; // Assicurati che questo sia corretto
+   private apiUrl: string = `${environment.apiBaseUrl}/eventi_master/api.php`;
 
    constructor (private http: HttpClient)
    {

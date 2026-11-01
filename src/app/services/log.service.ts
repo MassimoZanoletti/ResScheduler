@@ -1,4 +1,5 @@
 
+import {environment} from "../../environments/environment";
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {lastValueFrom, Observable} from 'rxjs';
@@ -12,7 +13,7 @@ import { utils } from "../common/utils";
 })
 export class LogService
 {
-   private apiUrl = 'https://www.basketsarezzo.com/code/backend/yessched/log/api.php'; // Assicurati che questo sia corretto
+   private apiUrl: string = `${environment.apiBaseUrl}/log/api.php`;
 
    constructor(private http: HttpClient)
    {

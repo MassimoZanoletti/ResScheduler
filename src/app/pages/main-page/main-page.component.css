@@ -167,3 +167,9 @@ td.ora-sovrapposta {
    color: #ffffff;
    cursor: help;
 }
+
+
+/* Toast sovrapposizioni: il dettaglio contiene un evento per riga */
+::ng-deep .toast-sovrapposizioni .p-toast-detail {
+   white-space: pre-line;
+}

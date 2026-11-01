@@ -63,6 +63,12 @@
       </p-card>
    </div>
 
+   <!-- Dettagli delle sovrapposizioni quando si seleziona una riga (utile su telefono/tablet) -->
+   <p-toast key="sovrapposizioni"
+            position="top-center"
+            styleClass="toast-sovrapposizioni"
+            [breakpoints]="{ '700px': { width: '92vw', left: '4vw', right: '4vw' } }"></p-toast>
+
    <p-blockUI [blocked]="CheckLoading()">
       <p-progressSpinner></p-progressSpinner>
    </p-blockUI>

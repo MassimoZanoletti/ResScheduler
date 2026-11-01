@@ -1,4 +1,5 @@
 
+import {environment} from "../../environments/environment";
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -9,7 +10,7 @@ import { Societa } from '../models/datamod';
             })
 export class SocietaService
 {
-   private apiUrl = 'https://www.basketsarezzo.com/code/backend/yessched/societa/api.php'; // Assicurati che questo sia corretto
+   private apiUrl: string = `${environment.apiBaseUrl}/societa/api.php`;
 
    constructor(private http: HttpClient)
    {

@@ -1,4 +1,5 @@
 
+import {environment} from "../../environments/environment";
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -13,7 +14,7 @@ import {utils} from "../common/utils";
 })
 export class IscrittiService
 {
-   private apiUrl = 'https://www.basketsarezzo.com/code/backend/yessched/iscritti/api.php'; // Assicurati che questo sia corretto
+   private apiUrl: string = `${environment.apiBaseUrl}/iscritti/api.php`;
 
    constructor(private http: HttpClient)
    {

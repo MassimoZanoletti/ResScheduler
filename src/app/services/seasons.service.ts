@@ -1,3 +1,4 @@
+import {environment} from "../../environments/environment";
 import {map} from 'rxjs/operators';
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
@@ -14,7 +15,7 @@ import {
              })
 export class SeasonsService
 {
-   private apiUrl = 'https://www.basketsarezzo.com/code/backend/yessched/season/api.php';
+   private apiUrl: string = `${environment.apiBaseUrl}/season/api.php`;
 
    constructor (private http: HttpClient)
    {
