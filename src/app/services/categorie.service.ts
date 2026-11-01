@@ -39,7 +39,7 @@ export class CategorieService
                aName: string): Observable<any>
    {
       const operation: string = "edit";
-      const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}&nome=${aName}`;
+      const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}&nome=${encodeURIComponent(aName)}`;
       return this.http.get<any>(url);
    }
 
@@ -47,7 +47,7 @@ export class CategorieService
    addNewData (aName: string): Observable<any>
    {
       const operation: string = "add";
-      const url: string = `${this.apiUrl}?operation=${operation}&nome=${aName}`;
+      const url: string = `${this.apiUrl}?operation=${operation}&nome=${encodeURIComponent(aName)}`;
       return this.http.get<any>(url);
    }
 

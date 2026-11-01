@@ -44,10 +44,10 @@ export class LogService
       const url: string = `${this.apiUrl}` +
          `?operation=${operation}` +
          `&id=${aId}` +
-         `&datetime=${aDateTime}` +
+         `&datetime=${encodeURIComponent(aDateTime)}` +
          `&userid=${aUser.id}` +
-         `&username=${aUser.nome}` +
-         `&message=${aMessage}`;
+         `&username=${encodeURIComponent(aUser.nome)}` +
+         `&message=${encodeURIComponent(aMessage)}`;
       return this.http.get<any>(url);
    }
 
@@ -60,10 +60,10 @@ export class LogService
       const dataOra: string = `${ora.getFullYear()}-${utils.Dlt_PadDigits(ora.getMonth()+1, 2)}-${utils.Dlt_PadDigits(ora.getDate(), 2)} :: ${utils.Dlt_PadDigits(ora.getHours(), 2)}:${utils.Dlt_PadDigits(ora.getMinutes(), 2)}:${utils.Dlt_PadDigits(ora.getSeconds(), 2)}`;
       const url: string = `${this.apiUrl}` +
          `?operation=${operation}` +
-         `&datetime=${dataOra}` +
+         `&datetime=${encodeURIComponent(dataOra)}` +
          `&userid=${aUser.id}` +
-         `&username=${aUser.nome}` +
-         `&message=${aMessage}`;
+         `&username=${encodeURIComponent(aUser.nome)}` +
+         `&message=${encodeURIComponent(aMessage)}`;
       let result: any;
       try
       {

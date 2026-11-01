@@ -208,15 +208,15 @@ export class EventiService
       const operation: string = "edit";
       const url: string = `${this.apiUrl}?operation=${operation}` +
          `&id=${aId}` +
-         `&data=${aData}` +
-         `&orainizio=${aOraInizio}` +
-         `&orafine=${aOraFine}` +
+         `&data=${encodeURIComponent(aData)}` +
+         `&orainizio=${encodeURIComponent(aOraInizio)}` +
+         `&orafine=${encodeURIComponent(aOraFine)}` +
          `&risorsa_id=${aRisorsaId}` +
          `&gruppo_id=${aGruppoId}` +
-         `&casa=${aCasa}` +
-         `&ospite=${aOspite}` +
-         `&luogo=${aLuogo}` +
-         `&commento=${aCommento}` +
+         `&casa=${encodeURIComponent(aCasa)}` +
+         `&ospite=${encodeURIComponent(aOspite)}` +
+         `&luogo=${encodeURIComponent(aLuogo)}` +
+         `&commento=${encodeURIComponent(aCommento)}` +
          `&arbitraggio=${Number(aArbitraggio)}` +
          `&tipoevento=${aTipoEvento}` +
          `&season_id=${aSeasonId}` +
@@ -242,15 +242,15 @@ export class EventiService
    {
       const operation: string = "add";
       const url: string = `${this.apiUrl}?operation=${operation}` +
-         `&data=${aData}` +
-         `&orainizio=${aOraInizio}` +
-         `&orafine=${aOraFine}` +
+         `&data=${encodeURIComponent(aData)}` +
+         `&orainizio=${encodeURIComponent(aOraInizio)}` +
+         `&orafine=${encodeURIComponent(aOraFine)}` +
          `&risorsa_id=${aRisorsaId}` +
          `&gruppo_id=${aGruppoId}` +
-         `&casa=${aCasa}` +
-         `&ospite=${aOspite}` +
-         `&luogo=${aLuogo}` +
-         `&commento=${aCommento}` +
+         `&casa=${encodeURIComponent(aCasa)}` +
+         `&ospite=${encodeURIComponent(aOspite)}` +
+         `&luogo=${encodeURIComponent(aLuogo)}` +
+         `&commento=${encodeURIComponent(aCommento)}` +
          `&arbitraggio=${Number(aArbitraggio)}` +
          `&tipoevento=${aTipoEvento}` +
          `&season_id=${aSeasonId}` +

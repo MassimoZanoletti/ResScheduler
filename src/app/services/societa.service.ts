@@ -38,7 +38,7 @@ export class SocietaService
                aCode: number): Observable<any>
    {
       const operation: string = "edit";
-      const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}&nome=${aName}&tenant=${aTenamt}&codice=${aCode}`;
+      const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}&nome=${encodeURIComponent(aName)}&tenant=${encodeURIComponent(aTenamt)}&codice=${aCode}`;
       return this.http.get<any>(url);
    }
 
@@ -48,7 +48,7 @@ export class SocietaService
                aCode: number): Observable<any>
    {
       const operation: string = "add";
-      const url: string = `${this.apiUrl}?operation=${operation}&nome=${aName}&tenant=${aTenamt}&codice=${aCode}`;
+      const url: string = `${this.apiUrl}?operation=${operation}&nome=${encodeURIComponent(aName)}&tenant=${encodeURIComponent(aTenamt)}&codice=${aCode}`;
       return this.http.get<any>(url);
    }
 

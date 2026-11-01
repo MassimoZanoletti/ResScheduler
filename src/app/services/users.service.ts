@@ -62,7 +62,7 @@ export class UserService
                aRole: number): Observable<any>
    {
       const operation: string = "edit";
-      const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}&nome=${aName}&password=${aPassword}&ruoloid=${aRole}`;
+      const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}&nome=${encodeURIComponent(aName)}&password=${encodeURIComponent(aPassword)}&ruoloid=${aRole}`;
       return this.http.get<any>(url);
    }
 
@@ -72,7 +72,7 @@ export class UserService
                aRole: number): Observable<any>
    {
       const operation: string = "add";
-      const url: string = `${this.apiUrl}?operation=${operation}&nome=${aName}&password=${aPassword}&ruoloid=${aRole}`;
+      const url: string = `${this.apiUrl}?operation=${operation}&nome=${encodeURIComponent(aName)}&password=${encodeURIComponent(aPassword)}&ruoloid=${aRole}`;
       return this.http.get<any>(url);
    }
 

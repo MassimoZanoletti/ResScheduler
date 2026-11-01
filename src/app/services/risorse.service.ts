@@ -43,9 +43,9 @@ export class RisorseService
       const operation: string = "edit";
       const url: string = `${this.apiUrl}?operation=${operation}` +
          `&id=${aId}` +
-         `&nome=${aName}` +
-         `&abbreviazione=${aAbbrev}` +
-         `&indirizzo=${aAddress}` +
+         `&nome=${encodeURIComponent(aName)}` +
+         `&abbreviazione=${encodeURIComponent(aAbbrev)}` +
+         `&indirizzo=${encodeURIComponent(aAddress)}` +
          `&coloretesto=${encodeURIComponent(aColTesto)}` +
          `&coloresfondo=${encodeURIComponent(aColSfondo)}` +
          `&societa_id=${aSocId}`;
@@ -62,9 +62,9 @@ export class RisorseService
    {
       const operation: string = "add";
       const url: string = `${this.apiUrl}?operation=${operation}` +
-         `&nome=${aName}` +
-         `&abbreviazione=${aAbbrev}` +
-         `&indirizzo=${aAddress}` +
+         `&nome=${encodeURIComponent(aName)}` +
+         `&abbreviazione=${encodeURIComponent(aAbbrev)}` +
+         `&indirizzo=${encodeURIComponent(aAddress)}` +
          `&coloretesto=${encodeURIComponent(aColTesto)}` +
          `&coloresfondo=${encodeURIComponent(aColSfondo)}` +
          `&societa_id=${aSocId}`;

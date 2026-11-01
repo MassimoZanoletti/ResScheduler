@@ -45,14 +45,14 @@ export class GruppiService
       const operation: string = "edit";
       const url: string = `${this.apiUrl}?operation=${operation}` +
          `&id=${aId}` +
-         `&nome=${aName}` +
-         `&abbreviazione=${aAbbrev}` +
+         `&nome=${encodeURIComponent(aName)}` +
+         `&abbreviazione=${encodeURIComponent(aAbbrev)}` +
          `&coloretesto=${encodeURIComponent(aColTesto)}` +
          `&coloresfondo=${encodeURIComponent(aColSfondo)}` +
          `&societa_id=${aSocId}` +
          `&categoria_id=${aCatId}` +
-         `&exportgroup=${aExportGroup}` +
-         `&exportname=${aExportName}`
+         `&exportgroup=${encodeURIComponent(aExportGroup)}` +
+         `&exportname=${encodeURIComponent(aExportName)}`
       ;
       return this.http.get<any>(url);
    }
@@ -69,14 +69,14 @@ export class GruppiService
    {
       const operation: string = "add";
       const url: string = `${this.apiUrl}?operation=${operation}` +
-         `&nome=${aName}` +
-         `&abbreviazione=${aAbbrev}` +
+         `&nome=${encodeURIComponent(aName)}` +
+         `&abbreviazione=${encodeURIComponent(aAbbrev)}` +
          `&coloretesto=${encodeURIComponent(aColTesto)}` +
          `&coloresfondo=${encodeURIComponent(aColSfondo)}` +
          `&societa_id=${aSocId}` +
          `&categoria_id=${aCatId}` +
-         `&exportgroup=${aExportGroup}` +
-         `&exportname=${aExportName}`
+         `&exportgroup=${encodeURIComponent(aExportGroup)}` +
+         `&exportname=${encodeURIComponent(aExportName)}`
       return this.http.get<any>(url);
    }
 

@@ -38,7 +38,7 @@ export class RuoliService
                aAttributo: number): Observable<any>
    {
       const operation: string = "edit";
-      const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}&nome=${aName}&attributo=${aAttributo}`;
+      const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}&nome=${encodeURIComponent(aName)}&attributo=${aAttributo}`;
       return this.http.get<any>(url);
    }
 
@@ -47,7 +47,7 @@ export class RuoliService
                aAttributo: number): Observable<any>
    {
       const operation: string = "add";
-      const url: string = `${this.apiUrl}?operation=${operation}&nome=${aName}&attributo=${aAttributo}`;
+      const url: string = `${this.apiUrl}?operation=${operation}&nome=${encodeURIComponent(aName)}&attributo=${aAttributo}`;
       return this.http.get<any>(url);
    }
 

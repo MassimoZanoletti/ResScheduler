@@ -75,7 +75,7 @@ export class SeasonsService
                aDataFine: string): Observable<any>
    {
       const operation: string = "edit";
-      const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}&nome=${aName}&datainizio=${aDataInizio}&datafine=${aDataFine}`;
+      const url: string = `${this.apiUrl}?operation=${operation}&id=${aId}&nome=${encodeURIComponent(aName)}&datainizio=${encodeURIComponent(aDataInizio)}&datafine=${encodeURIComponent(aDataFine)}`;
       return this.http.get<any> (url);
    }
 
@@ -85,7 +85,7 @@ export class SeasonsService
                aDataFine: string): Observable<any>
    {
       const operation: string = "add";
-      const url: string = `${this.apiUrl}?operation=${operation}&nome=${aName}&datainizio=${aDataInizio}&datafine=${aDataFine}`;
+      const url: string = `${this.apiUrl}?operation=${operation}&nome=${encodeURIComponent(aName)}&datainizio=${encodeURIComponent(aDataInizio)}&datafine=${encodeURIComponent(aDataFine)}`;
       return this.http.get<any> (url);
    }
 
