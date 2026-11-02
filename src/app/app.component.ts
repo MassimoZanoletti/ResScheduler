@@ -209,7 +209,7 @@ export class AppComponent implements AfterViewInit, OnInit
             label: "Sistema",
             items: [
                {label: "Eventi periodici", icon: 'pi pi-table', routerLink: ['/eventimastertable']},
-               {label: "Log", icon: 'pi pi-table', routerLink: ['/logtable']}
+               {label: "Log", icon: 'pi pi-table', routerLink: ['/logtable'], visible: this.IsAdmin ()}
             ]
          }
       ];

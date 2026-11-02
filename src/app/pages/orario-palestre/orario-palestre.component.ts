@@ -410,7 +410,7 @@ export class OrarioPalestreComponent implements OnInit
    // Esporta in PDF la vista attuale (stagione, palestre scelte e filtro "Attivi il")
    async EsportaPdf ()
    {
-      if ((this.esportazioneInCorso) || (this.palestreMostrate.length == 0))
+      if ((this.IsGuest ()) || (this.esportazioneInCorso) || (this.palestreMostrate.length == 0))
          return;
       this.esportazioneInCorso = true;
       this.cdr.detectChanges ();
@@ -453,6 +453,13 @@ export class OrarioPalestreComponent implements OnInit
    StilePalestra (p: Resource): { [key: string]: string }
    {
       return ((p.coloresfondo) && (p.coloretesto)) ? { 'background-color': p.coloresfondo, 'color': p.coloretesto } : {};
+   }
+
+
+   // Utente entrato senza nome utente e password
+   IsGuest (): boolean
+   {
+      return ((loggedUser.id == 0) && (loggedUser.ruolo == "Guest"));
    }
 
 

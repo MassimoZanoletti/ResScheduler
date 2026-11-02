@@ -2,7 +2,7 @@ import {Routes} from '@angular/router';
 import {LoginPageComponent} from './pages/login-page/login-page.component';
 import {MainPageComponent} from './pages/main-page/main-page.component';
 import {SettingsPageComponent} from './pages/settings-page/settings-page.component';
-import {AuthGuard} from './auth.guard';
+import {AuthGuard, AdminGuard} from './auth.guard';
 import {SeasonsTableComponent} from "./tables/seasons-table/seasons-table.component";
 import {SeasonEditComponent} from "./forms/season-edit/season-edit.component";
 import {SocietaTableComponent} from "./tables/societa-table/societa-table.component";
@@ -46,7 +46,7 @@ export const routes: Routes = [
    { path: 'gruppitable', component: GruppiTableComponent, canActivate: [AuthGuard] },
    { path: 'gruppoedit', component: GruppoEditComponent, canActivate: [AuthGuard] },
    { path: 'eventoedit', component: EventoEditComponent, canActivate: [AuthGuard] },
-   { path: 'logtable', component: LogTableComponent, canActivate: [AuthGuard] },
+   { path: 'logtable', component: LogTableComponent, canActivate: [AdminGuard] },
    { path: 'eventimastertable', component: EventiMasterTableComponent, canActivate: [AuthGuard] },
    { path: 'eventomasteredit', component: EventoMasterEditComponent, canActivate: [AuthGuard] },
    { path: 'iscrittitable', component: IscrittiTableComponent, canActivate: [AuthGuard] },

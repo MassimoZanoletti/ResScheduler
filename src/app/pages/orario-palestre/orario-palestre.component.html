@@ -13,9 +13,10 @@
             ></p-button>
 
             <p-button
+               *ngIf="!IsGuest()"
                icon="pi pi-file-pdf"
                label="PDF"
-               severity="secondary"
+               severity="danger"
                [loading]="esportazioneInCorso"
                [disabled]="esportazioneInCorso || caricamento || (palestreMostrate.length == 0)"
                (click)="EsportaPdf()"
