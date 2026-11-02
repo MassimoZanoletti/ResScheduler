@@ -158,3 +158,24 @@
 .my-tiny-button.p-button.p-button-text {
    color: var(--primary-color, #1E88E5) !important; /* Esempio: usa il colore primario del tema */
 }
+
+
+
+/* Orario di un evento periodico con date sovrapposte ad altri eventi nella stessa palestra */
+td.ora-sovrapposta {
+   background-color: #c62828;
+   color: #ffffff;
+   cursor: help;
+}
+
+/* Numero di date sovrapposte (colonna "Date") */
+.badge-sovrapposte {
+   margin-left: 6px;
+   padding: 1px 6px;
+   border-radius: 8px;
+   background-color: #c62828;
+   color: #ffffff;
+   font-size: 0.85em;
+   cursor: help;
+   white-space: nowrap;
+}

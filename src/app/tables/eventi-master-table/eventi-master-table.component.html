@@ -3,7 +3,7 @@
       <p-card [style]="{ width: '100%' }"
               contentStyleClass="card-contenuto-ridotto">
          <div style="display: flex; align-items: center;">
-            <h2 style="margin-left: 15px; margin-right: 30px; margin-bottom: 0px; margin-top: 0px; padding-bottom: 0px; padding-top: 0px;">Eventi Master</h2>
+            <h2 style="margin-left: 15px; margin-right: 30px; margin-bottom: 0px; margin-top: 0px; padding-bottom: 0px; padding-top: 0px;">Eventi periodici</h2>
 
             <p-button
                class="p-button-table"
@@ -58,6 +58,7 @@
             <ng-template pTemplate="header">
                <tr>
                   <th style="width: 65px;">Id</th>
+                  <th style="width: 95px;">Giorno</th>
                   <th style="width: 130px;">Data</th>
                   <th style="width: 130px;">Data fine</th>
                   <th style="width: 55px;">Ora</th>
@@ -78,6 +79,7 @@
                              [ngClass]="{ 'p-button-success': fltrGruppo, 'p-button-secondary': !fltrGruppo }"
                              (click)="OnFilterGruppo()"></button>
                   </th>
+                  <th style="width: 110px;">Date</th>
                   <th>Commento</th>
 
                   <!--
@@ -89,12 +91,21 @@
                <tr [pSelectableRow]="evento"
                    [ngClass]="GetRowColorClass(evento)">
                   <td><span style="font-size: 0.6em;">{{ evento.id }}</span></td>
+                  <td><b>{{ NomeGiorno (evento) }}</b></td>
                   <td>{{ GetFormattedDate(evento, rowIndex) }}</td>
                   <td>{{ FormattaData (evento.datafine) }}</td>
-                  <td>{{ FormattaOrario (evento.orainizio) }}</td>
+                  <td [class.ora-sovrapposta]="conflitti.has(evento.id)"
+                      [attr.title]="conflitti.get(evento.id)?.testo ?? null">{{ FormattaOrario (evento.orainizio) }}</td>
                   <td>{{ FormattaOrario (evento.orafine) }}</td>
                   <td [ngStyle]="ColoreRisorsa(evento)">{{ evento.risorsa }}</td>
                   <td [ngStyle]="ColoreGruppo(evento)">{{ evento.gruppo }}</td>
+                  <td>
+                     {{ numDate.get(evento.id) ?? '' }}
+                     <!-- Visibile anche su telefono/tablet, dove il tooltip non c'e' -->
+                     <span *ngIf="conflitti.get(evento.id) as c"
+                           class="badge-sovrapposte"
+                           [attr.title]="c.testo">⚠ {{ c.n }}</span>
+                  </td>
                   <td>{{ evento.commento }}</td>
 
                   <!--

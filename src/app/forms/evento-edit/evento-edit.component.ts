@@ -66,7 +66,9 @@ export class EventoEditComponent implements OnInit
    month: number = 0;
    day: number = 0;
    season_id: number = 0;
+   // Un evento salvato da questo form e' sempre indipendente: non appartiene a nessun evento periodico
    master_id: number = 0;
+   tipoOriginale: number = TipoEvento.EventoNormale;   // tipo dell'evento come letto dal database
    errorMessage: string = "Il campo non può essere vuoto";
    theError = false;
    operazione: string = "";
@@ -168,6 +170,7 @@ export class EventoEditComponent implements OnInit
             this.commento = (dataRes.elements as EventoElement).commento;
             const tmpB: string = (dataRes.elements as EventoElement).arbitraggio.toString();
             this.arbitraggio = (tmpB!="0")?true:false;
+            this.tipoOriginale = Number ((dataRes.elements as EventoElement).tipoevento);
          }
       }
       else
@@ -235,6 +238,21 @@ export class EventoEditComponent implements OnInit
             };
             this.messageDialogService.showMessage (dlgData, '600px');
             return;
+         }
+         // Una data di un evento periodico, una volta modificata, diventa un evento indipendente
+         if (this.tipoOriginale == TipoEvento.EventoPeriodico)
+         {
+            const conferma = await firstValueFrom (this.messageDialogService.showMessage ({
+               title:               'ATTENZIONE',
+               subtitle:            'Data di un evento periodico',
+               message:             "Questo evento fa parte di un evento periodico.\nSalvando le modifiche diventerà un <b>evento indipendente</b>: non sarà più modificato né cancellato insieme all'evento periodico.\n\nContinuare?",
+               messtype:            'warning',
+               btncaption:          'Annulla',
+               showCancelButton:    true,
+               cancelButtonCaption: 'Sì, salva'
+            }, '600px', true));
+            if (conferma !== 'secondary')
+               return;
          }
          if (this.currRisorsa)
          {

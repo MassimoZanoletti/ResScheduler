@@ -29,7 +29,8 @@ import {DialogService,
          DynamicDialogRef} from "primeng/dynamicdialog";
 
 // other
-import {EventoMasterElement,
+import {EventoElement,
+         EventoMasterElement,
          Gruppo,
          MessDlgData,
          Resource,
@@ -44,6 +45,14 @@ import {loggedUser} from "../../services/users.service";
 import {MultiSelectModalComponent} from "../../dialogs/multi-select-modal/multi-select-modal.component";
 import {EventiService} from "../../services/eventi.service";
 import { LogService } from "../../services/log.service";
+import {globs} from "../../common/globals";
+import {ScegliStagione} from "../../common/stagioni";
+import {CalcolaSovrapposizioni,
+        DescriviEvento,
+        IdRisorseTrasferta} from "../../common/sovrapposizioni";
+
+
+const NOMI_GIORNI: Array<string> = ["domenica", "lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato"];
 
 
 
@@ -55,6 +64,9 @@ const FMT_DATA_BREVE: Intl.DateTimeFormat = new Intl.DateTimeFormat ('it-IT', {
    day:     '2-digit',
    month:   'short'
 });
+
+const TipoEventoPeriodico: number = 3;   // TipoEvento.EventoPeriodico
+
 
 @Component ({
                selector:    'app-eventi-master-table',
@@ -101,6 +113,12 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    windowHeight: number = 110;
    scrollHeight: string = "110px";
    @ViewChild ('eventsMasterTable') pTable: Table | undefined;
+   // Stagione condivisa con la pagina eventi (stessa memoria locale)
+   theLocalStorage: globs.TLocalStorage | null = null;
+   // Per ogni evento periodico: numero di date esistenti e date sovrapposte ad altri eventi
+   numDate: Map<number, number> = new Map<number, number> ();
+   conflitti: Map<number, { n: number, testo: string }> = new Map<number, { n: number, testo: string }> ();
+   private statisticheReqId: number = 0;
 
 
    constructor (public router: Router,
@@ -130,11 +148,12 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
          //
          await this.LoadSeasons ();
          //
-         const tmpSeason: SeasonElement | null = utils.GetFromLocalStorage<SeasonElement> ("RS_CurrSeason");
-         if (tmpSeason != null)
-         {
-            this.currSeason = this.listaStagioni.find (season => season.id === tmpSeason.id) || null;
-         }
+         // Stessa stagione della pagina eventi (scelta in automatico se non ce n'e' una valida)
+         this.theLocalStorage = new globs.TLocalStorage ();
+         await this.theLocalStorage.Load ();
+         this.currSeason = ScegliStagione (this.listaStagioni, this.theLocalStorage.data.currSeason);
+         this.theLocalStorage.data.currSeason = this.currSeason;
+         this.theLocalStorage.Save ();
          //
          this.isLoadingEv = true;
          await this.LoadEvents ();
@@ -218,6 +237,8 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
             if (dataEvnt.ok)
             {
                this.listaEventi = dataEvnt.elements;
+               // Non si attende: la tabella compare subito, numero date e sovrapposizioni appena pronti
+               this.AggiornaStatistiche (seasonId);
                this.totRec = this.listaEventi.length;
                const prevSelected = utils.GetFromSessionStorage ("RS_Editing_MasterEvent_Id");
                utils.removeFromSessionStorage ("RS_Editing_MasterEvent_Id");
@@ -230,7 +251,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
             {
                const dlgData: MessDlgData = {
                   title:      'ERRORE',
-                  subtitle:   'Errore durante il caricamento degli eventi master dal server',
+                  subtitle:   'Errore durante il caricamento degli eventi periodici dal server',
                   message:    `${dataEvnt.message}`,
                   messtype:   'error',
                   btncaption: 'Chiudi'
@@ -242,7 +263,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
          {
             const dlgData: MessDlgData = {
                title:      'ERRORE',
-               subtitle:   'Errore durante il caricamento degli eventi master dal server',
+               subtitle:   'Errore durante il caricamento degli eventi periodici dal server',
                message:    `No data returned`,
                messtype:   'error',
                btncaption: 'Chiudi'
@@ -267,6 +288,62 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
          this.isLoadingEv = false;
          this.cdr.detectChanges ();
       }
+   }
+
+
+   /*
+      Per ogni evento periodico calcola quante date ha e quali si sovrappongono
+      ad altri eventi nella stessa palestra (stesse regole della pagina eventi).
+   */
+   async AggiornaStatistiche (seasonId: number | null)
+   {
+      const reqId: number = ++this.statisticheReqId;
+      try
+      {
+         const resp = await firstValueFrom (this.eventoFiglioService.getAllData (seasonId, -1, null, null, null, null));
+         if (reqId != this.statisticheReqId)
+            return;
+         if ((!resp) || (!resp.ok))
+         {
+            console.warn (`Statistiche eventi periodici non calcolate: ${resp?.message}`);
+            return;
+         }
+         const eventi: Array<EventoElement> = resp.elements;
+         const numDate = new Map<number, number> ();
+         const perId = new Map<number, EventoElement> ();
+         for (const ev of eventi)
+         {
+            perId.set (ev.id, ev);
+            if ((ev.tipoevento == TipoEventoPeriodico) && (ev.master_id > 0))
+               numDate.set (Number (ev.master_id), (numDate.get (Number (ev.master_id)) ?? 0) + 1);
+         }
+         const conflitti = new Map<number, { n: number, testo: string }> ();
+         for (const [id, altri] of CalcolaSovrapposizioni (eventi, IdRisorseTrasferta (this.listaRisorse)))
+         {
+            const ev: EventoElement | undefined = perId.get (id);
+            if ((ev == null) || (ev.tipoevento != TipoEventoPeriodico) || (!(ev.master_id > 0)))
+               continue;
+            const masterId: number = Number (ev.master_id);
+            const c = conflitti.get (masterId) ?? { n: 0, testo: "Date sovrapposte ad altri eventi:" };
+            c.n++;
+            const giorno: string = ev.data.toLocaleDateString ('it-IT', { weekday: 'short', day: '2-digit', month: '2-digit' });
+            c.testo += `\n${giorno}: ${altri.map (a => DescriviEvento (a)).join (' / ')}`;
+            conflitti.set (masterId, c);
+         }
+         this.numDate = numDate;
+         this.conflitti = conflitti;
+      }
+      catch (err)
+      {
+         console.error ("AggiornaStatistiche:", err);
+      }
+      this.cdr.detectChanges ();
+   }
+
+
+   NomeGiorno (evento: EventoMasterElement): string
+   {
+      return (evento.data) ? NOMI_GIORNI[evento.data.getDay ()] : "";
    }
 
 
@@ -337,6 +414,19 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
       let oggi: Date = new Date ();
 
 
+      // Senza stagione gli eventi generati non comparirebbero nella pagina eventi
+      if (this.currSeason == null)
+      {
+         const dlgData: MessDlgData = {
+            title:      'ATTENZIONE',
+            subtitle:   'Nuovo evento periodico',
+            message:    'Selezionare prima la stagione.',
+            messtype:   'warning',
+            btncaption: 'Chiudi'
+         };
+         this.messageDialogService.showMessage (dlgData, '600px');
+         return;
+      }
       yyyy = oggi.getFullYear ();
       mmmm = oggi.getMonth () + 1;
       dddd = oggi.getDate ();
@@ -371,7 +461,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
       {
          const dlgData: MessDlgData = {
             title:      'ATTENZIONE',
-            subtitle:   'Modifica evento master',
+            subtitle:   'Modifica evento periodico',
             message:    `Non è stato selezionato alcun evento`,
             messtype:   'warning',
             btncaption: 'Chiudi'
@@ -386,9 +476,10 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
          let isAdd: boolean = false;
          let _id: number = this.currEvent.id;
          let rqst: string = "";
-         let si: number = 0;
-         if (this.currSeason)
-            si = this.currSeason.id;
+         // Stagione dell'evento periodico (non quella selezionata nella tabella).
+         // Solo se l'evento non ne ha una (periodici creati in passato senza stagione)
+         // si usa quella selezionata, cosi' salvandolo lo si corregge.
+         let si: number = Number (this.currEvent.season_id) || ((this.currSeason) ? this.currSeason.id : 0);
          this.router.navigate ([`/eventomasteredit`], {
             state: {
                id:        _id,
@@ -410,7 +501,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
       {
          const dlgData: MessDlgData = {
             title:      'ATTENZIONE',
-            subtitle:   'Cancellazione evento master',
+            subtitle:   'Cancellazione evento periodico',
             message:    `Non è stato selezionato alcun evento`,
             messtype:   'warning',
             btncaption: 'Chiudi'
@@ -420,9 +511,9 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
       else
       {
          const dlgData: MessDlgData = {
-            title:               'Cancellazione Evento Master',
+            title:               'Cancellazione evento periodico',
             subtitle:            '',
-            message:             `Sei veramente sicuro di voloer cancellare l'evento master\n'<b>${this.FormattaData (this.currEvent.data)} : ${this.FormattaOrario (this.currEvent.orainizio)} : ${this.currEvent.gruppo} : ${this.currEvent.risorsa}</b>'\n dal database?`,
+            message:             `Sei veramente sicuro di voler cancellare l'evento periodico\n'<b>${this.FormattaData (this.currEvent.data)} : ${this.FormattaOrario (this.currEvent.orainizio)} : ${this.currEvent.gruppo} : ${this.currEvent.risorsa}</b>'\n dal database?`,
             messtype:            'warning',
             btncaption:          'Annulla',
             showCancelButton:    true,
@@ -444,20 +535,25 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    {
       if (this.currEvent != null)
       {
-         utils.SaveToSessionStorage ("RS_Editing_Event_Id", this.currEvent.id);
+         // Chiave propria: "RS_Editing_Event_Id" e' quella della pagina eventi
+         utils.SaveToSessionStorage ("RS_Editing_MasterEvent_Id", this.currEvent.id);
       }
    }
 
 
    OnRowUnselected (evento: any)
    {
-      utils.removeFromSessionStorage ("RS_Editing_Event_Id");
+      utils.removeFromSessionStorage ("RS_Editing_MasterEvent_Id");
    }
 
 
    OnSeasonChange (evento: any)
    {
-      utils.SaveToLocalStorage ("RS_CurrSeason", this.currSeason);
+      if (this.theLocalStorage)
+      {
+         this.theLocalStorage.data.currSeason = this.currSeason;
+         this.theLocalStorage.Save ();
+      }
       //this.logService.AddToLog (loggedUser, `EventiMaster: selezionata stagione '${this.currSeason?.nome}'`);
       this.LoadEvents ();
    }
@@ -615,7 +711,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
             this.isLoadingEv = true;
             // cancello tutti gli eventi periodici figli
             await firstValueFrom (this.eventoFiglioService.DeletePeriodic (this.currEvent.id));
-            // .. e pi cancello l'evento master
+            // .. e poi cancello l'evento periodico
             const response = await firstValueFrom (this.eventServ.DeleteData (this.currEvent.id));
 
             if (response.ok)

@@ -118,3 +118,65 @@
       text-align: center; /* Centra il testo quando l'anteprima è su una riga separata */
    }
 }
+
+
+/* ----- Riepilogo ed elenco delle date dell'evento periodico ----- */
+.riepilogo {
+   margin-top: 0.5rem;
+   margin-bottom: 0.5rem;
+   padding: 0.5rem 0.75rem;
+   border-left: 4px solid #ab7a39;
+   font-weight: bold;
+}
+
+.date-header {
+   display: flex;
+   align-items: center;
+   flex-wrap: wrap;
+   gap: 0.5rem;
+   margin-bottom: 0.5rem;
+}
+
+.date-help {
+   font-size: 0.85em;
+   opacity: 0.8;
+   margin-right: auto;
+}
+
+.date-elenco {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 4px;
+   max-width: 640px;
+   max-height: 220px;
+   overflow-y: auto;
+}
+
+.chip-data {
+   padding: 2px 8px;
+   border-radius: 10px;
+   font-size: 0.85em;
+   background-color: #2e7d32;
+   color: #ffffff;
+   cursor: pointer;
+   user-select: none;
+   white-space: nowrap;
+}
+
+/* data esclusa: grigia e barrata */
+.chip-data.esclusa {
+   background-color: #555555;
+   color: #bbbbbb;
+   text-decoration: line-through;
+}
+
+/* festivita': bordo arancione */
+.chip-data.festivita {
+   outline: 2px solid #ff9d00;
+}
+
+/* data passata non modificabile ("da oggi in poi") */
+.chip-data.bloccata {
+   opacity: 0.45;
+   cursor: not-allowed;
+}

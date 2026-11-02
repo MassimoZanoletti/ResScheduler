@@ -46,6 +46,7 @@ import {GruppiService} from "../../services/gruppi.service";
 import {loggedUser} from "../../services/users.service";
 import { LogService } from "../../services/log.service";
 import { globs } from "../../common/globals";
+import {ScegliStagione} from "../../common/stagioni";
 import {CalcolaSovrapposizioni,
         DescriviEvento,
         EscapeHtml,
@@ -220,7 +221,7 @@ export class MainPageComponent implements OnInit, OnDestroy
             this.currSeason = this.listaStagioni.find (season => season.id === tmpSeason.id) || null;
          }
          */
-         this.theLocalStorage.data.currSeason = this.ScegliStagione (this.theLocalStorage.data.currSeason);
+         this.theLocalStorage.data.currSeason = ScegliStagione (this.listaStagioni, this.theLocalStorage.data.currSeason);
          this.theLocalStorage.Save ();
          this.theLocalStorage.data.currTipoEvento = this.listaTipoEvento.find (event => event.id === this.theLocalStorage?.data.currTipoEvento.id) || null;
          if (this.theLocalStorage.data.currTipoEvento == null)
@@ -267,37 +268,6 @@ export class MainPageComponent implements OnInit, OnDestroy
    {
       //return ((this.isLoadingEv) || (this.isLoadingSea));
       return (this.isLoadingData != 0);
-   }
-
-
-   /*
-      Stagione da mostrare all'apertura della pagina:
-       - quella scelta in precedenza dall'utente, se esiste ancora e non e' finita
-         (cosi' si puo' preparare in anticipo la stagione successiva);
-       - se quella salvata e' finita, o non c'e', la stagione in corso oggi;
-       - se oggi non c'e' una stagione in corso, quella salvata (se esiste),
-         altrimenti la piu' recente gia' iniziata, altrimenti la prima dell'elenco.
-      Le date si confrontano come testo "YYYY-MM-DD", quindi solo per giorno.
-   */
-   ScegliStagione (salvata: any): SeasonElement | null
-   {
-      const oggi: string = utils.DataPerDb (new Date ());
-      const inizio = (s: SeasonElement): string => utils.DataPerDb (s.datainizio);
-      const fine = (s: SeasonElement): string => utils.DataPerDb (s.datafine);
-
-      const trovata: SeasonElement | undefined = (salvata != null) ? this.listaStagioni.find (s => s.id == salvata.id) : undefined;
-      if ((trovata) && (oggi <= fine (trovata)))
-         return trovata;
-      const inCorso: SeasonElement | undefined = this.listaStagioni.find (s => (inizio (s) <= oggi) && (oggi <= fine (s)));
-      if (inCorso)
-         return inCorso;
-      if (trovata)
-         return trovata;
-      const iniziate: Array<SeasonElement> = this.listaStagioni.filter (s => inizio (s) <= oggi)
-                                                               .sort ((a, b) => inizio (b).localeCompare (inizio (a)));
-      if (iniziate.length > 0)
-         return iniziate[0];
-      return (this.listaStagioni.length > 0) ? this.listaStagioni[0] : null;
    }
 
 
@@ -1092,7 +1062,7 @@ export class MainPageComponent implements OnInit, OnDestroy
                                                                                  false,
                                                                                  TipoEvento.EventoVuoto,
                                                                                  this.currEvent.season_id,
-                                                                                 this.currEvent.master_id));
+                                                                                 0));   // il giorno vuoto non appartiene a nessun evento periodico
 
                if (response.ok)
                {

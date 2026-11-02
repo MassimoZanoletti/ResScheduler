@@ -1,55 +1,63 @@
 <div class="the-container">
-   <p-card header="{{operazione}}Evento Master">
+   <p-card header="{{operazione}}evento periodico">
       <ng-template pTemplate="content">
 
          <div class="form-group horizontal">
-            <label for="datainizio">Giorno:</label>
+            <label for="data">Giorno iniziale:</label>
             <p-calendar
-               [(ngModel)]="data"
+               [ngModel]="data"
+               (ngModelChange)="data = $event; AggiornaRighe()"
                [showIcon]="true"
                [showOnFocus]="false"
+               [minDate]="minData"
+               [maxDate]="maxData"
                inputId="data"
                dateFormat="dd/mm/yy"
             ></p-calendar>
          </div>
 
          <div class="form-group horizontal">
-            <label for="datainizio">Giorno di fine:</label>
+            <label for="datafine">Giorno finale:</label>
             <p-calendar
-               [(ngModel)]="datafine"
+               [ngModel]="datafine"
+               (ngModelChange)="datafine = $event; AggiornaRighe()"
                [showIcon]="true"
                [showOnFocus]="false"
-               inputId="data"
+               [minDate]="minData"
+               [maxDate]="maxData"
+               inputId="datafine"
                dateFormat="dd/mm/yy"
             ></p-calendar>
          </div>
 
          <div class="form-group horizontal">
-            <label for="datainizio">Ora:</label>
+            <label for="orainizio">Ora:</label>
             <p-calendar
                inputId="orainizio"
-               [(ngModel)]="orainizio"
+               [ngModel]="orainizio"
+               (ngModelChange)="orainizio = $event; AggiornaRighe()"
                [showTime]="true"
                [timeOnly]="true"/>
             <button
                pButton
                type="button"
-               label="+1.5h ->"
+               label="+1h30 →"
                class="p-button-primary"
                (click)="SetOraFine()"
                style="margin-left: 15px; margin-right: 15px;"
             ></button>
-
             <p-calendar
                inputId="orafine"
-               [(ngModel)]="orafine"
+               [ngModel]="orafine"
+               (ngModelChange)="orafine = $event; AggiornaRighe()"
                [showTime]="true"
                [timeOnly]="true"/>
          </div>
 
          <div class="form-group">
-            <label for="nome">Palestra:</label>
+            <label for="palestra">Palestra:</label>
             <p-dropdown
+               inputId="palestra"
                [style]="{'min-width': '255px'}"
                [options]="listaRisorse"
                optionLabel="nome"
@@ -60,8 +68,9 @@
          </div>
 
          <div class="form-group">
-            <label for="nome">Gruppo:</label>
+            <label for="gruppo">Gruppo:</label>
             <p-dropdown
+               inputId="gruppo"
                [style]="{'min-width': '255px'}"
                [options]="listaGruppi"
                optionLabel="nome"
@@ -72,21 +81,59 @@
          </div>
 
          <div class="form-group">
-            <label for="nome">Commento:</label>
-            <input type="text"
+            <label for="commento">Commento:</label>
+            <input id="commento"
+                   type="text"
                    pInputText
                    placeholder="Commento"
                    [(ngModel)]="commento"/>
          </div>
+
+         <!-- Solo in modifica: a quali date applicare le modifiche -->
+         <div class="form-group" *ngIf="!isAdd">
+            <label>Applica a:</label>
+            <p-selectButton
+               [options]="opzioniAmbito"
+               [ngModel]="ambito"
+               (ngModelChange)="ambito = $event; AggiornaRighe()"
+               optionLabel="label"
+               optionValue="value"
+               [allowEmpty]="false"></p-selectButton>
+         </div>
+
+         <!-- Riepilogo ed elenco delle date -->
+         <div class="riepilogo">{{ riepilogo }}</div>
+
+         <div class="date-header" *ngIf="righe.length > 0">
+            <span class="date-help">Clic su una data per escluderla o includerla.</span>
+            <button pButton type="button" label="Escludi festività" class="p-button-sm p-button-secondary" (click)="EscludiFestivita()"></button>
+            <button pButton type="button" label="Includi tutte" class="p-button-sm p-button-secondary" (click)="IncludiTutte()"></button>
+         </div>
+
+         <div class="date-elenco">
+            <span *ngFor="let r of righe"
+                  class="chip-data"
+                  [class.esclusa]="!r.inclusa"
+                  [class.bloccata]="!r.modificabile"
+                  [class.festivita]="r.festivita != ''"
+                  [attr.title]="(r.festivita ? r.festivita + ' — ' : '') + (r.modificabile ? (r.inclusa ? 'clic per escludere' : 'clic per includere') : 'data passata: non viene modificata')"
+                  (click)="ToggleData(r)">{{ r.etichetta }}</span>
+         </div>
+
       </ng-template>
 
       <ng-template pTemplate="footer">
          <div class="footer-buttons">
+            <span *ngIf="salvataggioInCorso"
+                  style="margin-right: 15px; align-self: center;">
+               <i class="pi pi-spin pi-spinner" style="margin-right: 6px;"></i>{{ progresso }}
+            </span>
             <button
                pButton
                type="button"
                label="Annulla"
                class="p-button-secondary"
+               [disabled]="salvataggioInCorso"
                (click)="Annulla()"
             ></button>
             <button
@@ -94,6 +141,7 @@
                type="button"
                label="OK"
                class="p-button-primary"
+               [disabled]="salvataggioInCorso || caricamento"
                (click)="Salva()"
             ></button>
          </div>
