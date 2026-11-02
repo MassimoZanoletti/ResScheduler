@@ -2,7 +2,7 @@ import {
    ChangeDetectorRef,
    ChangeDetectionStrategy,
    Component,
-   OnInit, ViewChild, HostListener
+   OnInit, AfterViewInit, ViewChild, HostListener, ElementRef
 } from '@angular/core';
 import {
    CommonModule,
@@ -69,7 +69,7 @@ import {CategorieService} from "../../services/categorie.service";
   templateUrl: './iscritti-table.component.html',
   styleUrl:    './iscritti-table.component.css'
 })
-export class IscrittiTableComponent implements OnInit
+export class IscrittiTableComponent implements OnInit, AfterViewInit
 {
    isLoading: boolean = false;
    public tblData: Array<Iscritto> = [];
@@ -77,6 +77,7 @@ export class IscrittiTableComponent implements OnInit
    theSessionStorage: globs.TSessionStorage | null = null;
    currSelected: Iscritto | null = null;
    @ViewChild('iscrittiTable') pTable: Table | undefined;
+   @ViewChild('tableContainer') tableContainer: ElementRef<HTMLElement> | undefined;
    dialogVisible_Iscritto: boolean = false;
    dialogTitle: string = "";
    dialogErrorMessage: string = "";
@@ -172,10 +173,33 @@ export class IscrittiTableComponent implements OnInit
    }
 
 
+   ngAfterViewInit ()
+   {
+      // Misuro dopo il rendering: qui la pagina precedente può essere ancora nel DOM
+      // (viene tolta a fine animazione) e falserebbe la posizione della tabella
+      setTimeout (() =>
+      {
+         this.GetWindowSize ();
+         this.cdr.detectChanges ();
+      });
+   }
+
+
+   // Altezza della tabella: dallo spazio sotto l'intestazione fino al piè di pagina fisso
    async GetWindowSize()
    {
       this.windowHeight = window.innerHeight;
       let sh: number = this.windowHeight - 110 - 90 - 180;
+      const container = this.tableContainer?.nativeElement;
+      if (container)
+      {
+         const footer = document.querySelector ('.app-footer');
+         const fondo: number = footer ? footer.getBoundingClientRect ().top : this.windowHeight;
+         const misurato: number = Math.floor (fondo - container.getBoundingClientRect ().top - 8);
+         // Misura non attendibile (pagina non ancora disegnata): resta la formula fissa
+         if (misurato >= 110)
+            sh = misurato;
+      }
       if (sh < 110)
          sh = 110;
       this.scrollHeight = `${sh}px`;

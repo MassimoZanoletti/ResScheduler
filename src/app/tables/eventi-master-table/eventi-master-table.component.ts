@@ -1,6 +1,8 @@
 // angular
-import {ChangeDetectorRef,
+import {AfterViewInit,
+         ChangeDetectorRef,
          Component,
+         ElementRef,
          HostListener,
          NgZone,
          OnDestroy,
@@ -93,7 +95,7 @@ const TipoEventoPeriodico: number = 3;   // TipoEvento.EventoPeriodico
                templateUrl: './eventi-master-table.component.html',
                styleUrl:    './eventi-master-table.component.css'
             })
-export class EventiMasterTableComponent implements OnInit, OnDestroy
+export class EventiMasterTableComponent implements OnInit, OnDestroy, AfterViewInit
 {
    isLoadingEv: boolean = false;
    isLoadingSea: boolean = false;
@@ -113,6 +115,8 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    windowHeight: number = 110;
    scrollHeight: string = "110px";
    @ViewChild ('eventsMasterTable') pTable: Table | undefined;
+   @ViewChild ('tableContainer') tableContainer: ElementRef<HTMLElement> | undefined;
+   @ViewChild ('buttonsContainer') buttonsContainer: ElementRef<HTMLElement> | undefined;
    // Stagione condivisa con la pagina eventi (stessa memoria locale)
    theLocalStorage: globs.TLocalStorage | null = null;
    // Per ogni evento periodico: numero di date esistenti e date sovrapposte ad altri eventi
@@ -907,10 +911,41 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
    }
 
 
+   ngAfterViewInit ()
+   {
+      // Misuro dopo il rendering: qui la pagina precedente può essere ancora nel DOM
+      // (viene tolta a fine animazione) e falserebbe la posizione della tabella
+      setTimeout (() =>
+      {
+         this.GetWindowSize ();
+         this.cdr.detectChanges ();
+      });
+   }
+
+
+   // Altezza della tabella: dallo spazio sotto l'intestazione fino alla barra dei bottoni,
+   // che a sua volta sta sopra il piè di pagina fisso
    async GetWindowSize ()
    {
       this.windowHeight = window.innerHeight;
       let sh: number = this.windowHeight - 110 - 90 - 180;
+      const container = this.tableContainer?.nativeElement;
+      if (container)
+      {
+         const footer = document.querySelector ('.app-footer');
+         const fondo: number = footer ? footer.getBoundingClientRect ().top : this.windowHeight;
+         let altezzaBottoni: number = 0;
+         const bottoni = this.buttonsContainer?.nativeElement;
+         if (bottoni)
+         {
+            const stile = getComputedStyle (bottoni);
+            altezzaBottoni = bottoni.getBoundingClientRect ().height + (parseFloat (stile.marginTop) || 0) + (parseFloat (stile.marginBottom) || 0);
+         }
+         const misurato: number = Math.floor (fondo - container.getBoundingClientRect ().top - altezzaBottoni - 8);
+         // Misura non attendibile (pagina non ancora disegnata): resta la formula fissa
+         if (misurato >= 110)
+            sh = misurato;
+      }
       if (sh < 110)
          sh = 110;
       this.scrollHeight = `${sh}px`;

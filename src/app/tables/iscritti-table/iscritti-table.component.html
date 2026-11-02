@@ -75,7 +75,7 @@
    recapiti: string;
    note: string;
 -->
-<div class="card">
+<div class="card table-container" #tableContainer [style.--altezza-tabella]="scrollHeight">
    <p-table
       id="iscrittiTable"
       #iscrittiTable
@@ -94,7 +94,6 @@
       <ng-template pTemplate="header">
          <tr>
             <th style="width: 65px;">Id</th>
-            <th pSortableColumn="nummaglia" style="width: 150px;">N. Ma.<p-sortIcon field="nummaglia" /></th>
             <th pSortableColumn="cognome" style="width: 250px;">Cognome <p-sortIcon field="cognome" /></th>
             <th style="width: 250px;">Nome</th>
             <th pSortableColumn="anno" style="width: 250px;">Anno <p-sortIcon field="anno" /></th>
@@ -105,6 +104,7 @@
             <th pSortableColumn="visitascadenza" style="width: 250px;">Scadenza <p-sortIcon field="visitascadenza" /></th>
             <th style="width: 90px;">Tess.</th>
             <th style="width: 90px;">MyFIP</th>
+            <th pSortableColumn="nummaglia" style="width: 150px;">N. Ma.<p-sortIcon field="nummaglia" /></th>
             <th style="width: 250px;">Pagamenti</th>
             <th style="width: 250px;">Recapiti</th>
             <th style="width: 250px;">Note</th>
@@ -116,7 +116,6 @@
          <tr [pSelectableRow]="elemento"
             [ngClass]="getRowColorClass(rowIndex)">
             <td><span style="font-size: 0.6em;">{{ elemento.id }}</span></td>
-            <td>{{ elemento.nummaglia }}</td>
             <td>{{ elemento.cognome }}</td>
             <td>{{ elemento.nome }}</td>
             <td>{{ elemento.anno }}</td>
@@ -133,6 +132,7 @@
             <td>
                <i class="pi" [ngClass]="elemento.myfip ? 'pi-check-square' : 'pi-stop'" style="opacity: 0.8;"></i>
             </td>
+            <td>{{ elemento.nummaglia }}</td>
             <td>{{ elemento.pagamenti }}</td>
             <td>{{ elemento.recapiti }}</td>
             <td>{{ elemento.note }}</td>

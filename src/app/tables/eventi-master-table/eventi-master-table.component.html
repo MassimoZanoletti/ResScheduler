@@ -51,7 +51,9 @@
 
    <div id="div-tabella-bottoni">
       <div class="card"
-           id="div-tabella">
+           id="div-tabella"
+           #tableContainer
+           [style.--altezza-tabella]="scrollHeight">
          <p-table
             #eventsMasterTable
             class="custom-header-table"
@@ -145,7 +147,8 @@
          </p-table>
       </div>
       <div class="card flex justify-content-start"
-           id="div-bottoni">
+           id="div-bottoni"
+           #buttonsContainer>
          <p-card [style]="{ width: '100vw' }"
                  contentStyleClass="card-contenuto-ridotto">
             <div class="bottoni-container">

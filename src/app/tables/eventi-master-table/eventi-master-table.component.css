@@ -179,3 +179,9 @@ td.ora-sovrapposta {
    cursor: help;
    white-space: nowrap;
 }
+
+
+/* La tabella occupa sempre tutto lo spazio disponibile, anche con poche righe */
+:host ::ng-deep #div-tabella .p-datatable-wrapper {
+   min-height: var(--altezza-tabella);
+}
