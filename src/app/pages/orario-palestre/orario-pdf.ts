@@ -48,8 +48,8 @@ const PAG_L: number = 297;
 const PAG_A: number = 210;
 const MARGINE: number = 10;
 const COL_ORE: number = 11;          // colonna delle etichette orarie
-const MM_PER_MINUTO: number = 0.15;  // 1 ora = 9 mm
-const ALT_INTESTAZIONE: number = 9;  // titolo
+const MM_PER_MINUTO: number = 0.115; // 1 ora = 6,9 mm: due giorni feriali per pagina
+const ALT_INTESTAZIONE: number = 12; // titolo e sottotitolo
 const ALT_PALESTRE: number = 7;      // riga con i nomi delle palestre
 const ALT_GIORNO: number = 6;        // barra con il nome del giorno
 
@@ -207,7 +207,7 @@ function DisegnaBlocco (doc: any,
    righe.push ({ testo: Testo (ev.gruppo ?? ''), grassetto: true });
    righe.push ({ testo: `${ora (ev.orainizio)}-${ora (ev.orafine)}`, grassetto: false });
    const commento: string = Testo ((ev.commento ?? '').trim ());
-   doc.setFontSize (6.5);
+   doc.setFontSize (6);
    if (commento != '')
    {
       for (const r of doc.splitTextToSize (commento, w - 1.2))
@@ -216,13 +216,13 @@ function DisegnaBlocco (doc: any,
    righe.push ({ testo: `${fmt (ev.data)} - ${fmt (ev.datafine)}`, grassetto: false });
 
    // solo le righe che stanno nel riquadro
-   const altRiga: number = 2.5;
+   const altRiga: number = 2.3;
    const maxRighe: number = Math.max (1, Math.floor ((h - 0.6) / altRiga));
    doc.setTextColor (testo[0], testo[1], testo[2]);
    righe.slice (0, maxRighe).forEach ((r, i) =>
    {
       doc.setFont ('helvetica', r.grassetto ? 'bold' : 'normal');
-      doc.text (Taglia (doc, r.testo, w - 1.2), x + 0.6, y + 2.2 + i * altRiga);
+      doc.text (Taglia (doc, r.testo, w - 1.2), x + 0.6, y + 2.0 + i * altRiga);
    });
 }
 
