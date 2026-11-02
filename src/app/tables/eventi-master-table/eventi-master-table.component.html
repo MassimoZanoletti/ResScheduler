@@ -14,6 +14,16 @@
                (click)="LoadEvents()"
             ></p-button>
 
+            <p-button
+               class="p-button-table"
+               icon="pi pi-calendar"
+               label="Orario palestre"
+               severity="secondary"
+               pTooltip="Vista settimanale per palestra"
+               tooltipPosition="top"
+               (click)="router.navigate(['/orariopalestre'])"
+            ></p-button>
+
             <p-divider layout="vertical" />
 
             <div class="form-group">

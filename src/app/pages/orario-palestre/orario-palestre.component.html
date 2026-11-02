@@ -1,0 +1,142 @@
+<div id="orario-container">
+   <div class="card flex justify-content-start">
+      <p-card [style]="{ width: '100%' }"
+              contentStyleClass="card-contenuto-ridotto">
+         <div class="intestazione">
+            <h2 class="titolo">Orario palestre</h2>
+
+            <p-button
+               icon="pi pi-refresh"
+               severity="secondary"
+               [text]="true"
+               (click)="CaricaEventi()"
+            ></p-button>
+
+            <p-button
+               icon="pi pi-file-pdf"
+               label="PDF"
+               severity="secondary"
+               [loading]="esportazioneInCorso"
+               [disabled]="esportazioneInCorso || caricamento || (palestreMostrate.length == 0)"
+               (click)="EsportaPdf()"
+            ></p-button>
+
+            <div class="filtro">
+               <label for="cbstagione">Stagione:</label>
+               <p-dropdown
+                  inputId="cbstagione"
+                  [style]="{'min-width': '200px'}"
+                  [options]="listaStagioni"
+                  optionLabel="nome"
+                  [(ngModel)]="currSeason"
+                  [scrollHeight]="'300px'"
+                  [overlayOptions]="comboOverlayOptions"
+                  (onChange)="OnStagioneChange()"/>
+            </div>
+
+            <div class="filtro">
+               <label for="dataRif">Attivi il:</label>
+               <p-calendar
+                  inputId="dataRif"
+                  [(ngModel)]="dataRiferimento"
+                  (ngModelChange)="OnDataRiferimentoChange()"
+                  [showIcon]="true"
+                  [showButtonBar]="true"
+                  placeholder="tutta la stagione"
+                  dateFormat="dd/mm/yy"/>
+            </div>
+
+            <div class="filtro">
+               <label for="cbpalestre">Palestre:</label>
+               <p-multiSelect
+                  inputId="cbpalestre"
+                  [style]="{'min-width': '230px', 'max-width': '420px'}"
+                  [options]="listaPalestre"
+                  optionLabel="nome"
+                  [(ngModel)]="palestreSelezionate"
+                  [filter]="false"
+                  [showHeader]="true"
+                  [maxSelectedLabels]="4"
+                  selectedItemsLabel="{0} palestre"
+                  placeholder="Scegliere le palestre"
+                  [scrollHeight]="'400px'"
+                  [overlayOptions]="comboOverlayOptions"
+                  (onChange)="OnPalestreChange()"/>
+            </div>
+         </div>
+
+         <div class="legenda">
+            <span *ngIf="PuoModificare()">Clic su un evento per modificarlo, clic su uno spazio libero per creare un nuovo evento periodico.</span>
+            <span *ngIf="numConflitti > 0" class="legenda-conflitti">⚠ {{ numConflitti }} eventi periodici si sovrappongono (bordo rosso)</span>
+         </div>
+      </p-card>
+   </div>
+
+   <div *ngIf="caricamento" class="caricamento">
+      <p-progressSpinner styleClass="spinner-piccolo"></p-progressSpinner>
+   </div>
+
+   <div *ngIf="(!caricamento) && (palestreMostrate.length == 0)" class="vuoto">
+      Scegliere almeno una palestra da mostrare.
+   </div>
+
+   <!-- Griglia: colonne = palestre, macro-righe = giorni, righe = ore -->
+   <div class="griglia-scroll" *ngIf="palestreMostrate.length > 0">
+      <div class="griglia" [style.grid-template-columns]="colonneGriglia">
+
+         <!-- intestazione fissa con le palestre -->
+         <div class="intestazione-palestra angolo"></div>
+         <div *ngFor="let p of palestreMostrate"
+              class="intestazione-palestra"
+              [ngStyle]="StilePalestra(p)"
+              [attr.title]="p.indirizzo">{{ p.nome }}</div>
+
+         <ng-container *ngFor="let g of giorni">
+            <!-- macro-riga: nome del giorno -->
+            <div class="riga-giorno" [class.giorno-vuoto]="g.vuoto">
+               {{ g.nome }}
+               <span class="riga-giorno-info" *ngIf="g.vuoto">— nessun evento periodico</span>
+            </div>
+
+            <ng-container>
+               <!-- etichette delle ore -->
+               <div class="colonna-ore" [style.height.px]="g.altezza">
+                  <div *ngFor="let o of g.ore" class="etichetta-ora" [class.in-cima]="o.top == 0" [style.top.px]="o.top">{{ o.etichetta }}</div>
+               </div>
+
+               <!-- una cella per palestra -->
+               <div *ngFor="let c of g.celle"
+                    class="cella"
+                    [class.cliccabile]="PuoModificare()"
+                    [style.height.px]="g.altezza"
+                    (click)="NuovoEvento(g, c, $event)">
+                  <div *ngFor="let o of g.ore" class="linea-ora" [style.top.px]="o.top"></div>
+                  <div *ngFor="let t of g.mezzore" class="linea-mezzora" [style.top.px]="t"></div>
+                  <div *ngFor="let b of c.blocchi"
+                       class="blocco"
+                       [class.conflitto]="b.conflitto"
+                       [ngStyle]="b.stile"
+                       [style.top.px]="b.top"
+                       [style.height.px]="b.altezza"
+                       [style.left.%]="b.sinistra"
+                       [style.width.%]="b.larghezza"
+                       [attr.title]="b.tooltip"
+                       (click)="ApriEvento(b, $event)">
+                     <div class="blocco-titolo">{{ b.titolo }}</div>
+                     <div class="blocco-testo">{{ b.orario }}</div>
+                     <div class="blocco-commento" *ngIf="b.commento">{{ b.commento }}</div>
+                     <div class="blocco-testo blocco-periodo">{{ b.periodo }}</div>
+                  </div>
+               </div>
+            </ng-container>
+         </ng-container>
+      </div>
+   </div>
+
+   <div *ngIf="senzaOrario.length > 0" class="senza-orario">
+      <b>Eventi periodici senza orario</b> (non mostrati nella griglia):
+      <span *ngFor="let ev of senzaOrario" class="senza-orario-voce">
+         {{ ev.gruppo }} — {{ ev.risorsa }} — {{ ev.data.toLocaleDateString('it-IT', { weekday: 'long' }) }}
+      </span>
+   </div>
+</div>

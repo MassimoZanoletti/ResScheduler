@@ -22,6 +22,7 @@ import {LogTableComponent} from "./tables/log-table/log-table.component";
 import {EventiMasterTableComponent} from "./tables/eventi-master-table/eventi-master-table.component";
 import {EventoMasterEditComponent} from "./forms/evento-master-edit/evento-master-edit.component";
 import {IscrittiTableComponent} from "./tables/iscritti-table/iscritti-table.component";
+import {OrarioPalestreComponent} from "./pages/orario-palestre/orario-palestre.component";
 
 
 export const routes: Routes = [
@@ -49,6 +50,7 @@ export const routes: Routes = [
    { path: 'eventimastertable', component: EventiMasterTableComponent, canActivate: [AuthGuard] },
    { path: 'eventomasteredit', component: EventoMasterEditComponent, canActivate: [AuthGuard] },
    { path: 'iscrittitable', component: IscrittiTableComponent, canActivate: [AuthGuard] },
+   { path: 'orariopalestre', component: OrarioPalestreComponent, canActivate: [AuthGuard] },
 
    // Questa rotta dovrebbe essere l'ULTIMA.
    // Reindirizza a 'login' per qualsiasi URL che non matcha le rotte precedenti.

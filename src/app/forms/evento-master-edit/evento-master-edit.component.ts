@@ -101,6 +101,7 @@ export class EventoMasterEditComponent implements OnInit
    commento: string = "";
    caricamento: boolean = true;
    salvataggioInCorso: boolean = false;   // blocca il doppio click su OK
+   ritorno: string = '/eventimastertable'; // pagina a cui tornare (tabella periodici o orario palestre)
    progresso: string = "";                // avanzamento mostrato durante il salvataggio
 
    // Date dell'evento periodico
@@ -139,6 +140,8 @@ export class EventoMasterEditComponent implements OnInit
          // Senza id (es. pagina ricaricata) si puo' solo creare un nuovo evento periodico
          this.isAdd = (this.id <= 0) || Boolean (history.state.isadd);
          this.season_id = Number (history.state.season_id) || 0;
+         if (typeof history.state.ritorno === 'string')
+            this.ritorno = history.state.ritorno;
          //
          const [dataRis, dataGrp, dataSea] = await Promise.all ([firstValueFrom (this.resourceService.getAllData ()),
                                                                  firstValueFrom (this.gruppiService.getAllData ()),
@@ -213,6 +216,7 @@ export class EventoMasterEditComponent implements OnInit
             }
             this.orainizio = new Date (this.data);
             this.orafine = new Date (this.data);
+            this.Precompila ();
          }
       }
       catch (e)
@@ -225,6 +229,33 @@ export class EventoMasterEditComponent implements OnInit
          this.AggiornaRighe ();
          this.cdr.detectChanges ();
       }
+   }
+
+
+   /*
+      Nuovo evento aperto dall'orario palestre (clic su uno spazio libero):
+      giorno della settimana, ora di inizio e palestra arrivano gia' scelti.
+   */
+   Precompila ()
+   {
+      const giorno: number = Number (history.state.giorno);
+      if ((this.data) && (Number.isInteger (giorno)) && (giorno >= 0) && (giorno <= 6))
+      {
+         // primo giorno con quel giorno della settimana a partire dal giorno iniziale proposto
+         while (this.data.getDay () != giorno)
+            this.data.setDate (this.data.getDate () + 1);
+      }
+      const ora: number = Number (history.state.ora);
+      if ((this.data) && (Number.isInteger (ora)) && (ora > 0))
+      {
+         this.orainizio = new Date (this.data);
+         this.orainizio.setHours (Math.floor (ora / 60), ora % 60, 0, 0);
+         this.orafine = new Date (this.orainizio);
+         this.orafine.setMinutes (this.orafine.getMinutes () + 90);
+      }
+      const risorsaId: number = Number (history.state.risorsa_id);
+      if (risorsaId > 0)
+         this.currRisorsa = this.listaRisorse.find (r => r.id == risorsaId) ?? null;
    }
 
 
@@ -701,7 +732,7 @@ export class EventoMasterEditComponent implements OnInit
                   messtype:   'error',
                   btncaption: 'Chiudi'
                });
-               this.router.navigate (['/eventimastertable']);
+               this.router.navigate ([this.ritorno]);
                return;
             }
             await this.logService.AddToLog (loggedUser, `Aggiunto Evento Periodico '${masterId}'`);
@@ -740,7 +771,7 @@ export class EventoMasterEditComponent implements OnInit
                btncaption: 'Chiudi'
             });
          }
-         this.router.navigate (['/eventimastertable']);
+         this.router.navigate ([this.ritorno]);
       }
       catch (error: any)
       {
@@ -757,7 +788,7 @@ export class EventoMasterEditComponent implements OnInit
 
    async Annulla()
    {
-      this.router.navigate(['/eventimastertable']);
+      this.router.navigate ([this.ritorno]);
    }
 
 

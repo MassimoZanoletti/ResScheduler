@@ -1,0 +1,209 @@
+#orario-container {
+   padding: 4px;
+}
+
+.intestazione {
+   display: flex;
+   align-items: center;
+   flex-wrap: wrap;
+   gap: 12px;
+}
+
+.titolo {
+   margin: 0 15px 0 15px;
+}
+
+.filtro {
+   display: flex;
+   align-items: center;
+   gap: 8px;
+}
+
+.legenda {
+   margin: 6px 15px 0 15px;
+   font-size: 0.85em;
+   opacity: 0.85;
+   display: flex;
+   flex-wrap: wrap;
+   gap: 20px;
+}
+
+.legenda-conflitti {
+   color: #ff6b6b;
+   font-weight: bold;
+   opacity: 1;
+}
+
+.caricamento {
+   display: flex;
+   justify-content: center;
+   margin: 8px;
+}
+
+::ng-deep .spinner-piccolo {
+   width: 40px !important;
+   height: 40px !important;
+}
+
+.vuoto {
+   margin: 12px;
+   opacity: 0.8;
+}
+
+/* ----- Griglia: colonne = palestre, macro-righe = giorni ----- */
+
+/* contenitore con scorrimento proprio: cosi' l'intestazione delle palestre resta visibile */
+.griglia-scroll {
+   overflow: auto;
+   margin-top: 8px;
+   max-height: calc(100vh - 210px);
+}
+
+.griglia {
+   display: grid;
+   /* grid-template-columns impostato dal componente in base al numero di palestre */
+}
+
+.intestazione-palestra {
+   position: sticky;
+   top: 0;
+   z-index: 5;
+   text-align: center;
+   font-weight: bold;
+   padding: 6px 4px;
+   background-color: #422d6b;
+   color: #ffe378;
+   border-left: 1px solid #2c2c3c;
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+.intestazione-palestra.angolo {
+   left: 0;
+   z-index: 6;
+}
+
+/* macro-riga del giorno: occupa tutta la larghezza */
+.riga-giorno {
+   grid-column: 1 / -1;
+   position: sticky;
+   left: 0;
+   padding: 4px 10px;
+   margin-top: 6px;
+   font-weight: bold;
+   background-color: #2a3352;
+   color: #ffe378;
+   border-top: 2px solid #ab7a39;
+}
+
+.riga-giorno.giorno-vuoto {
+   opacity: 0.75;
+}
+
+.riga-giorno-info {
+   font-size: 0.85em;
+   margin-left: 6px;
+}
+
+.colonna-ore {
+   position: sticky;
+   left: 0;
+   z-index: 3;
+   background-color: #11151f;
+}
+
+.etichetta-ora {
+   position: absolute;
+   right: 6px;
+   font-size: 0.75em;
+   opacity: 0.8;
+   transform: translateY(-50%);
+}
+
+.etichetta-ora.in-cima {
+   transform: none;
+}
+
+.cella {
+   position: relative;
+   border-left: 1px solid #3a3a4a;
+   background-color: #161c2d;
+}
+
+.cella.cliccabile {
+   cursor: copy;
+}
+
+.linea-ora {
+   position: absolute;
+   left: 0;
+   right: 0;
+   border-top: 1px solid #4a5578;
+   pointer-events: none;
+}
+
+.linea-mezzora {
+   position: absolute;
+   left: 0;
+   right: 0;
+   border-top: 1px dashed #343d58;
+   pointer-events: none;
+}
+
+.blocco {
+   position: absolute;
+   box-sizing: border-box;
+   padding: 2px 4px;
+   border-radius: 4px;
+   border: 1px solid rgba(0, 0, 0, 0.5);
+   background-color: #3949ab;
+   color: #ffffff;
+   overflow: hidden;
+   cursor: pointer;
+   font-size: 0.8em;
+   line-height: 1.15;
+}
+
+.blocco:hover {
+   filter: brightness(1.15);
+   z-index: 2;
+}
+
+.blocco.conflitto {
+   border: 3px solid #ff1744;
+}
+
+.blocco-titolo {
+   font-weight: bold;
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+.blocco-testo {
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+/* commento (allenatori): puo' andare a capo e usa lo spazio rimasto nel blocco */
+.blocco-commento {
+   font-style: italic;
+   white-space: normal;
+   overflow-wrap: anywhere;
+}
+
+.blocco-periodo {
+   font-size: 0.85em;
+   opacity: 0.85;
+}
+
+.senza-orario {
+   margin: 12px;
+   font-size: 0.9em;
+}
+
+.senza-orario-voce {
+   margin-left: 12px;
+}
