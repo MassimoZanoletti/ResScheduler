@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import {
    UserService,
-   loggedUser, InitLoggedUser
+   loggedUser,
+   InitLoggedUser,
+   SetLoggedUser
 } from "./users.service";
 import {MessDlgData,
    User,
@@ -10,7 +12,6 @@ import { firstValueFrom,
          BehaviorSubject,
          Observable } from "rxjs";
 import {utils} from "../common/utils";
-import * as util from "node:util";
 import {LogService} from "./log.service";
 
 
@@ -29,12 +30,7 @@ export class AuthService
       const lu = utils.GetFromSessionStorage<User>("RS_Logged_User");
       if (lu)
       {
-         loggedUser.id = lu?.id,
-         loggedUser.nome = lu?.nome,
-         loggedUser.password = lu.password,
-         loggedUser.ruolo_id = lu.ruolo_id,
-         loggedUser.ruolo = lu.ruolo,
-         loggedUser.attributo = lu.attributo
+         SetLoggedUser (lu);
       }
       else
          InitLoggedUser()
@@ -54,12 +50,7 @@ export class AuthService
 
       if (username === '' && password === '')
       {
-         loggedUser.id = 0;
-         loggedUser.nome = "Guest";
-         loggedUser.password = "";
-         loggedUser.ruolo = "Guest";
-         loggedUser.ruolo_id = 0;
-         loggedUser.attributo = 0;
+         SetLoggedUser ({id: 0, nome: "Guest", password: "", ruolo: "Guest", ruolo_id: 0, attributo: 0});
          this.loggedIn = true;
          utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
          await this.logService.AddToLog(loggedUser, "Login");
@@ -68,12 +59,7 @@ export class AuthService
       }
       else if ((username == superUserName) && (password == superUserPassword))
       {
-         loggedUser.id = 0;
-         loggedUser.nome = "Superuser";
-         loggedUser.password = "";
-         loggedUser.ruolo = "Superuser";
-         loggedUser.ruolo_id = 99999;
-         loggedUser.attributo = 255;
+         SetLoggedUser ({id: 0, nome: "Superuser", password: "", ruolo: "Superuser", ruolo_id: 99999, attributo: 255});
          this.loggedIn = true;
          utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
          await this.logService.AddToLog(loggedUser, "Login");
@@ -87,12 +73,7 @@ export class AuthService
          {
             if (dataEvnt.ok)
             {
-               loggedUser.id = dataEvnt.elements.id;
-               loggedUser.nome = dataEvnt.elements.nome;
-               loggedUser.password = dataEvnt.elements.password;
-               loggedUser.ruolo = dataEvnt.elements.ruolo;
-               loggedUser.ruolo_id = dataEvnt.elements.ruolo_id;
-               loggedUser.attributo = dataEvnt.elements.attributo;
+               SetLoggedUser (dataEvnt.elements as User);
                this.loggedIn = true;
                utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
                await this.logService.AddToLog(loggedUser, "Login");

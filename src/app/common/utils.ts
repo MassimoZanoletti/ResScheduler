@@ -346,6 +346,50 @@ export class utils
 
 
    /*-------------------------------------------
+      MinutiDelGiorno
+         Minuti dalla mezzanotte (0 se l'orario non e' indicato)
+   -------------------------------------------*/
+   static MinutiDelGiorno (d: Date | null): number
+   {
+      return (d != null) ? (d.getHours () * 60 + d.getMinutes ()) : 0;
+   }
+
+
+   /*-------------------------------------------
+      OraPerDb
+         Orario nel formato atteso dal database: "HH:MM" ("00:00" se non indicato)
+            OraPerDb(9:05)   ->   "09:05"
+   -------------------------------------------*/
+   static OraPerDb (d: Date | null): string
+   {
+      if (d == null)
+         return "00:00";
+      return `${String (d.getHours ()).padStart (2, '0')}:${String (d.getMinutes ()).padStart (2, '0')}`;
+   }
+
+
+   /*-------------------------------------------
+      ErroriOrario
+         Controlli comuni sull'orario di un evento (form evento e form evento periodico).
+         L'orario non e' obbligatorio (00:00 = non indicato) e nemmeno l'ora di fine,
+         ma se la fine e' indicata deve esserci l'inizio e deve essere dopo l'inizio.
+         Ritorna l'elenco dei messaggi d'errore (vuoto se e' tutto a posto).
+   -------------------------------------------*/
+   static ErroriOrario (oraInizio: Date | null,
+                        oraFine: Date | null): Array<string>
+   {
+      const errori: Array<string> = [];
+      const inizio: number = utils.MinutiDelGiorno (oraInizio);
+      const fine: number = utils.MinutiDelGiorno (oraFine);
+      if ((inizio == 0) && (fine > 0))
+         errori.push ("• È indicata l'ora di fine ma non quella di inizio.");
+      else if ((fine > 0) && (fine <= inizio))
+         errori.push ("• L'ora di fine deve essere successiva all'ora di inizio.");
+      return errori;
+   }
+
+
+   /*-------------------------------------------
       Dlt_RandomNumber
          Returns a random integer number between aMin and aMax, including both aMin and aMax
    -------------------------------------------*/

@@ -32,6 +32,13 @@ import { InputGroupModule } from "primeng/inputgroup";
 import { CheckboxModule } from 'primeng/checkbox';
 import {utils} from "../../common/utils";
 import {firstValueFrom} from "rxjs";
+import {EventoElement} from "../../models/datamod";
+import {DescriviEvento,
+        EscapeHtml,
+        IdRisorseTrasferta,
+        IntervalliSovrapposti,
+        IntervalloMinuti,
+        OccupaRisorsa} from "../../common/sovrapposizioni";
 
 
 @Component({
@@ -105,8 +112,9 @@ export class EventoMasterEditComponent implements OnInit
       this.request = history.state.request.toString();
       this.season_id = Number(history.state.season_id);
       //
-      const dataRis = await firstValueFrom(this.resourceService.getAllData());
-      const dataGrp = await firstValueFrom(this.gruppiService.getAllData());
+      // Palestre e gruppi sono indipendenti: si caricano in parallelo
+      const [dataRis, dataGrp] = await Promise.all ([firstValueFrom (this.resourceService.getAllData ()),
+                                                     firstValueFrom (this.gruppiService.getAllData ())]);
       if ((dataRis) && (dataRis.ok))
          this.listaRisorse = dataRis.elements;
       if ((dataGrp) && (dataGrp.ok))
@@ -129,7 +137,7 @@ export class EventoMasterEditComponent implements OnInit
             if (currr != -1)
                this.currRisorsa = this.listaRisorse[currr];
             this.gruppo_id = (dataRes.elements as EventoMasterElement).gruppo_id;
-            const currg = this.listaRisorse.findIndex(elemento => elemento.id == this.gruppo_id);
+            const currg = this.listaGruppi.findIndex (elemento => elemento.id == this.gruppo_id);
             if (currg != -1)
                this.currGruppo = this.listaGruppi[currg];
             this.commento = (dataRes.elements as EventoMasterElement).commento;
@@ -162,6 +170,124 @@ export class EventoMasterEditComponent implements OnInit
    }
 
 
+   /*
+      Controllo sovrapposizioni (lato client) per l'evento periodico.
+      Calcola i giorni in cui verra' creato l'evento (dal giorno iniziale, ogni 7 giorni,
+      fino al giorno finale, come nel salvataggio) e cerca gli altri eventi nella stessa
+      palestra, in quei giorni, con orario che si accavalla. Se ne trova, chiede conferma.
+      Ritorna true se si puo' procedere con il salvataggio.
+   */
+   async ConfermaSovrapposizioni (): Promise<boolean>
+   {
+      const conflitti: Array<EventoElement> | null = await this.CercaSovrapposizioni ();
+      let message: string;
+
+      if ((conflitti != null) && (conflitti.length == 0))
+         return true;
+      if (conflitti == null)
+         message = 'Non è stato possibile verificare se la palestra è già occupata in quei giorni e orari.\nSalvare comunque?';
+      else
+      {
+         const MAX_RIGHE: number = 12;
+         const righe: Array<string> = conflitti.slice (0, MAX_RIGHE).map (ev =>
+            `• ${EscapeHtml (ev.data.toLocaleDateString ('it-IT', {weekday: 'short', day: '2-digit', month: '2-digit'}))}  ${EscapeHtml (DescriviEvento (ev))}`);
+         if (conflitti.length > MAX_RIGHE)
+            righe.push (`... e altri ${conflitti.length - MAX_RIGHE}`);
+         message = `In <b>${EscapeHtml (this.currRisorsa?.nome ?? '')}</b> ci sono già <b>${conflitti.length}</b> eventi che si sovrappongono a questo orario:\n\n${righe.join ('\n')}\n\nSalvare comunque?`;
+      }
+      const dlgData: MessDlgData = {
+         title:               'ATTENZIONE',
+         subtitle:            (conflitti == null) ? 'Controllo sovrapposizioni' : 'Palestra già occupata',
+         message:             message,
+         messtype:            'warning',
+         btncaption:          'Annulla',
+         showCancelButton:    true,
+         cancelButtonCaption: 'Sì, salva'
+      };
+      const result = await firstValueFrom (this.messageDialogService.showMessage (dlgData, '650px', true));
+      return (result === 'secondary');
+   }
+
+
+   /*
+      Ritorna gli eventi in conflitto ordinati per data e ora (array vuoto se nessuno),
+      oppure null se non e' stato possibile caricare i dati dal server.
+   */
+   async CercaSovrapposizioni (): Promise<Array<EventoElement> | null>
+   {
+      // Senza date, senza palestra, in trasferta o senza orario non c'e' nulla da controllare
+      if ((this.data == null) || (this.datafine == null) || (this.risorsa_id <= 0))
+         return [];
+      const trasferte: Set<number> = IdRisorseTrasferta (this.listaRisorse);
+      if (trasferte.has (Number (this.risorsa_id)))
+         return [];
+      const nuovo = IntervalloMinuti (this.orainizio, this.orafine);
+      if (nuovo == null)
+         return [];
+
+      // Giorni in cui verra' creato l'evento
+      const giorni: Set<string> = new Set<string> ();
+      const ultimo: string = utils.DataPerDb (this.datafine);
+      const giorno: Date = new Date (this.data);
+      while (utils.DataPerDb (giorno) <= ultimo)
+      {
+         giorni.add (utils.DataPerDb (giorno));
+         giorno.setDate (giorno.getDate () + 7);
+      }
+      if (giorni.size == 0)
+         return [];
+
+      try
+      {
+         const stagione: number | null = (this.season_id > 0) ? this.season_id : null;
+         // tipoevento -1 = tutti i tipi
+         const resp = await firstValueFrom (this.eventoFiglioService.getAllData (stagione, -1, [this.risorsa_id], null, null, null));
+         if ((!resp) || (!resp.ok))
+            return null;
+         return (resp.elements as Array<EventoElement>).filter (ev =>
+         {
+            // In modifica, gli eventi generati da questo stesso periodico vengono cancellati e ricreati
+            if ((this.id > 0) && (ev.master_id == this.id))
+               return false;
+            if ((!OccupaRisorsa (ev, trasferte)) || (ev.risorsa_id != this.risorsa_id))
+               return false;
+            if (!giorni.has (utils.DataPerDb (ev.data)))
+               return false;
+            const altro = IntervalloMinuti (ev.orainizio, ev.orafine);
+            return ((altro != null) && (IntervalliSovrapposti (nuovo, altro)));
+         }).sort ((a, b) => a.orainizio.getTime () - b.orainizio.getTime ());
+      }
+      catch (e)
+      {
+         console.error ("CercaSovrapposizioni:", e);
+         return null;
+      }
+   }
+
+
+   /*
+      Controlli prima del salvataggio. Ritorna l'elenco degli errori (una riga ciascuno),
+      stringa vuota se e' tutto a posto. Stesse regole del form evento normale,
+      piu' il controllo sul periodo (giorno finale non prima di quello iniziale).
+   */
+   Valida (): string
+   {
+      const errori: Array<string> = [];
+      if (this.data == null)
+         errori.push ("• Indicare il giorno iniziale.");
+      if (this.datafine == null)
+         errori.push ("• Indicare il giorno finale.");
+      if ((this.data != null) && (this.datafine != null) && (utils.DataPerDb (this.datafine) < utils.DataPerDb (this.data)))
+         errori.push ("• Il giorno finale non può essere prima di quello iniziale.");
+      if (this.currRisorsa == null)
+         errori.push ("• Selezionare la palestra.");
+      if (this.currGruppo == null)
+         errori.push ("• Selezionare il gruppo.");
+      errori.push (...utils.ErroriOrario (this.orainizio, this.orafine));
+      return errori.join ("\n");
+   }
+
+
    async TimeFromString(aDate: Date,
                         aTime: Date): Promise<Date>
    {
@@ -179,6 +305,19 @@ export class EventoMasterEditComponent implements OnInit
       try
       {
          console.log("Salva");
+         const errori: string = this.Valida ();
+         if (errori != "")
+         {
+            const dlgData: MessDlgData = {
+               title:      'ATTENZIONE',
+               subtitle:   'Dati incompleti o non validi',
+               message:    errori,
+               messtype:   'warning',
+               btncaption: 'Chiudi'
+            };
+            this.messageDialogService.showMessage (dlgData, '600px');
+            return;
+         }
          if (this.currRisorsa)
          {
             this.risorsa_id = this.currRisorsa.id;
@@ -193,13 +332,15 @@ export class EventoMasterEditComponent implements OnInit
          else
             this.gruppo_id = 0;
          //
+         if (!(await this.ConfermaSovrapposizioni ()))
+            return;
          //
          if (this.isAdd)
          {
             const response = await firstValueFrom (this.eventiService.addNewData((this.data) ? utils.DataPerDb (this.data) : "",
                                                                                  (this.datafine) ? utils.DataPerDb (this.datafine) : "",
-                                                                                 `${this.orainizio?.getHours ()}:${this.orainizio?.getMinutes ()}`,
-                                                                                 `${this.orafine?.getHours ()}:${this.orafine?.getMinutes ()}`,
+                                                                                 utils.OraPerDb (this.orainizio),
+                                                                                 utils.OraPerDb (this.orafine),
                                                                                  this.risorsa_id,
                                                                                  this.gruppo_id,
                                                                                  this.commento,
@@ -208,16 +349,9 @@ export class EventoMasterEditComponent implements OnInit
             if (response.ok)
             {
                let newId: number = 0;
+               // Il server restituisce l'id del nuovo evento periodico come primo elemento
                if (response.elements.length > 0)
-               {
-                  try
-                  {
-                     newId = Number(response.elements[0]);
-                  }
-                  catch(err)
-                  {
-                  }
-               }
+                  newId = Number (response.elements[0]) || 0;
                console.log (`Item aggiunto: `, response);
                if ((newId > 0) && (this.data) && (this.datafine) && (this.orainizio) && (this.orafine))
                {
@@ -230,8 +364,8 @@ export class EventoMasterEditComponent implements OnInit
                      currDay.setMinutes(0);
                      currDay.setSeconds(0);
                      await firstValueFrom (this.eventoFiglioService.addNewData(utils.DataPerDb (currDay),
-                                                                               `${this.orainizio.getHours ()}:${this.orainizio.getMinutes ()}`,
-                                                                               `${this.orafine.getHours ()}:${this.orafine.getMinutes ()}`,
+                                                                               utils.OraPerDb (this.orainizio),
+                                                                               utils.OraPerDb (this.orafine),
                                                                                this.risorsa_id,
                                                                                this.gruppo_id,
                                                                                "", // casa
@@ -265,8 +399,8 @@ export class EventoMasterEditComponent implements OnInit
             const response = await firstValueFrom (this.eventiService.updateData (this.id,
                                                                                   (this.data) ? utils.DataPerDb (this.data) : "",
                                                                                   (this.datafine) ? utils.DataPerDb (this.datafine) : "",
-                                                                                  `${this.orainizio?.getHours ()}:${this.orainizio?.getMinutes ()}`,
-                                                                                  `${this.orafine?.getHours ()}:${this.orafine?.getMinutes ()}`,
+                                                                                  utils.OraPerDb (this.orainizio),
+                                                                                  utils.OraPerDb (this.orafine),
                                                                                   this.risorsa_id,
                                                                                   this.gruppo_id,
                                                                                   this.commento,
@@ -287,8 +421,8 @@ export class EventoMasterEditComponent implements OnInit
                      currDay.setMinutes(0);
                      currDay.setSeconds(0);
                      await firstValueFrom (this.eventoFiglioService.addNewData(utils.DataPerDb (currDay),
-                                                                               `${this.orainizio.getHours ()}:${this.orainizio.getMinutes ()}`,
-                                                                               `${this.orafine.getHours ()}:${this.orafine.getMinutes ()}`,
+                                                                               utils.OraPerDb (this.orainizio),
+                                                                               utils.OraPerDb (this.orafine),
                                                                                this.risorsa_id,
                                                                                this.gruppo_id,
                                                                                "", // casa

@@ -141,7 +141,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
       }
       catch (e)
       {
-
+         this.messageDialogService.showError ("Errore durante l'apertura della pagina", e);
       }
       finally
       {
@@ -174,10 +174,12 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
          const dataSeas = await firstValueFrom (this.seasonServ.getAllData ());
          if ((dataSeas) && (dataSeas.ok))
             this.listaStagioni = dataSeas.elements;
+         else
+            this.messageDialogService.showError ("Errore durante il caricamento delle stagioni", dataSeas?.message ?? 'No data returned');
       }
       catch (err)
       {
-
+         this.messageDialogService.showError ("Errore durante il caricamento delle stagioni", err);
       }
       finally
       {
@@ -270,13 +272,16 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
 
    async LoadFilters ()
    {
-      const dataRis = await firstValueFrom (this.resourceService.getAllData ());
+      const [dataRis, dataGrp] = await Promise.all ([firstValueFrom (this.resourceService.getAllData ()),
+                                                     firstValueFrom (this.gruppiService.getAllData ())]);
       if ((dataRis) && (dataRis.ok))
          this.listaRisorse = dataRis.elements;
-      //
-      const dataGrp = await firstValueFrom (this.gruppiService.getAllData ());
+      else
+         this.messageDialogService.showError ("Errore durante il caricamento delle palestre", dataRis?.message ?? 'No data returned');
       if ((dataGrp) && (dataGrp.ok))
          this.listaGruppi = dataGrp.elements;
+      else
+         this.messageDialogService.showError ("Errore durante il caricamento dei gruppi", dataGrp?.message ?? 'No data returned');
    }
 
 
@@ -633,7 +638,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
          }
          catch (e)
          {
-
+            this.messageDialogService.showError ("Errore durante la cancellazione dell'evento periodico", e);
          }
          finally
          {
@@ -704,7 +709,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
                                                }
                                                catch (e)
                                                {
-
+                                                  this.messageDialogService.showError ("Errore nell'applicazione del filtro palestre", e);
                                                }
                                                finally
                                                {
@@ -716,7 +721,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
       }
       catch (e)
       {
-
+         this.messageDialogService.showError ("Errore nell'apertura del filtro palestre", e);
       }
       finally
       {
@@ -785,7 +790,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
                                                }
                                                catch (e)
                                                {
-
+                                                  this.messageDialogService.showError ("Errore nell'applicazione del filtro gruppi", e);
                                                }
                                                finally
                                                {
@@ -797,7 +802,7 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy
       }
       catch (e)
       {
-
+         this.messageDialogService.showError ("Errore nell'apertura del filtro gruppi", e);
       }
       finally
       {

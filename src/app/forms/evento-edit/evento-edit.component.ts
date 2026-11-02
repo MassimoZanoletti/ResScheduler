@@ -40,22 +40,6 @@ import {DescriviEvento,
 
 
 
-// Minuti dalla mezzanotte (0 se l'orario non e' indicato)
-function MinutiDelGiorno (d: Date | null): number
-{
-   return (d != null) ? (d.getHours () * 60 + d.getMinutes ()) : 0;
-}
-
-
-// Orario nel formato atteso dal database: "HH:MM" ("00:00" se non indicato)
-function OraPerDb (d: Date | null): string
-{
-   if (d == null)
-      return "00:00";
-   return `${String (d.getHours ()).padStart (2, '0')}:${String (d.getMinutes ()).padStart (2, '0')}`;
-}
-
-
 @Component({
   selector:    'app-evento-edit',
   standalone:  true,
@@ -279,8 +263,8 @@ export class EventoEditComponent implements OnInit
          if (this.isAdd)
          {
             const response = await firstValueFrom (this.eventiService.addNewData((this.data) ? utils.DataPerDb (this.data) : "",
-                                                                                 OraPerDb (this.orainizio),
-                                                                                 OraPerDb (this.orafine),
+                                                                                 utils.OraPerDb (this.orainizio),
+                                                                                 utils.OraPerDb (this.orafine),
                                                                                  this.risorsa_id,
                                                                                  this.gruppo_id,
                                                                                  this.casa,
@@ -314,8 +298,8 @@ export class EventoEditComponent implements OnInit
          {
             const response = await firstValueFrom (this.eventiService.updateData (this.id,
                                                                                   (this.data) ? utils.DataPerDb (this.data) : "",
-                                                                                  OraPerDb (this.orainizio),
-                                                                                  OraPerDb (this.orafine),
+                                                                                  utils.OraPerDb (this.orainizio),
+                                                                                  utils.OraPerDb (this.orafine),
                                                                                   this.risorsa_id,
                                                                                   this.gruppo_id,
                                                                                   this.casa,
@@ -555,12 +539,7 @@ export class EventoEditComponent implements OnInit
          errori.push ("• Selezionare la palestra (oppure \"Trasferta\").");
       if (this.currGruppo == null)
          errori.push ("• Selezionare il gruppo.");
-      const inizio: number = MinutiDelGiorno (this.orainizio);
-      const fine: number = MinutiDelGiorno (this.orafine);
-      if ((inizio == 0) && (fine > 0))
-         errori.push ("• È indicata l'ora di fine ma non quella di inizio.");
-      else if ((fine > 0) && (fine <= inizio))
-         errori.push ("• L'ora di fine deve essere successiva all'ora di inizio.");
+      errori.push (...utils.ErroriOrario (this.orainizio, this.orafine));
       return errori.join ("\n");
    }
 

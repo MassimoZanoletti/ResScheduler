@@ -301,41 +301,11 @@ export class MainPageComponent implements OnInit, OnDestroy
    }
 
 
-   /*
-      Mostra un errore all'utente, lo scrive in console e nel log sul server.
-      err puo' essere un messaggio (es. 'message' di una risposta ok:false) o un'eccezione.
-   */
+   // Mostra l'errore all'utente e lo registra (console + log sul server)
    MostraErrore (sottotitolo: string,
                  err: unknown)
    {
-      let testo: string;
-      if (typeof err === 'string')
-         testo = err;
-      else if (err instanceof Error)
-         testo = err.message;
-      else
-      {
-         try
-         {
-            testo = JSON.stringify (err);
-         }
-         catch
-         {
-            testo = `${err}`;
-         }
-      }
-      console.error (`${sottotitolo}:`, err);
-      // Senza await: il log non deve bloccare. Se fallisce anche il log (es. server irraggiungibile)
-      // l'errore e' gia' stato mostrato all'utente e scritto in console.
-      this.logService.AddToLog (loggedUser, `${sottotitolo}: '${testo}'`).catch (logErr => console.error ("AddToLog:", logErr));
-      const dlgData: MessDlgData = {
-         title:      'ERRORE',
-         subtitle:   sottotitolo,
-         message:    EscapeHtml (testo),
-         messtype:   'error',
-         btncaption: 'Chiudi'
-      };
-      this.messageDialogService.showMessage (dlgData, '600px');
+      this.messageDialogService.showError (sottotitolo, err);
    }
 
 

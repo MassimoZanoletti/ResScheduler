@@ -7,26 +7,39 @@ import { User } from '../models/datamod';
 
 
 
-export let loggedUser: User = {
+/*
+   Utente collegato.
+   E' UN SOLO oggetto per tutta la vita dell'app: non viene mai sostituito, solo aggiornato
+   (con InitLoggedUser / SetLoggedUser, chiamate da AuthService). Cosi' chi ne tiene un
+   riferimento (es. app.component) vede sempre i dati correnti.
+   Le altre parti dell'app devono solo LEGGERLO.
+*/
+export const loggedUser: User = {
    id: 0,
    nome: "",
    password: "",
    ruolo: "",
    ruolo_id: 0,
    attributo: 0
+};
+
+
+// Azzera l'utente collegato (nessun utente)
+export function InitLoggedUser ()
+{
+   SetLoggedUser ({id: 0, nome: "", password: "", ruolo: "", ruolo_id: 0, attributo: 0});
 }
 
 
-export function InitLoggedUser()
+// Copia i dati dell'utente nell'oggetto loggedUser (senza sostituirlo)
+export function SetLoggedUser (u: User)
 {
-   loggedUser = {
-      id: 0,
-      nome: "",
-      password: "",
-      ruolo_id: 0,
-      ruolo: "",
-      attributo: 0
-   };
+   loggedUser.id = u.id;
+   loggedUser.nome = u.nome;
+   loggedUser.password = u.password;
+   loggedUser.ruolo = u.ruolo;
+   loggedUser.ruolo_id = u.ruolo_id;
+   loggedUser.attributo = u.attributo;
 }
 
 @Injectable({

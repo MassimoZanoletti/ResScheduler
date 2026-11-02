@@ -24,7 +24,7 @@ import {MenuModule} from 'primeng/menu';
 import {Menu} from 'primeng/menu';
 import { PrimeNGConfig } from 'primeng/api';
 import * as currentPackage from "../../package.json";
-import {InitLoggedUser, loggedUser} from "./services/users.service";
+import {loggedUser} from "./services/users.service";
 import {utils} from "./common/utils";
 import {LogService} from "./services/log.service";
 import { Subscription } from 'rxjs';
