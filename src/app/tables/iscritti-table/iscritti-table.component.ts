@@ -23,7 +23,8 @@ import {
    Iscritto,
    Gruppo,
    Societa,
-   Categoria
+   Categoria,
+   IscrittoGruppo
 } from "../../models/datamod";
 import {Router} from "@angular/router";
 import {MessageDialogService} from "../../services/message-dialog.service";
@@ -40,6 +41,7 @@ import { FormsModule} from "@angular/forms";
 import {CheckboxModule} from "primeng/checkbox";
 import {GruppiService} from "../../services/gruppi.service";
 import {DropdownModule} from "primeng/dropdown";
+import {MultiSelectModule} from "primeng/multiselect";
 import {SocietaService} from "../../services/societa.service";
 import {CategorieService} from "../../services/categorie.service";
 
@@ -64,7 +66,8 @@ import {CategorieService} from "../../services/categorie.service";
                  ReactiveFormsModule,
                  FormsModule,
                  CheckboxModule,
-                 DropdownModule
+                 DropdownModule,
+                 MultiSelectModule
               ],
   templateUrl: './iscritti-table.component.html',
   styleUrl:    './iscritti-table.component.css'
@@ -82,9 +85,10 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
    dialogTitle: string = "";
    dialogErrorMessage: string = "";
    dialogOperation: string = "";
-   dialogValue: Iscritto = { nummaglia: "", id: 0, note: "", recapiti: "", pagamenti: "", categoria: "", societa: "", societaid: 0, gruppo: "", gruppoid: 0, season: "", seasonid: 0, visitafatta: "", anno: 0, cognome: "", nome: "", categoriaid: 0, visitascadenza: "", tesserato: false, myfip: false};
+   dialogValue: Iscritto = { nummaglia: "", id: 0, note: "", recapiti: "", pagamenti: "", categoria: "", societa: "", societaid: 0, gruppi: [], gruppo: "", season: "", seasonid: 0, visitafatta: "", anno: 0, cognome: "", nome: "", categoriaid: 0, visitascadenza: "", tesserato: false, myfip: false};
    listaGruppi: Array<Gruppo> = [];
-   currGruppo: any | null = null;
+   currGruppi: Array<Gruppo> = [];
+   dialogMaglie: { [gruppoid: number]: string } = {};   // numero di maglia per ogni gruppo scelto
    listaSocieta: Array<Societa> = [];
    currSocieta: any | null = null;
    listaCategorie: Array<Categoria> = [];
@@ -136,7 +140,7 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
       if (catGrp)
          this.listaCategorie = catGrp.elements;
       //
-      this.theDataService.getAllData(seasonId, gruppoId, societaId, categoriaId).subscribe (data =>
+      this.theDataService.getAllData(seasonId, gruppoId, societaId, categoriaId, this.listaGruppi).subscribe (data =>
                                                   {
                                                      if (data)
                                                      {
@@ -242,8 +246,8 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
                            categoria: "",
                            societa: "",
                            societaid: 0,
+                           gruppi: [],
                            gruppo: "",
-                           gruppoid: 0,
                            season: "",
                            seasonid: 0,
                            visitafatta: "",
@@ -254,6 +258,8 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
                            visitascadenza: "",
                            tesserato: false,
                            myfip: false };
+      this.currGruppi = [];
+      this.dialogMaglie = {};
       this.dialogVisible_Iscritto = true;
       this.dialogOperation = "ADD";
    }
@@ -276,11 +282,14 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
 
       this.dialogTitle = "Modifica iscritto";
       this.dialogValue = this.currSelected;
-      if (this.dialogValue.gruppoid > 0)
+      this.currGruppi = [];
+      this.dialogMaglie = {};
+      for (const g of this.dialogValue.gruppi)
       {
-         const currg = this.listaGruppi.findIndex (elemento => elemento.id == this.dialogValue.gruppoid);
-         if (currg != -1)
-            this.currGruppo = this.listaGruppi[currg];
+         const gruppo = this.listaGruppi.find (elemento => elemento.id == g.gruppoid);
+         if (gruppo)
+            this.currGruppi.push (gruppo);
+         this.dialogMaglie[g.gruppoid] = g.nummaglia;
       }
       if (this.dialogValue.societaid > 0)
       {
@@ -402,6 +411,19 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
    }
 
 
+   // Riporta nell'iscritto i gruppi scelti nella maschera, ciascuno con il suo numero di maglia
+   ApplicaGruppi ()
+   {
+      this.dialogValue.gruppi = this.currGruppi.map (g => ({
+         gruppoid:  g.id,
+         gruppo:    g.nome,
+         nummaglia: (this.dialogMaglie[g.id] ?? '').trim ()
+      }));
+      this.dialogValue.gruppo = IscrittiService.GruppiTesto (this.dialogValue.gruppi);
+      this.dialogValue.nummaglia = IscrittiService.MaglieTesto (this.dialogValue.gruppi);
+   }
+
+
    async DialogAnnulla(senderName: string)
    {
       this.dialogVisible_Iscritto = false;
@@ -415,8 +437,7 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
       {
          try
          {
-            this.dialogValue.gruppoid = this.currGruppo.id;
-            this.dialogValue.gruppo = this.currGruppo.nome;
+            this.ApplicaGruppi ();
             this.dialogValue.societaid = this.currSocieta.id;
             this.dialogValue.societa = this.currSocieta.nome;
             this.dialogValue.categoriaid = this.currCategoria.id;
@@ -425,10 +446,10 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
                                                                                    this.dialogValue.nome,
                                                                                    this.dialogValue.anno,
                                                                                    this.dialogValue.seasonid,
-                                                                                   this.dialogValue.gruppoid,
+                                                                                   IscrittiService.GruppiIdsPerDb (this.dialogValue.gruppi),
                                                                                    this.dialogValue.categoriaid,
                                                                                    this.dialogValue.societaid,
-                                                                                   this.dialogValue.nummaglia,
+                                                                                   IscrittiService.MagliePerDb (this.dialogValue.gruppi),
                                                                                    this.dialogValue.visitafatta,
                                                                                    this.dialogValue.visitascadenza,
                                                                                    Boolean (this.dialogValue.tesserato),
@@ -467,8 +488,7 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
       }
       if (this.dialogOperation == "EDIT")
       {
-         this.dialogValue.gruppoid = this.currGruppo.id;
-         this.dialogValue.gruppo = this.currGruppo.nome;
+         this.ApplicaGruppi ();
          this.dialogValue.societaid = this.currSocieta.id;
          this.dialogValue.societa = this.currSocieta.nome;
          this.dialogValue.categoriaid = this.currCategoria.id;
@@ -480,10 +500,10 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
                                                                                   this.dialogValue.nome,
                                                                                   this.dialogValue.anno,
                                                                                   this.dialogValue.seasonid,
-                                                                                  this.dialogValue.gruppoid,
+                                                                                  IscrittiService.GruppiIdsPerDb (this.dialogValue.gruppi),
                                                                                   this.dialogValue.categoriaid,
                                                                                   this.dialogValue.societaid,
-                                                                                  this.dialogValue.nummaglia,
+                                                                                  IscrittiService.MagliePerDb (this.dialogValue.gruppi),
                                                                                   this.dialogValue.visitafatta,
                                                                                   this.dialogValue.visitascadenza,
                                                                                   Boolean(this.dialogValue.tesserato),

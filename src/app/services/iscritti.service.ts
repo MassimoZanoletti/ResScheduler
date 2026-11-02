@@ -3,8 +3,10 @@ import {environment} from "../../environments/environment";
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Iscritto,
-         IscrittoDb } from '../models/datamod';
+import { Gruppo,
+         Iscritto,
+         IscrittoDb,
+         IscrittoGruppo } from '../models/datamod';
 import { map,
    tap } from "rxjs/operators";
 import {utils} from "../common/utils";
@@ -29,10 +31,58 @@ export class IscrittiService
    }
 
 
+   /*
+      Un iscritto può stare in più gruppi. Nel database:
+        gruppoid_link = id dei gruppi separati da virgola       (es. "3,5")
+        nummaglia     = numeri di maglia nello stesso ordine    (es. "7,12")
+      Con un solo gruppo, nummaglia è preso così com'è (compatibile con i dati già presenti).
+   */
+   static LeggiGruppi (gruppiIds: string | number | null,
+                       numMaglia: string | null,
+                       listaGruppi: Array<Gruppo>): Array<IscrittoGruppo>
+   {
+      const ids: Array<number> = String (gruppiIds ?? '').split (',')
+                                                         .map (x => parseInt (x.trim (), 10))
+                                                         .filter (x => (!isNaN (x)) && (x > 0));
+      const maglie: Array<string> = (ids.length > 1) ? String (numMaglia ?? '').split (',') : [String (numMaglia ?? '')];
+      return ids.map ((id, i) => ({
+         gruppoid:  id,
+         gruppo:    listaGruppi.find (g => g.id == id)?.nome ?? `? (${id})`,
+         nummaglia: (maglie[i] ?? '').trim ()
+      }));
+   }
+
+
+   static GruppiIdsPerDb (gruppi: Array<IscrittoGruppo>): string
+   {
+      return gruppi.map (g => g.gruppoid).join (',');
+   }
+
+
+   // La virgola è il separatore: la tolgo dai singoli numeri
+   static MagliePerDb (gruppi: Array<IscrittoGruppo>): string
+   {
+      return gruppi.map (g => (g.nummaglia ?? '').replace (/,/g, ' ').trim ()).join (',');
+   }
+
+
+   static GruppiTesto (gruppi: Array<IscrittoGruppo>): string
+   {
+      return gruppi.map (g => g.gruppo).join (', ');
+   }
+
+
+   static MaglieTesto (gruppi: Array<IscrittoGruppo>): string
+   {
+      return gruppi.map (g => g.nummaglia).join (', ');
+   }
+
+
    getAllData(stagione: number | null,
               gruppo: number | null,
               societa: number | null,
-              categoria: number | null): Observable<any>
+              categoria: number | null,
+              listaGruppi: Array<Gruppo> = []): Observable<any>
    {
       const operation: string = "all";
       let qryStagione: string = "";
@@ -56,6 +106,7 @@ export class IscrittiService
                message:    dataFromDb.message,
                elements:   dataFromDb.elements.map ((element: IscrittoDb) => {
                   const elm: IscrittoDb = (element as IscrittoDb);
+                  const gruppi: Array<IscrittoGruppo> = IscrittiService.LeggiGruppi (elm.gruppoid_link, elm.nummaglia, listaGruppi);
                   try
                   {
                      const dt1: Date = new Date (elm.visitafatta);
@@ -69,13 +120,13 @@ export class IscrittiService
                         visitascadenza: `${dt2.getFullYear()}-${utils.Dlt_PadDigits(1+dt2.getMonth(),2)}-${utils.Dlt_PadDigits(dt2.getDate(),2)}`,
                         seasonid:       elm.seasonid_link,
                         season:         elm.season,
-                        gruppoid:       elm.gruppoid_link,
-                        gruppo:         elm.gruppo,
+                        gruppi:         gruppi,
+                        gruppo:         IscrittiService.GruppiTesto (gruppi),
                         societaid:      elm.societaid_link,
                         societa:        elm.societa,
                         categoriaid:    elm.categoriaid_link,
                         categoria:      elm.categoria,
-                        nummaglia:      elm.nummaglia,
+                        nummaglia:      IscrittiService.MaglieTesto (gruppi),
                         tesserato:      Boolean((elm.tesserato!=0)? true : false),
                         myfip:          Boolean((elm.myfip!=0)? true : false),
                         pagamenti:      elm.pagamenti,
@@ -94,13 +145,13 @@ export class IscrittiService
                         visitascadenza: "ERRORE",
                         seasonid:      elm.seasonid_link,
                         season:        elm.season,
-                        gruppoid:      elm.gruppoid_link,
-                        gruppo:        elm.gruppo,
+                        gruppi:        gruppi,
+                        gruppo:        IscrittiService.GruppiTesto (gruppi),
                         societaid:     elm.societaid_link,
                         societa:       elm.societa,
                         categoriaid:   elm.categoriaid_link,
                         categoria:     elm.categoria,
-                        nummaglia:     elm.nummaglia,
+                        nummaglia:     IscrittiService.MaglieTesto (gruppi),
                         tesserato:      Boolean((elm.tesserato!=0)? true : false),
                         myfip:          Boolean((elm.myfip!=0)? true : false),
                         pagamenti:     elm.pagamenti,
@@ -129,7 +180,7 @@ export class IscrittiService
                aNome: string,
                aAnno: number,
                aSeasonId: number,
-               aGruppoId: number,
+               aGruppiId: string,
                aCategoriaId: number,
                aSocietaId: number,
                aNumMaglia: string,
@@ -148,7 +199,7 @@ export class IscrittiService
          `&nome=${encodeURIComponent(aNome)}` +
          `&anno=${aAnno}` +
          `&season_id=${aSeasonId}` +
-         `&gruppo_id=${aGruppoId}` +
+         `&gruppo_id=${encodeURIComponent(aGruppiId)}` +
          `&categoria_id=${aCategoriaId}` +
          `&societa_id=${aSocietaId}` +
          `&nummaglia=${encodeURIComponent(aNumMaglia)}` +
@@ -168,7 +219,7 @@ export class IscrittiService
                aNome: string,
                aAnno: number,
                aSeasonId: number,
-               aGruppoId: number,
+               aGruppiId: string,
                aCategoriaId: number,
                aSocietaId: number,
                aNumMaglia: string,
@@ -186,7 +237,7 @@ export class IscrittiService
          `&nome=${encodeURIComponent(aNome)}` +
          `&anno=${aAnno}` +
          `&season_id=${aSeasonId}` +
-         `&gruppo_id=${aGruppoId}` +
+         `&gruppo_id=${encodeURIComponent(aGruppiId)}` +
          `&categoria_id=${aCategoriaId}` +
          `&societa_id=${aSocietaId}` +
          `&nummaglia=${encodeURIComponent(aNumMaglia)}` +

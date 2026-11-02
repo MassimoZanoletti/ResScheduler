@@ -119,7 +119,7 @@
             <td>{{ elemento.cognome }}</td>
             <td>{{ elemento.nome }}</td>
             <td>{{ elemento.anno }}</td>
-            <td>{{ elemento.gruppo }}</td>
+            <td><div *ngFor="let g of elemento.gruppi">{{ g.gruppo }}</div></td>
             <td>{{ elemento.societa }}</td>
             <td>{{ elemento.categoria }}</td>
             <td>{{ elemento.visitafatta }}</td>
@@ -132,7 +132,7 @@
             <td>
                <i class="pi" [ngClass]="elemento.myfip ? 'pi-check-square' : 'pi-stop'" style="opacity: 0.8;"></i>
             </td>
-            <td>{{ elemento.nummaglia }}</td>
+            <td><div *ngFor="let g of elemento.gruppi">{{ g.nummaglia }}</div></td>
             <td>{{ elemento.pagamenti }}</td>
             <td>{{ elemento.recapiti }}</td>
             <td>{{ elemento.note }}</td>
@@ -178,16 +178,6 @@
             </div>
 
             <div class="form-group">
-               <label for="nome">Num. Maglia:</label>
-               <input type="text"
-                      id="nummaglia"
-                      [(ngModel)]="dialogValue.nummaglia"
-                      pInputText
-                      required
-                      #dialogError="ngModel"/>
-            </div>
-
-            <div class="form-group">
                <label for="abbrev">Anno:</label>
                <input type="number"
                       id="anno"
@@ -221,15 +211,26 @@
             </div>
 
             <div class="form-group">
-               <label for="nome">Gruppo:</label>
-               <p-dropdown
-                  [style]="{'min-width': '255px'}"
+               <label for="nome">Gruppi:</label>
+               <p-multiSelect
+                  [style]="{'min-width': '255px', 'max-width': '255px'}"
                   [options]="listaGruppi"
                   optionLabel="nome"
-                  [(ngModel)]="currGruppo"
-                  [checkmark]="true"
-                  [showClear]="false"
+                  [(ngModel)]="currGruppi"
+                  [filter]="false"
+                  [showHeader]="false"
+                  placeholder="Scegli uno o più gruppi"
+                  appendTo="body"
                   [scrollHeight]="'500px'"/>
+            </div>
+
+            <!-- Un numero di maglia per ogni gruppo scelto -->
+            <div class="form-group" *ngFor="let g of currGruppi">
+               <label [for]="'maglia-' + g.id">Maglia {{ g.nome }}:</label>
+               <input type="text"
+                      [id]="'maglia-' + g.id"
+                      [(ngModel)]="dialogMaglie[g.id]"
+                      pInputText/>
             </div>
 
             <div class="form-group">

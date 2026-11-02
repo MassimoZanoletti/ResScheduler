@@ -100,6 +100,15 @@ export interface Gruppo
 }
 
 
+// Un gruppo dell'iscritto, con il numero di maglia che ha in quel gruppo
+export interface IscrittoGruppo
+{
+   gruppoid: number;
+   gruppo: string;
+   nummaglia: string;
+}
+
+
 export interface Iscritto
 {
    id: number;
@@ -108,13 +117,13 @@ export interface Iscritto
    anno: number;
    seasonid: number;
    season: string;
-   gruppoid: number;
-   gruppo: string;
+   gruppi: Array<IscrittoGruppo>;
+   gruppo: string;      // nomi dei gruppi uniti (serve per l'ordinamento)
    societaid: number;
    societa: string;
    categoriaid: number;
    categoria: string;
-   nummaglia: string;
+   nummaglia: string;   // numeri di maglia uniti (serve per l'ordinamento)
    visitafatta: string;
    visitascadenza: string;
    tesserato: boolean;
@@ -133,13 +142,13 @@ export interface IscrittoDb
    anno: number;
    seasonid_link: number;
    season: string;
-   gruppoid_link: number;
+   gruppoid_link: string;   // id dei gruppi separati da virgola (es. "3,5")
    gruppo: string;
    societaid_link: number;
    societa: string;
    categoriaid_link: number;
    categoria: string;
-   nummaglia: string;
+   nummaglia: string;       // numeri di maglia separati da virgola, nello stesso ordine dei gruppi
    visitafatta: Date;
    visitascadenza: Date;
    tesserato: number;
