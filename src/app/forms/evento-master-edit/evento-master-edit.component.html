@@ -1,5 +1,6 @@
 <div class="the-container">
-   <p-card header="{{operazione}}evento periodico">
+   <p-card [header]="soloLettura ? 'Evento periodico' : (operazione + 'evento periodico')"
+           [class.sola-lettura]="soloLettura">
       <ng-template pTemplate="content">
 
          <div class="form-group horizontal">
@@ -9,6 +10,7 @@
                (ngModelChange)="data = $event; AggiornaRighe()"
                [showIcon]="true"
                [showOnFocus]="false"
+               [disabled]="soloLettura"
                [minDate]="minData"
                [maxDate]="maxData"
                inputId="data"
@@ -23,6 +25,7 @@
                (ngModelChange)="datafine = $event; AggiornaRighe()"
                [showIcon]="true"
                [showOnFocus]="false"
+               [disabled]="soloLettura"
                [minDate]="minData"
                [maxDate]="maxData"
                inputId="datafine"
@@ -37,21 +40,25 @@
                [ngModel]="orainizio"
                (ngModelChange)="orainizio = $event; AggiornaRighe()"
                [showTime]="true"
-               [timeOnly]="true"/>
+               [timeOnly]="true"
+               [disabled]="soloLettura"/>
             <button
                pButton
                type="button"
                label="+1h30 →"
                class="p-button-primary"
+               *ngIf="!soloLettura"
                (click)="SetOraFine()"
                style="margin-left: 15px; margin-right: 15px;"
             ></button>
+            <span *ngIf="soloLettura" style="margin-left: 15px; margin-right: 15px;">→</span>
             <p-calendar
                inputId="orafine"
                [ngModel]="orafine"
                (ngModelChange)="orafine = $event; AggiornaRighe()"
                [showTime]="true"
-               [timeOnly]="true"/>
+               [timeOnly]="true"
+               [disabled]="soloLettura"/>
          </div>
 
          <div class="form-group">
@@ -62,8 +69,10 @@
                [options]="listaRisorse"
                optionLabel="nome"
                [(ngModel)]="currRisorsa"
+               (onChange)="OnPalestraChange()"
                [checkmark]="true"
                [showClear]="false"
+               [disabled]="soloLettura"
                [scrollHeight]="'500px'"/>
          </div>
 
@@ -77,6 +86,7 @@
                [(ngModel)]="currGruppo"
                [checkmark]="true"
                [showClear]="false"
+               [disabled]="soloLettura"
                [scrollHeight]="'500px'"/>
          </div>
 
@@ -86,11 +96,12 @@
                    type="text"
                    pInputText
                    placeholder="Commento"
-                   [(ngModel)]="commento"/>
+                   [(ngModel)]="commento"
+                   [readonly]="soloLettura"/>
          </div>
 
          <!-- Solo in modifica: a quali date applicare le modifiche -->
-         <div class="form-group" *ngIf="!isAdd">
+         <div class="form-group" *ngIf="(!isAdd) && (!soloLettura)">
             <label>Applica a:</label>
             <p-selectButton
                [options]="opzioniAmbito"
@@ -103,8 +114,11 @@
 
          <!-- Riepilogo ed elenco delle date -->
          <div class="riepilogo">{{ riepilogo }}</div>
+         <div class="riepilogo-conflitti" *ngIf="numConflitti > 0">
+            ⚠ {{ numConflitti }} {{ (numConflitti == 1) ? 'data è' : 'date sono' }} in conflitto con altri eventi nella stessa palestra (in rosso): passare il mouse sulla data per i dettagli.
+         </div>
 
-         <div class="date-header" *ngIf="righe.length > 0">
+         <div class="date-header" *ngIf="(righe.length > 0) && (!soloLettura)">
             <span class="date-help">Clic su una data per escluderla o includerla.</span>
             <button pButton type="button" label="Escludi festività" class="p-button-sm p-button-secondary" (click)="EscludiFestivita()"></button>
             <button pButton type="button" label="Includi tutte" class="p-button-sm p-button-secondary" (click)="IncludiTutte()"></button>
@@ -116,8 +130,9 @@
                   [class.esclusa]="!r.inclusa"
                   [class.bloccata]="!r.modificabile"
                   [class.festivita]="r.festivita != ''"
-                  [attr.title]="(r.festivita ? r.festivita + ' — ' : '') + (r.modificabile ? (r.inclusa ? 'clic per escludere' : 'clic per includere') : 'data passata: non viene modificata')"
-                  (click)="ToggleData(r)">{{ r.etichetta }}</span>
+                  [class.conflitto]="r.conflitti.length > 0"
+                  [attr.title]="TooltipData(r)"
+                  (click)="ToggleData(r)">{{ (r.conflitti.length > 0) ? '⚠ ' : '' }}{{ r.etichetta }}</span>
          </div>
 
       </ng-template>
@@ -131,6 +146,7 @@
             <button
                pButton
                type="button"
+               *ngIf="!soloLettura"
                label="Annulla"
                class="p-button-secondary"
                [disabled]="salvataggioInCorso"

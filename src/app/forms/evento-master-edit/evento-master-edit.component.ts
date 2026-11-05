@@ -55,6 +55,7 @@ interface RigaData
    inclusa: boolean;
    modificabile: boolean;     // false per le date passate quando si modifica "da oggi in poi"
    festivita: string;         // nome della festivita' ("" se giorno normale)
+   conflitti: Array<string>;  // altri eventi nella stessa palestra con orario che si accavalla
 }
 
 
@@ -103,6 +104,7 @@ export class EventoMasterEditComponent implements OnInit
    salvataggioInCorso: boolean = false;   // blocca il doppio click su OK
    ritorno: string = '/eventimastertable'; // pagina a cui tornare (tabella periodici o orario palestre)
    progresso: string = "";                // avanzamento mostrato durante il salvataggio
+   soloLettura: boolean = false;          // utenti senza diritti di modifica (es. guest): si puo' solo guardare
 
    // Date dell'evento periodico
    righe: Array<RigaData> = [];
@@ -110,6 +112,11 @@ export class EventoMasterEditComponent implements OnInit
    occorrenze: Map<string, EventoElement> = new Map<string, EventoElement> ();   // eventi gia' esistenti (modifica)
    riepilogo: string = "";
    numIncluse: number = 0;
+   numConflitti: number = 0;
+
+   // Eventi della palestra scelta (per segnare le date in conflitto), per giorno "YYYY-MM-DD"
+   eventiPalestra: Map<string, Array<EventoElement>> = new Map<string, Array<EventoElement>> ();
+   palestraCaricata: number = 0;
 
    // Ambito delle modifiche (solo in modifica)
    ambito: string = 'futuro';
@@ -139,6 +146,7 @@ export class EventoMasterEditComponent implements OnInit
          this.id = Number (history.state.id) || 0;
          // Senza id (es. pagina ricaricata) si puo' solo creare un nuovo evento periodico
          this.isAdd = (this.id <= 0) || Boolean (history.state.isadd);
+         this.soloLettura = (loggedUser.attributo <= 0);
          this.season_id = Number (history.state.season_id) || 0;
          if (typeof history.state.ritorno === 'string')
             this.ritorno = history.state.ritorno;
@@ -158,7 +166,7 @@ export class EventoMasterEditComponent implements OnInit
 
          if (this.id > 0)
          {
-            this.operazione = `Modifica `;
+            this.operazione = (this.soloLettura) ? `` : `Modifica `;
             const dataRes = await firstValueFrom (this.eventiService.getSingleData (this.id));
             if ((dataRes) && (dataRes.ok))
             {
@@ -218,6 +226,7 @@ export class EventoMasterEditComponent implements OnInit
             this.orafine = new Date (this.data);
             this.Precompila ();
          }
+         await this.CaricaEventiPalestra ();
       }
       catch (e)
       {
@@ -357,9 +366,100 @@ export class EventoMasterEditComponent implements OnInit
             modificabile: modificabile,
             festivita:    festivita.get (chiave) ?? ""
          };
-      });
+      }).map (r => ({ ...r, conflitti: (r.inclusa) ? this.ConflittiDel (r.chiave) : [] }));
       this.numIncluse = this.righe.filter (r => r.inclusa).length;
+      this.numConflitti = this.righe.filter (r => r.conflitti.length > 0).length;
       this.riepilogo = this.CalcolaRiepilogo ();
+   }
+
+
+   /*
+      Carica gli eventi della stagione nella palestra scelta, per segnare le date in conflitto.
+      Da chiamare all'apertura e quando cambia la palestra.
+   */
+   async CaricaEventiPalestra ()
+   {
+      const rid: number = Number (this.currRisorsa?.id ?? 0);
+      if (rid == this.palestraCaricata)
+         return;
+      this.palestraCaricata = rid;
+      this.eventiPalestra = new Map<string, Array<EventoElement>> ();
+      const trasferte: Set<number> = IdRisorseTrasferta (this.listaRisorse);
+      if ((rid > 0) && (!trasferte.has (rid)))
+      {
+         try
+         {
+            const stagione: number | null = (this.season_id > 0) ? this.season_id : null;
+            const resp = await firstValueFrom (this.eventoFiglioService.getAllData (stagione, -1, [rid], null, null, null));
+            if (rid != this.palestraCaricata)
+               return;   // nel frattempo e' stata scelta un'altra palestra
+            if ((resp) && (resp.ok))
+            {
+               for (const ev of (resp.elements as Array<EventoElement>))
+               {
+                  // le date di questo stesso evento periodico non sono un conflitto
+                  if ((this.id > 0) && (ev.master_id == this.id) && (ev.tipoevento == TipoEvento.EventoPeriodico))
+                     continue;
+                  if ((!OccupaRisorsa (ev, trasferte)) || (Number (ev.risorsa_id) != rid) || (ev.data == null))
+                     continue;
+                  const chiave: string = utils.DataPerDb (ev.data);
+                  const lista: Array<EventoElement> = this.eventiPalestra.get (chiave) ?? [];
+                  lista.push (ev);
+                  this.eventiPalestra.set (chiave, lista);
+               }
+            }
+         }
+         catch (e)
+         {
+            console.error ("CaricaEventiPalestra:", e);
+         }
+      }
+      this.AggiornaRighe ();
+      this.cdr.detectChanges ();
+   }
+
+
+   async OnPalestraChange ()
+   {
+      this.AggiornaRighe ();
+      await this.CaricaEventiPalestra ();
+   }
+
+
+   // Descrizione degli eventi che nel giorno indicato si accavallano con l'orario scelto
+   ConflittiDel (chiave: string): Array<string>
+   {
+      const eventi: Array<EventoElement> | undefined = this.eventiPalestra.get (chiave);
+      const nuovo = IntervalloMinuti (this.orainizio, this.orafine);
+      if ((eventi == null) || (nuovo == null))
+         return [];
+      return eventi.filter (ev =>
+      {
+         const altro = IntervalloMinuti (ev.orainizio, ev.orafine);
+         return ((altro != null) && (IntervalliSovrapposti (nuovo, altro)));
+      }).sort ((a, b) => utils.MinutiDelGiorno (a.orainizio) - utils.MinutiDelGiorno (b.orainizio))
+        .map (ev => DescriviEvento (ev));
+   }
+
+
+   // Tooltip di una data: festivita', conflitti e cosa succede con un clic
+   TooltipData (r: RigaData): string
+   {
+      const parti: Array<string> = [];
+      if (r.festivita)
+         parti.push (r.festivita);
+      if (r.conflitti.length > 0)
+         parti.push ("⚠ Palestra già occupata da:\n" + r.conflitti.map (c => "• " + c).join ("\n"));
+      if (this.soloLettura)
+      {
+         if (!r.inclusa)
+            parti.push ("esclusa");
+      }
+      else if (r.modificabile)
+         parti.push ((r.inclusa) ? "clic per escludere" : "clic per includere");
+      else
+         parti.push ("data passata: non viene modificata");
+      return parti.join ("\n");
    }
 
 
@@ -384,7 +484,7 @@ export class EventoMasterEditComponent implements OnInit
 
    ToggleData (riga: RigaData)
    {
-      if ((!riga.modificabile) || (this.salvataggioInCorso))
+      if ((!riga.modificabile) || (this.salvataggioInCorso) || (this.soloLettura))
          return;
       if (this.escluse.has (riga.chiave))
          this.escluse.delete (riga.chiave);
@@ -674,6 +774,12 @@ export class EventoMasterEditComponent implements OnInit
 
    async Salva()
    {
+      // In sola lettura OK chiude senza salvare nulla
+      if (this.soloLettura)
+      {
+         this.router.navigate ([this.ritorno]);
+         return;
+      }
       // Un secondo click mentre il salvataggio e' in corso creerebbe un secondo evento periodico completo
       if ((this.salvataggioInCorso) || (this.caricamento))
          return;

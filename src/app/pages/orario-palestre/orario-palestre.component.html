@@ -85,6 +85,7 @@
 
          <div class="legenda">
             <span *ngIf="PuoModificare()">Clic su un evento per modificarlo, clic su uno spazio libero per creare un nuovo evento periodico.</span>
+            <span *ngIf="!PuoModificare()">Clic su un evento per vederne i dettagli e le date.</span>
             <span *ngIf="numConflitti > 0" class="legenda-conflitti">⚠ {{ numConflitti }} eventi periodici si sovrappongono (bordo rosso)</span>
          </div>
       </p-card>

@@ -180,3 +180,25 @@
    opacity: 0.45;
    cursor: not-allowed;
 }
+
+/* Sola lettura (guest): campi disabilitati ma ben leggibili, date non cliccabili */
+:host ::ng-deep .sola-lettura .p-dropdown.p-disabled,
+:host ::ng-deep .sola-lettura input.p-component:disabled {
+   opacity: 1;
+}
+
+:host ::ng-deep .sola-lettura .chip-data {
+   cursor: default;
+}
+
+/* data in conflitto con un altro evento nella stessa palestra: rossa */
+.chip-data.conflitto {
+   background-color: #c62828;
+}
+
+.riepilogo-conflitti {
+   margin: 4px 0 8px 0;
+   color: #ff6b6b;
+   font-weight: bold;
+   font-size: 0.9em;
+}

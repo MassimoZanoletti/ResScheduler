@@ -8,6 +8,7 @@ import {EventoMasterElement,
    colonne = palestre, un riquadro per giorno con le righe orarie.
    I giorni non vengono mai spezzati tra due pagine; l'intestazione con le palestre
    e' ripetuta su ogni pagina.
+   In fondo, le pagine con gli orari gruppo per gruppo (giorno, ora, palestra).
 */
 
 
@@ -163,6 +164,9 @@ export async function EsportaOrarioPdf (dati: PdfOrario,
       doc.text (doc.splitTextToSize (Testo (`Eventi periodici senza orario: ${elenco}`), PAG_L - 2 * MARGINE), MARGINE, y + 3);
    }
 
+   // orari gruppo per gruppo, in pagine nuove
+   OrariPerGruppo (doc, dati);
+
    // numeri di pagina
    const pagine: number = doc.getNumberOfPages ();
    for (let p = 1; p <= pagine; p++)
@@ -225,6 +229,206 @@ function DisegnaBlocco (doc: any,
       doc.setFont ('helvetica', r.grassetto ? 'bold' : 'normal');
       doc.text (Taglia (doc, r.testo, w - 1.2), x + 0.6, y + 2.0 + i * altRiga);
    });
+}
+
+
+// Una riga dell'orario di un gruppo
+interface RigaGruppo
+{
+   giorno: string;
+   ordine: number;       // giorno della settimana (ordine della griglia) e ora, per ordinare
+   ora: string;
+   palestra: string;
+   periodo: string;
+   note: string;
+}
+
+
+interface OrarioGruppo
+{
+   nome: string;
+   sfondo: [number, number, number];
+   testo: [number, number, number];
+   righe: Array<RigaGruppo>;
+}
+
+
+/*
+   Pagine finali: un riquadro per gruppo con i suoi orari, su due colonne.
+   Usa gli stessi eventi della griglia (stessi filtri), piu' quelli senza orario.
+*/
+function OrariPerGruppo (doc: any,
+                         dati: PdfOrario)
+{
+   const fmt = (d: Date): string => d.toLocaleDateString ('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' });
+   const ora = (d: Date): string => `${String (d.getHours ()).padStart (2, '0')}:${String (d.getMinutes ()).padStart (2, '0')}`;
+   const gruppi = new Map<string, OrarioGruppo> ();
+   const visti = new Set<number> ();
+
+   const aggiungi = (ev: EventoMasterElement, riga: RigaGruppo) =>
+   {
+      const chiave: string = `${ev.gruppo_id}|${ev.gruppo ?? ''}`;
+      let g = gruppi.get (chiave);
+      if (g == null)
+      {
+         g = { nome:   Testo (ev.gruppo ?? '(senza gruppo)'),
+               sfondo: Colore (ev.gruppobck, [57, 73, 171]),
+               testo:  Colore (ev.gruppotxt, [255, 255, 255]),
+               righe:  [] };
+         gruppi.set (chiave, g);
+      }
+      g.righe.push (riga);
+   };
+
+   dati.giorni.forEach ((giorno, iGiorno) =>
+   {
+      giorno.celle.forEach ((blocchi, iPalestra) =>
+      {
+         for (const b of blocchi)
+         {
+            const ev: EventoMasterElement = b.evento;
+            if (visti.has (ev.id))
+               continue;
+            visti.add (ev.id);
+            aggiungi (ev, {
+               giorno:   Testo (giorno.nome),
+               ordine:   iGiorno * 10000 + b.da,
+               ora:      `${ora (ev.orainizio)} - ${ora (ev.orafine)}`,
+               palestra: Testo (dati.palestre[iPalestra]?.nome ?? ev.risorsa ?? ''),
+               periodo:  `${fmt (ev.data)} - ${fmt (ev.datafine)}`,
+               note:     Testo ((ev.commento ?? '').trim ())
+            });
+         }
+      });
+   });
+   for (const ev of dati.senzaOrario)
+   {
+      if (visti.has (ev.id))
+         continue;
+      visti.add (ev.id);
+      const nomeGiorno: string = ev.data.toLocaleDateString ('it-IT', { weekday: 'long' });
+      aggiungi (ev, {
+         giorno:   Testo (nomeGiorno.charAt (0).toUpperCase () + nomeGiorno.slice (1)),
+         ordine:   1000000 + ((ev.data.getDay () + 6) % 7),   // in fondo all'elenco del gruppo
+         ora:      'senza orario',
+         palestra: Testo (ev.risorsa ?? ''),
+         periodo:  `${fmt (ev.data)} - ${fmt (ev.datafine)}`,
+         note:     Testo ((ev.commento ?? '').trim ())
+      });
+   }
+   if (gruppi.size == 0)
+      return;
+
+   const elenco: Array<OrarioGruppo> = [...gruppi.values ()].sort ((a, b) => a.nome.localeCompare (b.nome, 'it', { numeric: true }));
+   for (const g of elenco)
+      g.righe.sort ((a, b) => a.ordine - b.ordine);
+
+   // Impaginazione su due colonne: un riquadro va a capo intero se non sta nello spazio rimasto
+   const SPAZIO: number = 6;
+   const larghCol: number = (PAG_L - 2 * MARGINE - SPAZIO) / 2;
+   const COLONNE: Array<{ titolo: string, largh: number }> = [
+      { titolo: 'Giorno',   largh: 20 },
+      { titolo: 'Ora',      largh: 22 },
+      { titolo: 'Palestra', largh: 32 },
+      { titolo: 'Periodo',  largh: 30 },
+      { titolo: 'Note',     largh: larghCol - 104 }
+   ];
+   const ALT_TITOLO: number = 6.5;
+   const ALT_TESTATA: number = 4.5;
+   const ALT_RIGA: number = 4.6;
+   const fondo: number = PAG_A - MARGINE - 4;
+   let colonna: number = 0;
+   let y: number = 0;
+   let inizioColonna: number = 0;
+
+   const nuovaPagina = () =>
+   {
+      doc.addPage ();
+      doc.setTextColor (0, 0, 0);
+      doc.setFont ('helvetica', 'bold');
+      doc.setFontSize (13);
+      doc.text (Testo (`Orari per gruppo - Stagione ${dati.stagione}` + ((dati.gruppo) ? ` - Gruppo ${dati.gruppo}` : '')), MARGINE, MARGINE + 5);
+      doc.setFont ('helvetica', 'normal');
+      doc.setFontSize (8);
+      doc.text (Testo ((dati.dataRiferimento) ? `Eventi periodici attivi il ${dati.dataRiferimento.toLocaleDateString ('it-IT')}` : 'Tutti gli eventi periodici della stagione'), MARGINE, MARGINE + 9);
+      doc.text (Testo (`Stampato il ${new Date ().toLocaleDateString ('it-IT')}`), PAG_L - MARGINE, MARGINE + 5, { align: 'right' });
+      colonna = 0;
+      inizioColonna = MARGINE + ALT_INTESTAZIONE + 2;
+      y = inizioColonna;
+   };
+   const prossimaColonna = () =>
+   {
+      if (colonna == 0)
+      {
+         colonna = 1;
+         y = inizioColonna;
+      }
+      else
+         nuovaPagina ();
+   };
+   const x0 = (): number => MARGINE + colonna * (larghCol + SPAZIO);
+
+   const titoloGruppo = (g: OrarioGruppo, segue: boolean) =>
+   {
+      doc.setFillColor (g.sfondo[0], g.sfondo[1], g.sfondo[2]);
+      doc.setDrawColor (60, 60, 60);
+      doc.setLineWidth (0.15);
+      doc.rect (x0 (), y, larghCol, ALT_TITOLO, 'FD');
+      doc.setTextColor (g.testo[0], g.testo[1], g.testo[2]);
+      doc.setFont ('helvetica', 'bold');
+      doc.setFontSize (10);
+      doc.text (Taglia (doc, g.nome + ((segue) ? ' (segue)' : ''), larghCol - 4), x0 () + 2, y + 4.5);
+      y += ALT_TITOLO;
+      // testata delle colonne
+      doc.setFillColor (232, 227, 243);
+      doc.rect (x0 (), y, larghCol, ALT_TESTATA, 'F');
+      doc.setTextColor (40, 30, 80);
+      doc.setFontSize (7.5);
+      let x: number = x0 () + 1.5;
+      for (const c of COLONNE)
+      {
+         doc.text (c.titolo, x, y + 3.2);
+         x += c.largh;
+      }
+      y += ALT_TESTATA;
+   };
+
+   nuovaPagina ();
+   for (const g of elenco)
+   {
+      const altezza: number = ALT_TITOLO + ALT_TESTATA + g.righe.length * ALT_RIGA;
+      if ((y > inizioColonna) && (y + altezza > fondo))
+         prossimaColonna ();
+      titoloGruppo (g, false);
+      g.righe.forEach ((r, i) =>
+      {
+         // gruppo con piu' righe di quante ne stanno in una colonna: continua nella successiva
+         if (y + ALT_RIGA > fondo)
+         {
+            prossimaColonna ();
+            titoloGruppo (g, true);
+         }
+         if (i % 2 == 1)
+         {
+            doc.setFillColor (243, 243, 247);
+            doc.rect (x0 (), y, larghCol, ALT_RIGA, 'F');
+         }
+         doc.setTextColor (0, 0, 0);
+         doc.setFontSize (8);
+         let x: number = x0 () + 1.5;
+         [r.giorno, r.ora, r.palestra, r.periodo, r.note].forEach ((t, k) =>
+         {
+            doc.setFont ('helvetica', (k == 0) ? 'bold' : 'normal');
+            doc.text (Taglia (doc, t, COLONNE[k].largh - 2), x, y + 3.3);
+            x += COLONNE[k].largh;
+         });
+         y += ALT_RIGA;
+      });
+      doc.setDrawColor (160, 160, 160);
+      doc.setLineWidth (0.2);
+      doc.line (x0 (), y, x0 () + larghCol, y);
+      y += SPAZIO;
+   }
 }
 
 

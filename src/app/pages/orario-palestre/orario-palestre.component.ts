@@ -567,12 +567,10 @@ export class OrarioPalestreComponent implements OnInit
    }
 
 
-   // Clic su un evento: apre l'evento periodico in modifica
+   // Clic su un evento: apre l'evento periodico (in sola lettura per chi non puo' modificare)
    ApriEvento (blocco: Blocco, event: MouseEvent)
    {
       event.stopPropagation ();
-      if (!this.PuoModificare ())
-         return;
       const ev: EventoMasterElement = blocco.evento;
       this.router.navigate (['/eventomasteredit'], {
          state: {
