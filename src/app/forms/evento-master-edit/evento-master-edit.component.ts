@@ -898,6 +898,78 @@ export class EventoMasterEditComponent implements OnInit
    }
 
 
+   // Stessa regola della tabella degli eventi periodici
+   PuoEliminare (): boolean
+   {
+      return ((!this.isAdd) && (!this.soloLettura) && (this.id > 0) && (loggedUser.attributo > 1));
+   }
+
+
+   /*
+      Cancella l'evento periodico e tutte le date generate nel planning, dopo conferma.
+      Poi torna alla pagina di provenienza.
+   */
+   async Elimina ()
+   {
+      if ((!this.PuoEliminare ()) || (this.salvataggioInCorso) || (this.caricamento))
+         return;
+      const fmt = (d: Date | null): string => (d) ? d.toLocaleDateString ('it-IT') : '';
+      const orario: string = `${utils.OraPerDb (this.orainizio)}–${utils.OraPerDb (this.orafine)}`;
+      const giorno: string = (this.data) ? NOMI_GIORNI[this.data.getDay ()] : '';
+      const numDate: number = this.occorrenze.size;
+      const dlgData: MessDlgData = {
+         title:               'Cancellazione evento periodico',
+         subtitle:            '',
+         message:             `Cancellare l'evento periodico\n<b>${EscapeHtml (this.currGruppo?.nome ?? '')} - ${EscapeHtml (this.currRisorsa?.nome ?? '')} - ogni ${giorno} ${orario}</b>\n` +
+                              `(dal ${fmt (this.data)} al ${fmt (this.datafine)})?\n\n` +
+                              `Verranno cancellate anche <b>${numDate}</b> ${(numDate == 1) ? 'data' : 'date'} dal planning, comprese quelle passate.`,
+         messtype:            'warning',
+         btncaption:          'Annulla',
+         showCancelButton:    true,
+         cancelButtonCaption: 'Sì, cancella'
+      };
+      const result = await firstValueFrom (this.messageDialogService.showMessage (dlgData, '600px', true));
+      if (result !== 'secondary')
+         return;
+
+      this.salvataggioInCorso = true;
+      this.progresso = "Cancellazione in corso...";
+      this.cdr.detectChanges ();
+      try
+      {
+         // prima le date generate nel planning (404 = nessuna data: va bene lo stesso)
+         try
+         {
+            await firstValueFrom (this.eventoFiglioService.DeletePeriodic (this.id));
+         }
+         catch (e: any)
+         {
+            if (e?.status != 404)
+               throw e;
+         }
+         // .. poi l'evento periodico
+         const response = await firstValueFrom (this.eventiService.DeleteData (this.id));
+         if ((response) && (response.ok))
+         {
+            await this.logService.AddToLog (loggedUser, `Cancellato Evento Periodico '${this.id}' (${numDate} date)`);
+            this.router.navigate ([this.ritorno]);
+         }
+         else
+            this.messageDialogService.showError ("Errore nella cancellazione dell'evento periodico", response?.message ?? 'No data returned');
+      }
+      catch (e)
+      {
+         this.messageDialogService.showError ("Errore durante la cancellazione dell'evento periodico", e);
+      }
+      finally
+      {
+         this.salvataggioInCorso = false;
+         this.progresso = "";
+         this.cdr.detectChanges ();
+      }
+   }
+
+
    // Ora di fine = inizio + 1h30 (durata tipica di un allenamento)
    SetOraFine()
    {

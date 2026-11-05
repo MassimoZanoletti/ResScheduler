@@ -202,3 +202,8 @@
    font-weight: bold;
    font-size: 0.9em;
 }
+
+/* Elimina a sinistra, gli altri bottoni restano a destra */
+.bottone-elimina {
+   margin-right: auto;
+}

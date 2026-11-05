@@ -139,6 +139,17 @@
 
       <ng-template pTemplate="footer">
          <div class="footer-buttons">
+            <!-- a sinistra, lontano da OK -->
+            <button
+               pButton
+               type="button"
+               *ngIf="PuoEliminare()"
+               label="Elimina"
+               icon="pi pi-trash"
+               class="p-button-danger bottone-elimina"
+               [disabled]="salvataggioInCorso || caricamento"
+               (click)="Elimina()"
+            ></button>
             <span *ngIf="salvataggioInCorso"
                   style="margin-right: 15px; align-self: center;">
                <i class="pi pi-spin pi-spinner" style="margin-right: 6px;"></i>{{ progresso }}
