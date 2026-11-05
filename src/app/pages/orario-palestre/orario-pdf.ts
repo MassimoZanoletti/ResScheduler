@@ -30,6 +30,8 @@ export interface PdfGiorno
    inizio: number;       // minuti
    fine: number;         // minuti
    celle: Array<Array<PdfBlocco>>;   // una cella per palestra, nello stesso ordine di 'palestre'
+   // slot assegnati, una voce per palestra: null = palestra senza slot nella stagione (nessuna evidenziazione)
+   fasce?: Array<Array<{ da: number, a: number }> | null>;
 }
 
 
@@ -116,10 +118,39 @@ export async function EsportaOrarioPdf (dati: PdfOrario,
       doc.setFont ('helvetica', 'bold');
       doc.setFontSize (9);
       doc.text (Testo (g.nome), MARGINE + 2, y + 4.2);
+      // sotto ogni palestra gli orari dei suoi slot nel giorno
+      (g.fasce ?? []).forEach ((fasce, i) =>
+      {
+         if (fasce == null)
+            return;
+         const ora = (m: number): string => `${String (Math.floor (m / 60)).padStart (2, '0')}:${String (m % 60).padStart (2, '0')}`;
+         const testo: string = (fasce.length > 0) ? 'Slot ' + fasce.map (f => `${ora (f.da)}-${ora (f.a)}`).join ('  ') : 'nessuno slot';
+         doc.setFont ('helvetica', (fasce.length > 0) ? 'bold' : 'italic');
+         doc.setFontSize (7.5);
+         doc.setTextColor (30, 70, 140);
+         doc.text (Taglia (doc, testo, larghCol - 2), xCol (i) + larghCol / 2, y + 4.1, { align: 'center' });
+      });
       y += ALT_GIORNO;
 
-      // righe orarie e separatori delle colonne
+      // slot assegnati: fuori dagli slot la colonna e' grigia, dentro azzurrina
       const yMin = (m: number): number => y + (m - g.inizio) * MM_PER_MINUTO;
+      (g.fasce ?? []).forEach ((fasce, i) =>
+      {
+         if (fasce == null)
+            return;
+         doc.setFillColor (232, 232, 232);
+         doc.rect (xCol (i), y, larghCol, altGriglia, 'F');
+         doc.setFillColor (222, 236, 252);
+         for (const f of fasce)
+         {
+            const da: number = Math.max (f.da, g.inizio);
+            const a: number = Math.min (f.a, g.fine);
+            if (a > da)
+               doc.rect (xCol (i), yMin (da), larghCol, (a - da) * MM_PER_MINUTO, 'F');
+         }
+      });
+
+      // righe orarie e separatori delle colonne
       for (let m = Math.ceil (g.inizio / 30) * 30; m <= g.fine; m += 30)
       {
          const intera: boolean = (m % 60 == 0);

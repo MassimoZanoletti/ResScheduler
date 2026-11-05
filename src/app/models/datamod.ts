@@ -335,3 +335,18 @@ export type MessDialogResult = boolean | 'primary' | 'secondary' | undefined;
 // 'confirm' o true per il bottone principale (OK/Sì)
 // 'cancel' o false per il secondo bottone (Annulla/No)
 // undefined se chiuso dalla 'X' o ESC
+
+
+/*
+   Slot orario assegnato a una palestra per una stagione (tabella slot_palestre).
+   giorno: 0 = domenica ... 6 = sabato (come Date.getDay()); orari in minuti dalla mezzanotte.
+*/
+export interface SlotPalestra
+{
+   id: number;
+   season_id: number;
+   risorsa_id: number;
+   giorno: number;
+   da: number;
+   a: number;
+}

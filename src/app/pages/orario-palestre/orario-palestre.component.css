@@ -93,12 +93,14 @@
    z-index: 6;
 }
 
-/* macro-riga del giorno: occupa tutta la larghezza */
+/* macro-riga del giorno: occupa tutta la larghezza, con le stesse colonne della griglia */
 .riga-giorno {
    grid-column: 1 / -1;
+   display: grid;
+   align-items: center;
    position: sticky;
    left: 0;
-   padding: 4px 10px;
+   padding: 4px 0;
    margin-top: 6px;
    font-weight: bold;
    background-color: #2a3352;
@@ -106,7 +108,37 @@
    border-top: 2px solid #ab7a39;
 }
 
-.riga-giorno.giorno-vuoto {
+/* il nome del giorno puo' sporgere nella colonna della prima palestra (gli orari degli slot sono centrati) */
+.riga-giorno-nome {
+   padding-left: 10px;
+   white-space: nowrap;
+   overflow: visible;
+}
+
+.riga-giorno-slot {
+   display: flex;
+   justify-content: center;
+   flex-wrap: wrap;
+   gap: 6px;
+   font-size: 0.85em;
+}
+
+.etichetta-slot {
+   padding: 0 8px;
+   border-radius: 0 8px 8px 0;
+   background-color: #243c66;
+   border-left: 6px solid #4a90d9;
+   color: #ffffff;
+   font-weight: bold;
+}
+
+.nessuno-slot {
+   font-weight: normal;
+   font-style: italic;
+   opacity: 0.6;
+}
+
+.riga-giorno.giorno-vuoto .riga-giorno-nome {
    opacity: 0.75;
 }
 
@@ -138,6 +170,37 @@
    position: relative;
    border-left: 1px solid #3a3a4a;
    background-color: #161c2d;
+}
+
+/* Palestra con slot assegnati: fuori dagli slot la cella e' piu' scura e rigata */
+.cella.con-slot {
+   background-color: #0d1019;
+   background-image: repeating-linear-gradient(135deg, transparent 0 8px, rgba(255, 255, 255, 0.025) 8px 16px);
+}
+
+/* Slot assegnato dall'amministrazione */
+.fascia-slot {
+   position: absolute;
+   left: 0;
+   right: 0;
+   background-color: #243c66;
+   border-left: 6px solid #4a90d9;
+   pointer-events: none;
+}
+
+.legenda-slot {
+   display: inline-block;
+   width: 18px;
+   height: 10px;
+   vertical-align: middle;
+   background-color: #243c66;
+   border-left: 6px solid #4a90d9;
+}
+
+/* Evento fuori dagli slot assegnati */
+.blocco.fuori-slot {
+   outline: 2px dashed #ffb300;
+   outline-offset: -2px;
 }
 
 .cella.cliccabile {

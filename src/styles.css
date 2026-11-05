@@ -138,3 +138,8 @@ body {
    margin-right: 8px;
    display: block;
 }
+
+/* Finestra degli slot palestre: rimette il margine all'intestazione (azzerato sopra per i messaggi) */
+.p-dialog.dialog-slot .p-dialog-header {
+   padding: 1rem 1.25rem 0.75rem 1.25rem;
+}

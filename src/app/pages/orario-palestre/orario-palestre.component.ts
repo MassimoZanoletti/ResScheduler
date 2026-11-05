@@ -20,7 +20,9 @@ import {ProgressSpinnerModule} from 'primeng/progressspinner';
 // other
 import {EventoMasterElement,
         Resource,
-        SeasonElement} from '../../models/datamod';
+        SeasonElement,
+        SlotPalestra} from '../../models/datamod';
+import {SlotPalestreService} from '../../services/slot-palestre.service';
 import {SeasonsService} from '../../services/seasons.service';
 import {RisorseService} from '../../services/risorse.service';
 import {EventiMasterService} from '../../services/eventi-master.service';
@@ -42,6 +44,8 @@ const PX_PER_MINUTO: number = 0.7;
 // dal lunedi' al venerdi' 14:30-23:30, sabato e domenica 9:00-21:00
 const FASCIA_FERIALE = { inizio: 14 * 60 + 30, fine: 23 * 60 + 30 };
 const FASCIA_WEEKEND = { inizio: 9 * 60,       fine: 21 * 60 };
+// Larghezza (px) della linea blu a sinistra degli slot: uguale al bordo in .fascia-slot (CSS)
+const LARGHEZZA_LINEA_SLOT: number = 6;
 // Passo (minuti) con cui si arrotonda l'ora quando si clicca su uno spazio libero
 const PASSO_MINUTI: number = 30;
 // Palestre scelte (id): ricordate anche dopo la chiusura del browser
@@ -74,6 +78,7 @@ interface Blocco
    periodo: string;      // "01/09 → 30/06"
    commento: string;     // di solito i nomi degli allenatori presenti
    conflitto: boolean;   // si sovrappone (orario e periodo) a un altro evento periodico della stessa palestra
+   fuoriSlot: boolean;   // la palestra ha slot assegnati, ma l'evento non sta dentro nessuno di quel giorno
    tooltip: string;
 }
 
@@ -83,6 +88,8 @@ interface CellaPalestra
 {
    palestra: Resource;
    blocchi: Array<Blocco>;
+   conSlot: boolean;     // la palestra ha slot assegnati nella stagione: fuori dagli slot la cella e' scura
+   fasce: Array<{ da: number, a: number, top: number, altezza: number, etichetta: string }>;   // slot del giorno
 }
 
 
@@ -139,6 +146,7 @@ export class OrarioPalestreComponent implements OnInit
    private idGruppoSalvato: number | null = null;
 
    eventi: Array<EventoMasterElement> = [];
+   slot: Array<SlotPalestra> = [];                 // slot orari assegnati alle palestre nella stagione
    giorni: Array<Giorno> = [];
    senzaOrario: Array<EventoMasterElement> = [];
    numConflitti: number = 0;
@@ -181,6 +189,7 @@ export class OrarioPalestreComponent implements OnInit
                 private seasonServ: SeasonsService,
                 private resourceService: RisorseService,
                 private eventiMasterService: EventiMasterService,
+                private slotService: SlotPalestreService,
                 private messageDialogService: MessageDialogService,
                 private cdr: ChangeDetectorRef)
    {
@@ -295,7 +304,14 @@ export class OrarioPalestreComponent implements OnInit
       try
       {
          const seasonId: number | null = (this.currSeason) ? this.currSeason.id : null;
-         const resp = await firstValueFrom (this.eventiMasterService.getAllData (seasonId, null, null, null));
+         // gli slot sono solo un aiuto visivo: se non si riesce a leggerli la pagina funziona lo stesso
+         const richiestaSlot: Promise<Array<SlotPalestra>> = (seasonId == null)
+            ? Promise.resolve ([])
+            : firstValueFrom (this.slotService.getAllData (seasonId))
+                 .then (r => (r.ok) ? r.elements : [])
+                 .catch (e => { console.error ("Slot palestre:", e); return []; });
+         const [resp, slot] = await Promise.all ([firstValueFrom (this.eventiMasterService.getAllData (seasonId, null, null, null)), richiestaSlot]);
+         this.slot = slot;
          if ((resp) && (resp.ok))
             this.eventi = resp.elements;
          else
@@ -381,6 +397,7 @@ export class OrarioPalestreComponent implements OnInit
       {
          const delGiorno = conOrario.filter (x => x.ev.data.getDay () == giorno);
          const tuttiDelGiorno = tutti.filter (x => x.ev.data.getDay () == giorno);
+         const slotDelGiorno = this.slot.filter (sl => (sl.giorno == giorno) && (this.palestreMostrate.some (p => p.id == sl.risorsa_id)));
 
          // Fascia oraria sempre visibile (feriale o weekend), allargata (alla mezz'ora) se qualche
          // evento ne esce: cosi' si puo' cliccare anche negli orari ancora liberi
@@ -391,6 +408,11 @@ export class OrarioPalestreComponent implements OnInit
          {
             inizio = Math.min (inizio, Math.floor (Math.min (...delGiorno.map (x => x.int.da)) / 30) * 30);
             fine = Math.max (fine, Math.min (Math.ceil (Math.max (...delGiorno.map (x => x.int.a)) / 30) * 30, 26 * 60));
+         }
+         if (slotDelGiorno.length > 0)
+         {
+            inizio = Math.min (inizio, Math.floor (Math.min (...slotDelGiorno.map (sl => sl.da)) / 30) * 30);
+            fine = Math.max (fine, Math.ceil (Math.max (...slotDelGiorno.map (sl => sl.a)) / 30) * 30);
          }
          const ore: Array<{ etichetta: string, top: number }> = [];
          const mezzore: Array<number> = [];
@@ -407,7 +429,27 @@ export class OrarioPalestreComponent implements OnInit
             const eventiCella = delGiorno.filter (x => x.ev.risorsa_id == palestra.id)
                                          .sort ((a, b) => (a.int.da - b.int.da) || (a.int.a - b.int.a));
             const confronto = tuttiDelGiorno.filter (x => x.ev.risorsa_id == palestra.id);
-            return { palestra: palestra, blocchi: this.CostruisciBlocchi (eventiCella, confronto, inizio, fmt) };
+            const conSlot: boolean = this.slot.some (sl => sl.risorsa_id == palestra.id);
+            const fasce = slotDelGiorno.filter (sl => sl.risorsa_id == palestra.id)
+                                       .sort ((a, b) => a.da - b.da)
+                                       .map (sl => ({
+                                          da:        sl.da,
+                                          a:         sl.a,
+                                          top:       (sl.da - inizio) * PX_PER_MINUTO,
+                                          altezza:   (sl.a - sl.da) * PX_PER_MINUTO,
+                                          etichetta: `${SlotPalestreService.Ora (sl.da)}–${SlotPalestreService.Ora (sl.a)}`
+                                       }));
+            const blocchi: Array<Blocco> = this.CostruisciBlocchi (eventiCella, confronto, inizio, fmt);
+            if (conSlot)
+            {
+               for (const b of blocchi)
+               {
+                  b.fuoriSlot = !fasce.some (f => (f.da <= b.da) && (b.a <= f.a));
+                  if (b.fuoriSlot)
+                     b.tooltip += '\n⚠ Fuori dagli slot assegnati alla palestra';
+               }
+            }
+            return { palestra: palestra, blocchi: blocchi, conSlot: conSlot, fasce: fasce };
          });
          return {
             giorno:    giorno,
@@ -495,6 +537,7 @@ export class OrarioPalestreComponent implements OnInit
             periodo:   `${fmt (x.ev.data)} → ${fmt (x.ev.datafine)}`,
             commento:  (x.ev.commento ?? "").trim (),
             conflitto: conflitto,
+            fuoriSlot: false,
             tooltip:   `${x.ev.gruppo ?? ''}  ${orario}\nDal ${x.ev.data.toLocaleDateString ('it-IT')} al ${x.ev.datafine.toLocaleDateString ('it-IT')}` +
                        ((x.ev.commento) ? `\n${x.ev.commento}` : '') +
                        ((conflitto) ? '\n⚠ Si sovrappone a un altro evento periodico' : '')
@@ -523,6 +566,7 @@ export class OrarioPalestreComponent implements OnInit
                nome:   g.nome,
                inizio: g.inizio,
                fine:   g.fine,
+               fasce:  g.celle.map (c => (c.conSlot) ? c.fasce.map (f => ({ da: f.da, a: f.a })) : null),
                celle:  g.celle.map (c => c.blocchi.map (b => ({
                   evento:    b.evento,
                   da:        b.da,
@@ -564,6 +608,31 @@ export class OrarioPalestreComponent implements OnInit
    PuoModificare (): boolean
    {
       return (loggedUser.attributo > 0);
+   }
+
+
+   /*
+      Posizione orizzontale (left o width) di un blocco nella cella, da una percentuale.
+      Nelle palestre con slot i blocchi partono dopo la linea blu dello slot, che resta visibile.
+   */
+   PosizioneBlocco (cella: CellaPalestra, percentuale: number, sinistra: boolean): string
+   {
+      const margine: number = (cella.conSlot) ? LARGHEZZA_LINEA_SLOT : 0;
+      const quota: string = `(100% - ${margine}px) * ${percentuale / 100}`;
+      return (sinistra) ? `calc(${margine}px + ${quota})` : `calc(${quota})`;
+   }
+
+
+   ApriSlotPalestre ()
+   {
+      this.router.navigate (['/slotpalestre']);
+   }
+
+
+   // true se almeno una palestra mostrata ha slot assegnati
+   CiSonoSlot (): boolean
+   {
+      return this.slot.some (sl => this.palestreMostrate.some (p => p.id == sl.risorsa_id));
    }
 
 

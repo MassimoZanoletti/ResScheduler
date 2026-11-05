@@ -1,0 +1,1 @@
+CREATE TABLE slot_palestre (id INT NOT NULL AUTO_INCREMENT, season_id INT NOT NULL, risorsa_id INT NOT NULL, giorno TINYINT NOT NULL, orainizio TIME NOT NULL, orafine TIME NOT NULL, PRIMARY KEY (id), INDEX idx_slot_stagione (season_id, risorsa_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

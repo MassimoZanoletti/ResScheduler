@@ -22,6 +22,15 @@
                (click)="EsportaPdf()"
             ></p-button>
 
+            <p-button
+               *ngIf="PuoModificare()"
+               icon="pi pi-clock"
+               label="Slot"
+               severity="secondary"
+               title="Slot orari assegnati alle palestre"
+               (click)="ApriSlotPalestre()"
+            ></p-button>
+
             <div class="filtro">
                <label for="cbstagione">Stagione:</label>
                <p-dropdown
@@ -86,6 +95,7 @@
          <div class="legenda">
             <span *ngIf="PuoModificare()">Clic su un evento per modificarlo, clic su uno spazio libero per creare un nuovo evento periodico.</span>
             <span *ngIf="!PuoModificare()">Clic su un evento per vederne i dettagli e le date.</span>
+            <span *ngIf="CiSonoSlot()"><span class="legenda-slot"></span> slot assegnati alla palestra (fuori dagli slot la colonna è più scura)</span>
             <span *ngIf="numConflitti > 0" class="legenda-conflitti">⚠ {{ numConflitti }} eventi periodici si sovrappongono (bordo rosso)</span>
          </div>
       </p-card>
@@ -115,9 +125,20 @@
 
          <ng-container *ngFor="let g of giorni">
             <!-- macro-riga: nome del giorno -->
-            <div class="riga-giorno" [class.giorno-vuoto]="g.vuoto">
-               {{ g.nome }}
-               <span class="riga-giorno-info" *ngIf="g.vuoto">— nessun evento periodico</span>
+            <!-- stesse colonne della griglia: sotto ogni palestra gli orari dei suoi slot nel giorno -->
+            <div class="riga-giorno"
+                 [class.giorno-vuoto]="g.vuoto"
+                 [style.grid-template-columns]="colonneGriglia">
+               <div class="riga-giorno-nome">
+                  {{ g.nome }}
+                  <span class="riga-giorno-info" *ngIf="g.vuoto && (!CiSonoSlot())">— nessun evento periodico</span>
+               </div>
+               <div *ngFor="let c of g.celle" class="riga-giorno-slot">
+                  <ng-container *ngIf="c.conSlot">
+                     <span *ngFor="let f of c.fasce" class="etichetta-slot">{{ f.etichetta }}</span>
+                     <span *ngIf="c.fasce.length == 0" class="nessuno-slot">nessuno slot</span>
+                  </ng-container>
+               </div>
             </div>
 
             <ng-container>
@@ -129,19 +150,26 @@
                <!-- una cella per palestra -->
                <div *ngFor="let c of g.celle"
                     class="cella"
+                    [class.con-slot]="c.conSlot"
                     [class.cliccabile]="PuoModificare()"
                     [style.height.px]="g.altezza"
                     (click)="NuovoEvento(g, c, $event)">
+                  <div *ngFor="let f of c.fasce"
+                       class="fascia-slot"
+                       [style.top.px]="f.top"
+                       [style.height.px]="f.altezza"
+                       [attr.title]="'Slot assegnato: ' + f.etichetta"></div>
                   <div *ngFor="let o of g.ore" class="linea-ora" [style.top.px]="o.top"></div>
                   <div *ngFor="let t of g.mezzore" class="linea-mezzora" [style.top.px]="t"></div>
                   <div *ngFor="let b of c.blocchi"
                        class="blocco"
                        [class.conflitto]="b.conflitto"
+                       [class.fuori-slot]="b.fuoriSlot"
                        [ngStyle]="b.stile"
                        [style.top.px]="b.top"
                        [style.height.px]="b.altezza"
-                       [style.left.%]="b.sinistra"
-                       [style.width.%]="b.larghezza"
+                       [style.left]="PosizioneBlocco(c, b.sinistra, true)"
+                       [style.width]="PosizioneBlocco(c, b.larghezza, false)"
                        [attr.title]="b.tooltip"
                        (click)="ApriEvento(b, $event)">
                      <div class="blocco-titolo">{{ b.titolo }}</div>

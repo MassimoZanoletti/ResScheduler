@@ -1,0 +1,167 @@
+#slot-container {
+   padding: 4px;
+}
+
+/* Intestazione compatta, come nell'orario palestre */
+:host ::ng-deep #slot-container > .card .p-card-body {
+   padding: 6px 8px;
+}
+
+:host ::ng-deep #slot-container > .card .p-card-content {
+   padding: 0;
+}
+
+.intestazione {
+   display: flex;
+   align-items: center;
+   flex-wrap: wrap;
+   gap: 12px;
+}
+
+.titolo {
+   margin: 0 15px 0 15px;
+}
+
+.filtro {
+   display: flex;
+   align-items: center;
+   gap: 8px;
+}
+
+.bottone-orari {
+   margin-left: auto;
+}
+
+.legenda {
+   margin: 6px 15px 0 15px;
+   font-size: 0.85em;
+   opacity: 0.85;
+   display: flex;
+   flex-wrap: wrap;
+   gap: 20px;
+}
+
+.caricamento {
+   display: flex;
+   justify-content: center;
+   margin: 8px;
+}
+
+::ng-deep .spinner-piccolo {
+   width: 40px !important;
+   height: 40px !important;
+}
+
+/* ----- Tabella palestre x giorni ----- */
+
+.tabella-scroll {
+   overflow: auto;
+   margin-top: 8px;
+   max-height: calc(100vh - 200px);
+}
+
+.tabella-slot {
+   width: 100%;
+   border-collapse: collapse;
+   table-layout: fixed;
+}
+
+.tabella-slot th {
+   position: sticky;
+   top: 0;
+   z-index: 2;
+   padding: 6px 4px;
+   background-color: #422d6b;
+   color: #ffe378;
+   border: 1px solid #2c2c3c;
+}
+
+.tabella-slot td {
+   border: 1px solid #3a3a4a;
+   padding: 4px;
+   vertical-align: top;
+}
+
+.col-palestra {
+   width: 150px;
+   font-weight: bold;
+   text-align: center;
+   vertical-align: middle !important;
+}
+
+.cella {
+   background-color: #161c2d;
+}
+
+.slot-elenco {
+   display: flex;
+   flex-wrap: wrap;
+   align-items: center;
+   gap: 4px;
+   min-height: 30px;
+}
+
+.chip-slot {
+   padding: 3px 8px;
+   border-radius: 10px;
+   font-size: 0.85em;
+   background-color: #1f5f8b;
+   color: #ffffff;
+   white-space: nowrap;
+   user-select: none;
+}
+
+.chip-slot.cliccabile {
+   cursor: pointer;
+}
+
+.chip-slot.cliccabile:hover {
+   filter: brightness(1.2);
+}
+
+:host ::ng-deep .bottone-aggiungi.p-button {
+   width: 26px;
+   height: 26px;
+   padding: 0;
+}
+
+/* ----- Finestra di modifica ----- */
+
+.form-dialog {
+   display: flex;
+   flex-direction: column;
+   gap: 14px;
+}
+
+.riga-dialog {
+   display: flex;
+   align-items: center;
+   gap: 10px;
+}
+
+.riga-dialog > label {
+   width: 55px;
+   font-weight: bold;
+}
+
+.riga-dialog > label.etichetta-alle {
+   width: auto;
+}
+
+:host ::ng-deep .riga-dialog .p-calendar input {
+   width: 90px;
+}
+
+:host ::ng-deep .riga-dialog .p-selectbutton .p-button {
+   padding: 6px 9px;
+}
+
+.footer-dialog {
+   display: flex;
+   justify-content: flex-end;
+   gap: 0.5rem;
+}
+
+.bottone-elimina {
+   margin-right: auto;
+}

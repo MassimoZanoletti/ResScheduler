@@ -192,7 +192,8 @@ export class AppComponent implements AfterViewInit, OnInit
             label: "Normali",
             items: [
                {label: "Risorse", icon: 'pi pi-table', routerLink: ['/risorsetable']},
-               {label: "Gruppi", icon: 'pi pi-table', routerLink: ['/gruppitable']}
+               {label: "Gruppi", icon: 'pi pi-table', routerLink: ['/gruppitable']},
+               {label: "Slot palestre", icon: 'pi pi-clock', routerLink: ['/slotpalestre']}
             ]
          },
          {

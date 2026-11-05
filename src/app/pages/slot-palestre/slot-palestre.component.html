@@ -1,0 +1,154 @@
+<div id="slot-container">
+   <div class="card flex justify-content-start">
+      <p-card [style]="{ width: '100%' }">
+         <div class="intestazione">
+            <h2 class="titolo">Slot orari palestre</h2>
+
+            <div class="filtro">
+               <label for="cbstagione">Stagione:</label>
+               <p-dropdown
+                  inputId="cbstagione"
+                  [style]="{'min-width': '200px'}"
+                  [options]="listaStagioni"
+                  optionLabel="nome"
+                  [(ngModel)]="currSeason"
+                  [scrollHeight]="'300px'"
+                  (onChange)="OnStagioneChange()"/>
+            </div>
+
+            <!-- Stagione ancora vuota: si possono copiare gli slot di un'altra -->
+            <div class="filtro" *ngIf="PuoModificare() && (!caricamento) && (slot.length == 0) && (AltreStagioni().length > 0)">
+               <label for="cbcopia">Copia da:</label>
+               <p-dropdown
+                  inputId="cbcopia"
+                  [style]="{'min-width': '180px'}"
+                  [options]="AltreStagioni()"
+                  optionLabel="nome"
+                  [(ngModel)]="stagioneDaCopiare"
+                  placeholder="Stagione"
+                  [scrollHeight]="'300px'"/>
+               <p-button
+                  icon="pi pi-copy"
+                  label="Copia"
+                  severity="secondary"
+                  [disabled]="inCorso || (stagioneDaCopiare == null)"
+                  (click)="CopiaDaStagione()"></p-button>
+            </div>
+
+            <p-button
+               class="bottone-orari"
+               icon="pi pi-calendar"
+               label="Orario palestre"
+               severity="secondary"
+               (click)="TornaAgliOrari()"></p-button>
+         </div>
+
+         <div class="legenda">
+            <span>Fasce orarie assegnate dalle amministrazioni a ogni palestra; vengono evidenziate nell'orario palestre.</span>
+            <span *ngIf="PuoModificare()">Clic su <b>+</b> per aggiungere uno slot (anche su più giorni insieme), clic su uno slot per modificarlo o cancellarlo.</span>
+         </div>
+      </p-card>
+   </div>
+
+   <div *ngIf="caricamento" class="caricamento">
+      <p-progressSpinner styleClass="spinner-piccolo"></p-progressSpinner>
+   </div>
+
+   <div class="tabella-scroll" *ngIf="!caricamento">
+      <table class="tabella-slot">
+         <thead>
+            <tr>
+               <th class="col-palestra">Palestra</th>
+               <th *ngFor="let g of giorni">{{ g.nome }}</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr *ngFor="let p of listaPalestre">
+               <td class="col-palestra" [ngStyle]="StilePalestra(p)" [attr.title]="p.indirizzo">{{ p.nome }}</td>
+               <td *ngFor="let g of giorni" class="cella">
+                  <div class="slot-elenco">
+                     <span *ngFor="let s of SlotDi(p, g.giorno)"
+                           class="chip-slot"
+                           [class.cliccabile]="PuoModificare()"
+                           [attr.title]="PuoModificare() ? 'clic per modificare o cancellare' : null"
+                           (click)="ApriSlot(s)">{{ Etichetta(s) }}</span>
+                     <button *ngIf="PuoModificare()"
+                             pButton
+                             type="button"
+                             icon="pi pi-plus"
+                             class="p-button-text p-button-sm bottone-aggiungi"
+                             title="Aggiungi uno slot"
+                             [disabled]="inCorso"
+                             (click)="NuovoSlot(p, g.giorno)"></button>
+                  </div>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+   </div>
+</div>
+
+<p-dialog [(visible)]="dialogVisibile"
+          [modal]="true"
+          [draggable]="false"
+          [resizable]="false"
+          styleClass="dialog-slot"
+          [style]="{ width: '520px' }"
+          [header]="(slotInModifica ? 'Modifica slot' : 'Nuovo slot') + ' - ' + (palestraDialog?.nome ?? '')">
+   <div class="form-dialog">
+      <div class="riga-dialog">
+         <label>{{ slotInModifica ? 'Giorno:' : 'Giorni:' }}</label>
+         <p-selectButton *ngIf="!slotInModifica"
+                         [options]="opzioniGiorni"
+                         [(ngModel)]="giorniDialog"
+                         [multiple]="true"
+                         optionLabel="label"
+                         optionValue="value"></p-selectButton>
+         <p-selectButton *ngIf="slotInModifica"
+                         [options]="opzioniGiorni"
+                         [ngModel]="giorniDialog[0]"
+                         (ngModelChange)="giorniDialog = [$event]"
+                         [allowEmpty]="false"
+                         optionLabel="label"
+                         optionValue="value"></p-selectButton>
+      </div>
+      <div class="riga-dialog">
+         <label for="orada">Dalle:</label>
+         <p-calendar inputId="orada"
+                     [(ngModel)]="oraDa"
+                     [timeOnly]="true"
+                     [stepMinute]="15"
+                     appendTo="body"></p-calendar>
+         <label for="oraa" class="etichetta-alle">alle:</label>
+         <p-calendar inputId="oraa"
+                     [(ngModel)]="oraA"
+                     [timeOnly]="true"
+                     [stepMinute]="15"
+                     appendTo="body"></p-calendar>
+      </div>
+   </div>
+   <ng-template pTemplate="footer">
+      <div class="footer-dialog">
+         <button *ngIf="slotInModifica"
+                 pButton
+                 type="button"
+                 label="Elimina"
+                 icon="pi pi-trash"
+                 class="p-button-danger bottone-elimina"
+                 [disabled]="inCorso"
+                 (click)="EliminaSlot()"></button>
+         <button pButton
+                 type="button"
+                 label="Annulla"
+                 class="p-button-secondary"
+                 [disabled]="inCorso"
+                 (click)="dialogVisibile = false"></button>
+         <button pButton
+                 type="button"
+                 label="OK"
+                 [loading]="inCorso"
+                 [disabled]="inCorso"
+                 (click)="SalvaSlot()"></button>
+      </div>
+   </ng-template>
+</p-dialog>
