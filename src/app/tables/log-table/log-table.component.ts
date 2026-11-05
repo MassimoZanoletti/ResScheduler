@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import {ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import {BlockUIModule} from "primeng/blockui";
 import {Button, ButtonModule} from "primeng/button";
 import {CardModule} from "primeng/card";
@@ -38,6 +38,53 @@ export class LogTableComponent implements OnInit
    scrollHeight: string = "110px";
    isLoading: boolean = false;
    public tblData: Array<LogMessage> = [];
+   @ViewChild ('tableContainer') tableContainer?: ElementRef<HTMLElement>;
+   filtroSessione: string | null = null;
+
+
+   // Mostra le righe più recenti: porta la tabella all'ultima riga.
+   // Dopo un setTimeout, così le righe sono già state disegnate.
+   VaiInFondo (): void
+   {
+      setTimeout (() =>
+                  {
+                     const wrapper = this.tableContainer?.nativeElement.querySelector ('.p-datatable-wrapper') as HTMLElement | null;
+                     if (wrapper)
+                        wrapper.scrollTop = wrapper.scrollHeight;
+                  });
+   }
+   private righeFiltrate: Array<LogMessage> = [];
+   private righeFiltrateDa: Array<LogMessage> | null = null;
+   private righeFiltratePer: string | null = null;
+
+
+   // Le prime 8 cifre bastano a distinguere le sessioni a colpo d'occhio
+   CodiceBreve (sessione: string | null): string
+   {
+      return (sessione ?? "").substring (0, 8);
+   }
+
+
+   FiltraSessione (sessione: string | null): void
+   {
+      this.filtroSessione = sessione;
+      this.VaiInFondo ();
+   }
+
+
+   // Filtro calcolato solo quando cambiano dati o sessione scelta, non a ogni ciclo di change detection
+   RigheVisibili (): Array<LogMessage>
+   {
+      if (!this.filtroSessione)
+         return this.tblData;
+      if ((this.righeFiltrateDa !== this.tblData) || (this.righeFiltratePer !== this.filtroSessione))
+      {
+         this.righeFiltrate = this.tblData.filter (r => r.sessione === this.filtroSessione);
+         this.righeFiltrateDa = this.tblData;
+         this.righeFiltratePer = this.filtroSessione;
+      }
+      return this.righeFiltrate;
+   }
 
 
    constructor (public router: Router,
@@ -93,6 +140,7 @@ export class LogTableComponent implements OnInit
                                                      }
                                                      this.isLoading = false;
                                                      this.cdr.detectChanges ();
+                                                     this.VaiInFondo ();
                                                   });
    }
 

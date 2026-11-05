@@ -53,6 +53,7 @@ export class AuthService
          SetLoggedUser ({id: 0, nome: "Guest", password: "", ruolo: "Guest", ruolo_id: 0, attributo: 0});
          this.loggedIn = true;
          utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
+         this.logService.NuovaSessione ();
          await this.logService.AddToLog(loggedUser, "Login");
          this.userSource.next(loggedUser);
          return true;
@@ -62,6 +63,7 @@ export class AuthService
          SetLoggedUser ({id: 0, nome: "Superuser", password: "", ruolo: "Superuser", ruolo_id: 99999, attributo: 255});
          this.loggedIn = true;
          utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
+         this.logService.NuovaSessione ();
          await this.logService.AddToLog(loggedUser, "Login");
          this.userSource.next(loggedUser);
          return true;
@@ -76,7 +78,8 @@ export class AuthService
                SetLoggedUser (dataEvnt.elements as User);
                this.loggedIn = true;
                utils.SaveToSessionStorage("RS_Logged_User", loggedUser);
-               await this.logService.AddToLog(loggedUser, "Login");
+               this.logService.NuovaSessione ();
+         await this.logService.AddToLog(loggedUser, "Login");
                this.userSource.next(loggedUser);
                return true;
             }

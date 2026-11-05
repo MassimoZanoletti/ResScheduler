@@ -15,8 +15,37 @@ export class LogService
 {
    private apiUrl: string = `${environment.apiBaseUrl}/log/api.php`;
 
+   private static readonly CHIAVE_SESSIONE: string = "RS_Log_Sessione";
+
    constructor(private http: HttpClient)
    {
+   }
+
+
+   // Nuovo codice di sessione: va creato a ogni login, guest compresi.
+   // Resta in sessionStorage, quindi sopravvive al ricaricamento della pagina ma non alla chiusura della scheda.
+   NuovaSessione (): string
+   {
+      let codice: string;
+      if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function")
+         codice = crypto.randomUUID ();
+      else
+         codice = `${Date.now ().toString (16)}-${Math.random ().toString (16).substring (2, 14)}`;
+      utils.SaveToSessionStorage (LogService.CHIAVE_SESSIONE, codice);
+      return codice;
+   }
+
+
+   // Se manca (es. utente già collegato prima dell'aggiornamento) ne crea uno al volo
+   GetSessione (): string
+   {
+      return utils.GetFromSessionStorage<string> (LogService.CHIAVE_SESSIONE) ?? this.NuovaSessione ();
+   }
+
+
+   ChiudiSessione (): void
+   {
+      utils.removeFromSessionStorage (LogService.CHIAVE_SESSIONE);
    }
 
 
@@ -64,7 +93,8 @@ export class LogService
          `&datetime=${encodeURIComponent(dataOra)}` +
          `&userid=${aUser.id}` +
          `&username=${encodeURIComponent(aUser.nome)}` +
-         `&message=${encodeURIComponent(aMessage)}`;
+         `&message=${encodeURIComponent(aMessage)}` +
+         `&sessione=${encodeURIComponent(this.GetSessione ())}`;
       let result: any;
       try
       {

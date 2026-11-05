@@ -14,6 +14,16 @@
                tooltipPosition="top"
                (click)="LoadData()"
             ></p-button>
+            <ng-container *ngIf="filtroSessione">
+               <span style="margin-left: 20px; margin-right: 10px;">Sessione <b>{{ CodiceBreve(filtroSessione) }}</b></span>
+               <p-button
+                  class="p-button-table"
+                  icon="pi pi-filter-slash"
+                  severity="secondary"
+                  label="Mostra tutte"
+                  (click)="FiltraSessione(null)"
+               ></p-button>
+            </ng-container>
          </div>
       </p-card>
    </div>
@@ -27,13 +37,14 @@
 
    <div id="div-tabella-bottoni">
       <div class="card"
-           id="div-tabella">
+           id="div-tabella"
+           #tableContainer>
          <p-table
             class="custom-header-table"
             styleClass="p-datatable-gridlines"
             [scrollable]="true"
             [scrollHeight]="scrollHeight"
-            [value]="tblData"
+            [value]="RigheVisibili()"
             dataKey="id"
             [tableStyle]="{ 'min-width': '50rem' }">
             <ng-template pTemplate="header">
@@ -41,6 +52,10 @@
                   <th style="width: 85px;">Id</th>
                   <th style="width: 200px;">DataOra</th>
                   <th style="width: 180px;">Utente</th>
+                  <th style="width: 100px;">Sessione</th>
+                  <th style="width: 140px;">IP</th>
+                  <th style="width: 220px;">Dispositivo</th>
+                  <th style="width: 260px;">Zona</th>
                   <th>Mess</th>
                </tr>
             </ng-template>
@@ -51,6 +66,16 @@
                   <td><span style="font-size: 0.6em;">{{ elemento.id }}</span></td>
                   <td>{{ elemento.datetime }}</td>
                   <td>({{ elemento.user_id }}) {{ elemento.user}}</td>
+                  <td>
+                     <a *ngIf="elemento.sessione"
+                        class="link-sessione"
+                        pTooltip="Mostra solo questa sessione"
+                        tooltipPosition="top"
+                        (click)="FiltraSessione(elemento.sessione)">#{{ CodiceBreve(elemento.sessione) }}</a>
+                  </td>
+                  <td>{{ elemento.ip }}</td>
+                  <td [pTooltip]="elemento.useragent" tooltipPosition="top">{{ elemento.dispositivo }}</td>
+                  <td>{{ elemento.luogo }}</td>
                   <td>{{ elemento.description }}</td>
                </tr>
             </ng-template>

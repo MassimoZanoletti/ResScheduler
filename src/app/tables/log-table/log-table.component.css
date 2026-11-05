@@ -83,3 +83,10 @@
 .row-bck-2 {
    background-color: #1e273f; /* Un giallo chiaro */
 }
+
+.link-sessione {
+   cursor: pointer;
+   font-family: monospace;
+   color: #ffe378;
+   text-decoration: underline dotted;
+}

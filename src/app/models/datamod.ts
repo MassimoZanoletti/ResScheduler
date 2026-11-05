@@ -301,6 +301,11 @@ export interface LogMessage
    user_id: number;
    user: string
    description: string;
+   sessione: string | null;      // codice casuale generato a ogni login: distingue i guest contemporanei
+   ip: string | null;            // letto dal server
+   dispositivo: string | null;   // es. "Chrome 130 su Windows", ricavato dal server
+   useragent: string | null;     // testo completo inviato dal browser
+   luogo: string | null;         // zona approssimativa ricavata dall'IP, es. "Arezzo, Tuscany, Italy - TIM"
 }
 
 

@@ -149,6 +149,7 @@ export class AppComponent implements AfterViewInit, OnInit
          console.error ("Logout - scrittura log non riuscita:", e);
       }
       utils.removeFromSessionStorage ("RS_Logged_User");
+      this.logService.ChiudiSessione ();
       await this.authService.logout ();
       // Ricarica completa dell'app dall'indirizzo di partenza: azzera lo stato di tutte le pagine.
       // Basta una sola navigazione (prima: href + reload() immediato + altro reload dopo 1,5 s).
