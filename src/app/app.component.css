@@ -30,8 +30,11 @@ html, body {
    padding: 10px;
    position: fixed;
    bottom: 0;
+   /* left + right al posto di width: 100%: con margini e bordi il piè di pagina usciva dalla finestra
+      e faceva comparire una barra di scorrimento orizzontale, che spostava tutto in su di 15 px */
    left: 0;
-   width: 100%;
+   right: 0;
+   box-sizing: border-box;
    height: 60px;
 }
 

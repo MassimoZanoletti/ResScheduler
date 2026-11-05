@@ -171,7 +171,7 @@ export class MainPageComponent implements OnInit, OnDestroy, AfterViewInit
    @ViewChild('eventsTable') pTable: Table | undefined;
    @ViewChild('tableContainer') tableContainer?: ElementRef<HTMLElement>;
    @ViewChild('buttonsContainer') buttonsContainer?: ElementRef<HTMLElement>;
-   private osservaBottoni: ResizeObserver | null = null;
+   private osservaAltezze: ResizeObserver | null = null;
    // Eventi che si sovrappongono ad altri nella stessa palestra: id evento -> testo del tooltip
    sovrapposizioni: Map<number, string> = new Map<number, string> ();
    // Serve a scartare il risultato di un calcolo superato da un caricamento piu' recente
@@ -331,8 +331,8 @@ export class MainPageComponent implements OnInit, OnDestroy, AfterViewInit
       const wrapper = this.ContenitoreTabella ();
       if (wrapper)
          utils.SaveToSessionStorage (CHIAVE_POSIZIONE_EVENTI, wrapper.scrollTop);
-      this.osservaBottoni?.disconnect ();
-      this.osservaBottoni = null;
+      this.osservaAltezze?.disconnect ();
+      this.osservaAltezze = null;
       if (this.fltrDlgRef)
       {
          this.fltrDlgRef.destroy();
@@ -1353,22 +1353,25 @@ export class MainPageComponent implements OnInit, OnDestroy, AfterViewInit
          this.GetWindowSize ();
          this.cdr.detectChanges ();
       });
-      // La barra dei bottoni cambia altezza dopo il primo disegno (contenuto della scheda, bottoni
-      // che dipendono dall'utente): ogni volta che cambia si ricalcola l'altezza della tabella
+      // Intestazione della pagina e barra dei bottoni cambiano altezza dopo il primo disegno
+      // (tendine, bottoni che dipendono dall'utente): quando cambiano si ricalcola l'altezza della tabella
       const bottoni = this.buttonsContainer?.nativeElement;
-      if ((bottoni) && (typeof ResizeObserver !== 'undefined'))
+      // cercata dentro questa pagina: durante il cambio pagina può esserci ancora quella precedente
+      const intestazione = this.tableContainer?.nativeElement.closest ('#main_container')?.querySelector ('#div-page-header') as HTMLElement | null;
+      const daOsservare: Array<HTMLElement> = [bottoni, intestazione].filter ((e): e is HTMLElement => e != null);
+      if ((daOsservare.length > 0) && (typeof ResizeObserver !== 'undefined'))
       {
-         let altezzaPrecedente: number = -1;
-         this.osservaBottoni = new ResizeObserver (() =>
+         let firmaPrecedente: string = "";
+         this.osservaAltezze = new ResizeObserver (() =>
          {
-            const altezza: number = Math.round (bottoni.getBoundingClientRect ().height);
-            if (altezza == altezzaPrecedente)
+            const firma: string = daOsservare.map (e => Math.round (e.getBoundingClientRect ().height)).join ('|');
+            if (firma == firmaPrecedente)
                return;
-            altezzaPrecedente = altezza;
+            firmaPrecedente = firma;
             this.GetWindowSize ();
             this.cdr.detectChanges ();
          });
-         this.osservaBottoni.observe (bottoni);
+         daOsservare.forEach (e => this.osservaAltezze?.observe (e));
       }
    }
 
@@ -1396,7 +1399,6 @@ export class MainPageComponent implements OnInit, OnDestroy, AfterViewInit
             altezzaBottoni = bottoni.getBoundingClientRect ().height + (parseFloat (stile.marginTop) || 0) + (parseFloat (stile.marginBottom) || 0);
          }
          const misurato: number = Math.floor (fondo - container.getBoundingClientRect ().top - altezzaBottoni - 8);
-         console.log ("DBGALT", fondo, container.getBoundingClientRect ().top, altezzaBottoni, misurato);
          if (misurato >= 110)
             sh = misurato;
       }
