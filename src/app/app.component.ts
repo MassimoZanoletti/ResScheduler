@@ -29,6 +29,8 @@ import {utils} from "./common/utils";
 import {LogService} from "./services/log.service";
 import { Subscription } from 'rxjs';
 import { AuthGuard } from "./auth.guard";
+import { CHIAVE_EVENTO_SELEZIONATO,
+         CHIAVE_POSIZIONE_EVENTI } from "./pages/main-page/main-page.component";
 
 
 
@@ -150,6 +152,9 @@ export class AppComponent implements AfterViewInit, OnInit
       }
       utils.removeFromSessionStorage ("RS_Logged_User");
       this.logService.ChiudiSessione ();
+      // Al prossimo login la pagina eventi riparte centrata su oggi
+      utils.removeFromSessionStorage (CHIAVE_EVENTO_SELEZIONATO);
+      utils.removeFromSessionStorage (CHIAVE_POSIZIONE_EVENTI);
       await this.authService.logout ();
       // Ricarica completa dell'app dall'indirizzo di partenza: azzera lo stato di tutte le pagine.
       // Basta una sola navigazione (prima: href + reload() immediato + altro reload dopo 1,5 s).

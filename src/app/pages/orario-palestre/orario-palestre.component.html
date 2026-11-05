@@ -64,6 +64,23 @@
                   [overlayOptions]="comboOverlayOptions"
                   (onChange)="OnPalestreChange()"/>
             </div>
+
+            <div class="filtro">
+               <label for="cbgruppo">Gruppo:</label>
+               <p-dropdown
+                  inputId="cbgruppo"
+                  [style]="{'min-width': '200px'}"
+                  [options]="listaGruppi"
+                  optionLabel="nome"
+                  [(ngModel)]="gruppoSelezionato"
+                  [showClear]="true"
+                  [filter]="listaGruppi.length > 10"
+                  filterBy="nome"
+                  placeholder="Tutti i gruppi"
+                  [scrollHeight]="'400px'"
+                  [overlayOptions]="comboOverlayOptions"
+                  (onChange)="OnGruppoChange()"/>
+            </div>
          </div>
 
          <div class="legenda">
@@ -82,7 +99,10 @@
    </div>
 
    <!-- Griglia: colonne = palestre, macro-righe = giorni, righe = ore -->
-   <div class="griglia-scroll" *ngIf="palestreMostrate.length > 0">
+   <div class="griglia-scroll"
+        #grigliaScroll
+        *ngIf="palestreMostrate.length > 0"
+        [style.max-height.px]="altezzaGriglia">
       <div class="griglia" [style.grid-template-columns]="colonneGriglia">
 
          <!-- intestazione fissa con le palestre -->

@@ -1,6 +1,8 @@
 // angular
-import {ChangeDetectorRef,
+import {AfterViewInit,
+         ChangeDetectorRef,
          Component,
+         ElementRef,
          HostListener,
          NgZone,
          OnDestroy,
@@ -99,6 +101,10 @@ const FMT_DATA_BREVE: Intl.DateTimeFormat = new Intl.DateTimeFormat ('it-IT', {
 // Chiave del toast che mostra i dettagli delle sovrapposizioni (stessa usata nel template: key="sovrapposizioni")
 const TOAST_SOVRAPPOSIZIONI: string = 'sovrapposizioni';
 
+// Chiavi in sessionStorage: evento selezionato e posizione della tabella (cancellate al logout)
+export const CHIAVE_EVENTO_SELEZIONATO: string = "RS_Editing_Event_Id";
+export const CHIAVE_POSIZIONE_EVENTI: string = "RS_Eventi_Scroll";
+
 @Component ({
                selector:    'app-main-page',
                standalone:  true,
@@ -125,7 +131,7 @@ const TOAST_SOVRAPPOSIZIONI: string = 'sovrapposizioni';
                templateUrl: './main-page.component.html',
                styleUrl:    './main-page.component.css'
             })
-export class MainPageComponent implements OnInit, OnDestroy
+export class MainPageComponent implements OnInit, OnDestroy, AfterViewInit
 {
    /*
    isLoadingEv: boolean = false;
@@ -163,6 +169,8 @@ export class MainPageComponent implements OnInit, OnDestroy
                               : undefined;
    resizeDebounceTimer: any;
    @ViewChild('eventsTable') pTable: Table | undefined;
+   @ViewChild('tableContainer') tableContainer?: ElementRef<HTMLElement>;
+   @ViewChild('buttonsContainer') buttonsContainer?: ElementRef<HTMLElement>;
    // Eventi che si sovrappongono ad altri nella stessa palestra: id evento -> testo del tooltip
    sovrapposizioni: Map<number, string> = new Map<number, string> ();
    // Serve a scartare il risultato di un calcolo superato da un caricamento piu' recente
@@ -192,6 +200,7 @@ export class MainPageComponent implements OnInit, OnDestroy
 
    async ngOnInit()
    {
+      let daCentrare: boolean = false;
       try
       {
          this.theLocalStorage = new globs.TLocalStorage();
@@ -228,7 +237,11 @@ export class MainPageComponent implements OnInit, OnDestroy
             this.theLocalStorage.data.currTipoEvento = this.listaTipoEvento[0];
          //
          //this.isLoadingEv = true;
-         await this.LoadEvents();
+         // Posizione all'apertura:
+         //  - c'è una riga selezionata -> LoadEvents la porta al centro
+         //  - altrimenti, se si torna sulla pagina -> ultima posizione lasciata
+         //  - altrimenti (primo ingresso dopo il login) -> centrata su oggi
+         daCentrare = !(await this.LoadEvents());
       }
       catch (e)
       {
@@ -240,12 +253,86 @@ export class MainPageComponent implements OnInit, OnDestroy
          //this.isLoadingEv = false;
          await this.SetLoading(0);
          this.cdr.detectChanges();
+         // Nuova misura ora che la barra dei bottoni è completa (prima del posizionamento della tabella)
+         await this.GetWindowSize();
+         this.cdr.detectChanges();
+         if (daCentrare)
+         {
+            const posizione = utils.GetFromSessionStorage<number> (CHIAVE_POSIZIONE_EVENTI);
+            if (posizione != null)
+               this.RipristinaPosizione (posizione);
+            else
+               this.CentraSuOggi ();
+         }
       }
+   }
+
+
+   /*
+      Porta al centro della tabella la prima riga di oggi (o, se oggi non ci sono eventi, del primo giorno successivo).
+      Se la stagione è tutta passata va all'ultima riga.
+   */
+   CentraSuOggi ()
+   {
+      if (this.listaEventi.length == 0)
+         return;
+      const oggi: Date = new Date ();
+      oggi.setHours (0, 0, 0, 0);
+      let indice: number = this.listaEventi.findIndex (ev => (new Date (ev.data).getTime () >= oggi.getTime ()));
+      if (indice < 0)
+         indice = this.listaEventi.length - 1;
+      if (indice == 0)
+         return;
+      this.CentraRiga (indice);
+   }
+
+
+   // Contenitore della tabella che scorre (null se la tabella non è ancora disegnata)
+   ContenitoreTabella (): HTMLElement | null
+   {
+      const tabella: HTMLElement | undefined = this.pTable?.el?.nativeElement;
+      return (tabella?.querySelector ('.p-datatable-wrapper') as HTMLElement | null) ?? null;
+   }
+
+
+   /*
+      Porta la riga 'indice' al centro della tabella.
+      Usa la posizione reale della riga sullo schermo perché le righe hanno altezze diverse.
+      Dopo un setTimeout, così le righe sono già state disegnate.
+   */
+   CentraRiga (indice: number)
+   {
+      setTimeout (() =>
+                  {
+                     const wrapper = this.ContenitoreTabella ();
+                     const righe = this.pTable?.el?.nativeElement.querySelectorAll ('.p-datatable-tbody > tr');
+                     if ((!wrapper) || (!righe) || (indice >= righe.length))
+                        return;
+                     const riga = righe[indice] as HTMLElement;
+                     const rWrapper = wrapper.getBoundingClientRect ();
+                     const rRiga = riga.getBoundingClientRect ();
+                     wrapper.scrollTop += (rRiga.top - rWrapper.top) - ((wrapper.clientHeight - rRiga.height) / 2);
+                  });
+   }
+
+
+   RipristinaPosizione (posizione: number)
+   {
+      setTimeout (() =>
+                  {
+                     const wrapper = this.ContenitoreTabella ();
+                     if (wrapper)
+                        wrapper.scrollTop = posizione;
+                  });
    }
 
 
    async ngOnDestroy()
    {
+      // Ricorda dove era la tabella, per ritrovarla uguale tornando sulla pagina
+      const wrapper = this.ContenitoreTabella ();
+      if (wrapper)
+         utils.SaveToSessionStorage (CHIAVE_POSIZIONE_EVENTI, wrapper.scrollTop);
       if (this.fltrDlgRef)
       {
          this.fltrDlgRef.destroy();
@@ -301,8 +388,10 @@ export class MainPageComponent implements OnInit, OnDestroy
       }
    }
 
-   async LoadEvents()
+   // Ritorna true se ha riposizionato la tabella sull'evento selezionato in precedenza
+   async LoadEvents(): Promise<boolean>
    {
+      let selezioneRipristinata: boolean = false;
       try
       {
          //this.isLoadingEv = true;
@@ -352,12 +441,11 @@ export class MainPageComponent implements OnInit, OnDestroy
                this.totRec = this.listaEventi.length;
                // Non si attende: la tabella compare subito, le evidenziazioni arrivano appena pronte
                this.AggiornaSovrapposizioni (seasonId, tipoEvnt, (gruppoId != null));
-               const prevSelected = utils.GetFromSessionStorage("RS_Editing_Event_Id");
-               utils.removeFromSessionStorage("RS_Editing_Event_Id");
+               // La selezione resta salvata finché l'utente non la toglie: così sopravvive
+               // a più cambi di pagina, non solo al primo ritorno
+               const prevSelected = utils.GetFromSessionStorage(CHIAVE_EVENTO_SELEZIONATO);
                if (prevSelected != null)
-               {
-                  this.SelectAndScrollToEvent(Number(prevSelected));
-               }
+                  selezioneRipristinata = this.SelectAndScrollToEvent(Number(prevSelected));
             }
             else
             {
@@ -401,6 +489,7 @@ export class MainPageComponent implements OnInit, OnDestroy
          await this.SetLoading(0);
          this.cdr.detectChanges ();
       }
+      return selezioneRipristinata;
    }
 
 
@@ -669,7 +758,7 @@ export class MainPageComponent implements OnInit, OnDestroy
    OnRowSelected (evento: any)
    {
       if (this.currEvent != null)
-         utils.SaveToSessionStorage ("RS_Editing_Event_Id", this.currEvent.id);
+         utils.SaveToSessionStorage (CHIAVE_EVENTO_SELEZIONATO, this.currEvent.id);
       this.MostraSovrapposizioni (evento?.data ?? this.currEvent);
    }
 
@@ -699,7 +788,7 @@ export class MainPageComponent implements OnInit, OnDestroy
    OnRowUnselected (evento: any)
    {
       this.fltrMessageService.clear (TOAST_SOVRAPPOSIZIONI);
-      utils.removeFromSessionStorage("RS_Editing_Event_Id");
+      utils.removeFromSessionStorage(CHIAVE_EVENTO_SELEZIONATO);
    }
 
 
@@ -933,45 +1022,20 @@ export class MainPageComponent implements OnInit, OnDestroy
    }
 
 
-   async SelectAndScrollToEvent(idToSelect: number)
+   // Seleziona l'evento e lo porta al centro della tabella. Ritorna false se l'evento non c'è più
+   // (es. cancellato, o escluso da un filtro): in quel caso dimentica la selezione salvata.
+   SelectAndScrollToEvent(idToSelect: number): boolean
    {
-      let rowToSelect: EventoElement | null = null;
-      let selectedIndex: number = -1;
-      for (let i=0;   i<this.listaEventi.length;   i++)
-      {
-         if (this.listaEventi[i].id == idToSelect)
-         {
-            rowToSelect = this.listaEventi[i];
-            selectedIndex = i;
-            break;
-         }
-      }
-
-      this.debug++;
-      if (rowToSelect)
-      {
-         //await utils.Dlt_Sleep(5000);
-         let rts: number = 0;
-         let rpp: number = 20;
-         let scr1: number = selectedIndex-rpp;
-         if (scr1 > 0)
-            rts = scr1 + (rpp/2);
-         if (this.pTable)
-         {
-            console.log(`GoTo line ${rts}`)
-            // Lasciare le due righe che seguono: sia la chiamata diretta che quella con timeout
-            this.pTable.scrollTo ({'top': 25 * rts});
-            setTimeout (() => {
-               if (this.pTable)
-                  this.pTable.scrollTo ({'top': 25 * rts});
-            }, 0);
-         }
-         this.currEvent = rowToSelect;
-      }
-      else
+      const indice: number = this.listaEventi.findIndex (ev => ev.id == idToSelect);
+      if (indice < 0)
       {
          console.warn(`Riga con ID ${idToSelect} non trovata.`);
+         utils.removeFromSessionStorage (CHIAVE_EVENTO_SELEZIONATO);
+         return false;
       }
+      this.currEvent = this.listaEventi[indice];
+      this.CentraRiga (indice);
+      return true;
    }
 
 
@@ -1280,10 +1344,44 @@ export class MainPageComponent implements OnInit, OnDestroy
    }
 
 
+   ngAfterViewInit ()
+   {
+      // Misuro dopo il rendering: qui la pagina precedente può essere ancora nel DOM
+      // (viene tolta a fine animazione) e falserebbe la posizione della tabella
+      setTimeout (() =>
+      {
+         this.GetWindowSize ();
+         this.cdr.detectChanges ();
+      });
+   }
+
+
+   /*
+      Altezza della tabella: dal suo inizio fino al piè di pagina (fisso in basso),
+      meno la barra dei bottoni sotto la tabella. Se la pagina non è ancora disegnata
+      resta la formula fissa.
+   */
    async GetWindowSize()
    {
       this.windowHeight = window.innerHeight;
-      let sh: number = this.windowHeight - 110 - 90 - 180;
+      // 48 px recuperati dalla barra in alto più compatta
+      let sh: number = this.windowHeight - 110 - 90 - 180 + 48;
+      const container = this.tableContainer?.nativeElement;
+      if (container)
+      {
+         const footer = document.querySelector ('.app-footer');
+         const fondo: number = footer ? footer.getBoundingClientRect ().top : this.windowHeight;
+         let altezzaBottoni: number = 0;
+         const bottoni = this.buttonsContainer?.nativeElement;
+         if (bottoni)
+         {
+            const stile = getComputedStyle (bottoni);
+            altezzaBottoni = bottoni.getBoundingClientRect ().height + (parseFloat (stile.marginTop) || 0) + (parseFloat (stile.marginBottom) || 0);
+         }
+         const misurato: number = Math.floor (fondo - container.getBoundingClientRect ().top - altezzaBottoni - 8);
+         if (misurato >= 110)
+            sh = misurato;
+      }
       if (sh < 110)
          sh = 110;
       this.scrollHeight = `${sh}px`;

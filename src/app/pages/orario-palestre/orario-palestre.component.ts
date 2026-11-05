@@ -1,6 +1,9 @@
 import {ChangeDetectorRef,
         Component,
-        OnInit} from '@angular/core';
+        ElementRef,
+        HostListener,
+        OnInit,
+        ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
@@ -43,6 +46,16 @@ const FASCIA_WEEKEND = { inizio: 9 * 60,       fine: 21 * 60 };
 const PASSO_MINUTI: number = 30;
 // Palestre scelte (id): ricordate anche dopo la chiusura del browser
 const CHIAVE_PALESTRE: string = "RS_Orario_Palestre";
+// Gruppo scelto (id, null = tutti): ricordato anche dopo la chiusura del browser
+const CHIAVE_GRUPPO: string = "RS_Orario_Gruppo";
+
+
+// Voce del selettore gruppi (ricavata dagli eventi periodici della stagione)
+interface VoceGruppo
+{
+   id: number;
+   nome: string;
+}
 
 
 // Un evento periodico disegnato nella griglia
@@ -121,12 +134,47 @@ export class OrarioPalestreComponent implements OnInit
                               ? { listener: (event: Event, opts: { type: string, valid: boolean }) => (opts.type === 'scroll') ? false : opts.valid }
                               : undefined;
    dataRiferimento: Date | null = null;            // se indicata: solo eventi periodici attivi in quella data
+   listaGruppi: Array<VoceGruppo> = [];            // gruppi che hanno eventi periodici nella stagione
+   gruppoSelezionato: VoceGruppo | null = null;    // null = tutti i gruppi
+   private idGruppoSalvato: number | null = null;
 
    eventi: Array<EventoMasterElement> = [];
    giorni: Array<Giorno> = [];
    senzaOrario: Array<EventoMasterElement> = [];
    numConflitti: number = 0;
    colonneGriglia: string = "";                    // grid-template-columns
+   altezzaGriglia: number | null = null;           // px fino al piè di pagina (null = valore di riserva del CSS)
+   @ViewChild ('grigliaScroll') grigliaScroll?: ElementRef<HTMLElement>;
+
+
+   /*
+      Altezza della griglia: dallo suo inizio fino al piè di pagina (fisso in basso).
+      Misurata perché l'intestazione può andare su due righe quando la finestra è stretta.
+      Dopo un setTimeout, così la griglia è già disegnata.
+   */
+   AggiornaAltezzaGriglia ()
+   {
+      setTimeout (() =>
+                  {
+                     const griglia = this.grigliaScroll?.nativeElement;
+                     const footer = document.querySelector ('.app-footer') as HTMLElement | null;
+                     if ((!griglia) || (!footer))
+                        return;
+                     const altezza: number = Math.floor (footer.getBoundingClientRect ().top - griglia.getBoundingClientRect ().top - 8);
+                     if (altezza >= 150)
+                     {
+                        this.altezzaGriglia = altezza;
+                        this.cdr.detectChanges ();
+                     }
+                  });
+   }
+
+
+   @HostListener ('window:resize')
+   OnResize ()
+   {
+      this.AggiornaAltezzaGriglia ();
+   }
 
 
    constructor (private router: Router,
@@ -171,6 +219,7 @@ export class OrarioPalestreComponent implements OnInit
             this.palestreSelezionate = this.listaPalestre.filter (p => salvate.some (id => id == p.id));
          else
             this.selezioneDaImpostare = true;
+         this.idGruppoSalvato = utils.GetFromLocalStorage<number> (CHIAVE_GRUPPO);
 
          await this.CaricaEventi ();
       }
@@ -210,6 +259,34 @@ export class OrarioPalestreComponent implements OnInit
    }
 
 
+   OnGruppoChange ()
+   {
+      this.idGruppoSalvato = (this.gruppoSelezionato) ? this.gruppoSelezionato.id : null;
+      if (this.idGruppoSalvato == null)
+         utils.removeFromLocalStorage (CHIAVE_GRUPPO);
+      else
+         utils.SaveToLocalStorage (CHIAVE_GRUPPO, this.idGruppoSalvato);
+      this.CostruisciGriglia ();
+   }
+
+
+   // Elenco dei gruppi presenti negli eventi periodici caricati, in ordine alfabetico.
+   // Mantiene il gruppo scelto se c'è anche nella nuova stagione.
+   AggiornaListaGruppi ()
+   {
+      const gruppi: Map<number, string> = new Map<number, string> ();
+      for (const ev of this.eventi)
+      {
+         const id: number = Number (ev.gruppo_id);
+         if ((id > 0) && (!gruppi.has (id)))
+            gruppi.set (id, ev.gruppo ?? `Gruppo ${id}`);
+      }
+      this.listaGruppi = Array.from (gruppi, ([id, nome]) => ({ id: id, nome: nome }))
+                              .sort ((a, b) => a.nome.localeCompare (b.nome, 'it'));
+      this.gruppoSelezionato = this.listaGruppi.find (g => g.id == this.idGruppoSalvato) ?? null;
+   }
+
+
    // Tutti gli eventi periodici della stagione (tutte le palestre) con una sola chiamata
    async CaricaEventi ()
    {
@@ -235,6 +312,7 @@ export class OrarioPalestreComponent implements OnInit
       finally
       {
          this.caricamento = false;
+         this.AggiornaListaGruppi ();
          // Prima apertura (nessuna selezione salvata): le palestre con eventi nella stagione, o tutte se non ce ne sono
          if (this.selezioneDaImpostare)
          {
@@ -261,7 +339,12 @@ export class OrarioPalestreComponent implements OnInit
       const riferimento: string | null = (this.dataRiferimento) ? utils.DataPerDb (this.dataRiferimento) : null;
       const idPalestre: Set<number> = new Set<number> (this.listaPalestre.map (p => Number (p.id)));
 
-      // Eventi da mostrare: delle nostre palestre, con orario, eventualmente attivi nella data di riferimento
+      const idGruppo: number | null = (this.gruppoSelezionato) ? this.gruppoSelezionato.id : null;
+
+      // Eventi delle nostre palestre, con orario, eventualmente attivi nella data di riferimento.
+      // 'tutti' serve a riconoscere le sovrapposizioni anche con i gruppi nascosti dal filtro;
+      // 'conOrario' sono quelli disegnati (solo il gruppo scelto, se c'è).
+      const tutti: Array<{ ev: EventoMasterElement, int: IntervalloMin }> = [];
       const conOrario: Array<{ ev: EventoMasterElement, int: IntervalloMin }> = [];
       this.senzaOrario = [];
       for (const ev of this.eventi)
@@ -270,11 +353,19 @@ export class OrarioPalestreComponent implements OnInit
             continue;
          if ((riferimento != null) && ((utils.DataPerDb (ev.data) > riferimento) || (riferimento > utils.DataPerDb (ev.datafine))))
             continue;
+         const delGruppo: boolean = ((idGruppo == null) || (Number (ev.gruppo_id) == idGruppo));
          const int = IntervalloMinuti (ev.orainizio, ev.orafine);
          if (int == null)
-            this.senzaOrario.push (ev);
+         {
+            if (delGruppo)
+               this.senzaOrario.push (ev);
+         }
          else
-            conOrario.push ({ ev: ev, int: int });
+         {
+            tutti.push ({ ev: ev, int: int });
+            if (delGruppo)
+               conOrario.push ({ ev: ev, int: int });
+         }
       }
 
       // Colonne: le palestre scelte, nell'ordine dell'elenco palestre
@@ -289,6 +380,7 @@ export class OrarioPalestreComponent implements OnInit
       this.giorni = ordine.map (giorno =>
       {
          const delGiorno = conOrario.filter (x => x.ev.data.getDay () == giorno);
+         const tuttiDelGiorno = tutti.filter (x => x.ev.data.getDay () == giorno);
 
          // Fascia oraria sempre visibile (feriale o weekend), allargata (alla mezz'ora) se qualche
          // evento ne esce: cosi' si puo' cliccare anche negli orari ancora liberi
@@ -314,7 +406,8 @@ export class OrarioPalestreComponent implements OnInit
          {
             const eventiCella = delGiorno.filter (x => x.ev.risorsa_id == palestra.id)
                                          .sort ((a, b) => (a.int.da - b.int.da) || (a.int.a - b.int.a));
-            return { palestra: palestra, blocchi: this.CostruisciBlocchi (eventiCella, inizio, fmt) };
+            const confronto = tuttiDelGiorno.filter (x => x.ev.risorsa_id == palestra.id);
+            return { palestra: palestra, blocchi: this.CostruisciBlocchi (eventiCella, confronto, inizio, fmt) };
          });
          return {
             giorno:    giorno,
@@ -329,6 +422,7 @@ export class OrarioPalestreComponent implements OnInit
             numEventi: delGiorno.length
          };
       });
+      this.AggiornaAltezzaGriglia ();
    }
 
 
@@ -338,6 +432,7 @@ export class OrarioPalestreComponent implements OnInit
       dividono la larghezza della cella per il numero di corsie usate dal gruppo.
    */
    CostruisciBlocchi (eventi: Array<{ ev: EventoMasterElement, int: IntervalloMin }>,
+                      confronto: Array<{ ev: EventoMasterElement, int: IntervalloMin }>,
                       inizio: number,
                       fmt: (d: Date) => string): Array<Blocco>
    {
@@ -370,8 +465,9 @@ export class OrarioPalestreComponent implements OnInit
 
       return eventi.map ((x, i) =>
       {
-         // Conflitto vero: orario che si accavalla E periodi che si sovrappongono
-         const conflitto: boolean = eventi.some ((y, j) => (j != i) &&
+         // Conflitto vero: orario che si accavalla E periodi che si sovrappongono.
+         // Si confronta con tutti gli eventi della cella, anche quelli dei gruppi nascosti dal filtro.
+         const conflitto: boolean = confronto.some (y => (y.ev !== x.ev) &&
             (IntervalliSovrapposti (x.int, y.int)) &&
             (utils.DataPerDb (x.ev.data) <= utils.DataPerDb (y.ev.datafine)) &&
             (utils.DataPerDb (y.ev.data) <= utils.DataPerDb (x.ev.datafine)));
@@ -417,9 +513,11 @@ export class OrarioPalestreComponent implements OnInit
       try
       {
          const stagione: string = this.currSeason?.nome ?? '';
+         const nomeFile: string = `Orario palestre ${stagione}` + ((this.gruppoSelezionato) ? ` ${this.gruppoSelezionato.nome}` : '');
          await EsportaOrarioPdf ({
             stagione:        stagione,
             dataRiferimento: this.dataRiferimento,
+            gruppo:          this.gruppoSelezionato?.nome ?? null,
             palestre:        this.palestreMostrate,
             giorni:          this.giorni.map (g => ({
                nome:   g.nome,
@@ -436,7 +534,7 @@ export class OrarioPalestreComponent implements OnInit
             })),
             senzaOrario:     this.senzaOrario,
             numConflitti:    this.numConflitti
-         }, `Orario palestre ${stagione.replace (/[\/:*?"<>|]/g, '-')}.pdf`.replace (/\s+\.pdf$/, '.pdf'));
+         }, `${nomeFile.replace (/[\/:*?"<>|]/g, '-').trim ()}.pdf`);
       }
       catch (e)
       {

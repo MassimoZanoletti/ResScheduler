@@ -173,3 +173,8 @@ td.ora-sovrapposta {
 ::ng-deep .toast-sovrapposizioni .p-toast-detail {
    white-space: pre-line;
 }
+
+/* La tabella occupa sempre tutto lo spazio fino ai bottoni, anche con poche righe */
+:host ::ng-deep #div-tabella .p-datatable-wrapper {
+   min-height: var(--altezza-tabella);
+}

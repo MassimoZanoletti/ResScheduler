@@ -36,6 +36,7 @@ export interface PdfOrario
 {
    stagione: string;
    dataRiferimento: Date | null;
+   gruppo: string | null;            // gruppo scelto nel filtro (null = tutti)
    palestre: Array<Resource>;
    giorni: Array<PdfGiorno>;
    senzaOrario: Array<EventoMasterElement>;
@@ -71,7 +72,7 @@ export async function EsportaOrarioPdf (dati: PdfOrario,
       doc.setTextColor (0, 0, 0);
       doc.setFont ('helvetica', 'bold');
       doc.setFontSize (13);
-      doc.text (Testo (`Orario palestre - Stagione ${dati.stagione}`), MARGINE, y);
+      doc.text (Testo (`Orario palestre - Stagione ${dati.stagione}` + ((dati.gruppo) ? ` - Gruppo ${dati.gruppo}` : '')), MARGINE, y);
       doc.setFont ('helvetica', 'normal');
       doc.setFontSize (8);
       let note: string = (dati.dataRiferimento) ? `Eventi periodici attivi il ${dati.dataRiferimento.toLocaleDateString ('it-IT')}` : 'Tutti gli eventi periodici della stagione';

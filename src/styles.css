@@ -116,3 +116,25 @@ body {
    width: 600px !important;
    height: 650px !important;
 }
+
+
+/* Barra in alto compatta: meno spazio sopra e sotto, più spazio per i dati (da 92 a 44 px) */
+.p-toolbar.app-header {
+   padding: 4px 12px;
+}
+
+.p-toolbar.app-header .p-toolbar-group-right p {
+   margin: 0 15px 0 0 !important;
+}
+
+.p-toolbar.app-header .p-toolbar-group-right .p-button {
+   padding: 4px 12px;
+}
+
+/* Logo a sinistra del titolo (file 100x96, mostrato a metà per restare nitido sugli schermi ad alta risoluzione) */
+.app-header-logo {
+   height: 34px;
+   width: auto;
+   margin-right: 8px;
+   display: block;
+}

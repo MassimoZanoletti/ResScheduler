@@ -2,6 +2,15 @@
    padding: 4px;
 }
 
+/* Intestazione compatta: il tema mette 20 px sopra e sotto sia nel corpo che nel contenuto della scheda */
+:host ::ng-deep #orario-container > .card .p-card-body {
+   padding: 6px 8px;
+}
+
+:host ::ng-deep #orario-container > .card .p-card-content {
+   padding: 0;
+}
+
 .intestazione {
    display: flex;
    align-items: center;

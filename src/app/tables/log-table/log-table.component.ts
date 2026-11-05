@@ -253,7 +253,8 @@ export class LogTableComponent implements OnInit
    async GetWindowSize ()
    {
       this.windowHeight = window.innerHeight;
-      let sh: number = this.windowHeight - 80 - 10 - 180;
+      // 48 px recuperati dalla barra in alto più compatta
+      let sh: number = this.windowHeight - 80 - 10 - 180 + 48;
       if (sh < 110)
          sh = 110;
       this.scrollHeight = `${sh}px`;

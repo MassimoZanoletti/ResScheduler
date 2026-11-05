@@ -1,5 +1,8 @@
-<p-toolbar styleClass="p-mb-4">
+<p-toolbar styleClass="p-mb-4 app-header">
    <div class="p-toolbar-group-left">
+      <img src="assets/Logo.png"
+           alt="Logo"
+           class="app-header-logo">
       <span class="p-toolbar-text p-mr-3"
             style="font-size: 1.5em; font-weight: bold;">ResScheduler</span>
       <ng-container *ngIf="authService.isAuthenticated()">
