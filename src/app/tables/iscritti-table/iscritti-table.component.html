@@ -12,6 +12,17 @@
             tooltipPosition="top"
             (click)="LoadData()"
          ></p-button>
+         <label for="cbstagione" style="margin-left: 15px; margin-right: 10px;">Stagione:</label>
+         <p-dropdown
+            id="cbstagione"
+            [style]="{'min-width': '200px'}"
+            [options]="listaStagioni"
+            optionLabel="nome"
+            [(ngModel)]="currSeason"
+            [checkmark]="true"
+            [showClear]="false"
+            [scrollHeight]="'300px'"
+            (onChange)="OnSeasonChange($event)"/>
          <p-button
             *ngIf="AddEnabled()"
             class="p-button-table margin-left"
@@ -41,6 +52,16 @@
             tooltipPosition="top"
             label="Elimina"
             (click)="onDelete()"
+         ></p-button>
+         <p-button
+            *ngIf="AddEnabled()"
+            class="p-button-table margin-left"
+            icon="pi pi-copy"
+            severity="secondary"
+            pTooltip="Copia iscritti di questa stagione in un'altra stagione"
+            tooltipPosition="top"
+            label="Copia in altra stagione"
+            (click)="onCopia()"
          ></p-button>
       </div>
    </p-card>
@@ -187,6 +208,20 @@
             </div>
 
             <div class="form-group">
+               <label for="dlgstagione">Stagione:</label>
+               <p-dropdown
+                  id="dlgstagione"
+                  [style]="{'min-width': '255px'}"
+                  [options]="listaStagioni"
+                  optionLabel="nome"
+                  [(ngModel)]="dialogSeason"
+                  [checkmark]="true"
+                  [showClear]="false"
+                  appendTo="body"
+                  [scrollHeight]="'300px'"/>
+            </div>
+
+            <div class="form-group">
                <label for="nome">Società:</label>
                <p-dropdown
                   [style]="{'min-width': '255px'}"
@@ -319,3 +354,117 @@
    </div>
 </p-dialog>
 <!--   FINE DIALOG ISCRITTO   --->
+
+
+
+<!-----------------------------------------------------------------
+               DIALOG COPIA ISCRITTI IN ALTRA STAGIONE
+------------------------------------------------------------------>
+<p-dialog id="dialog-copia"
+          header="Copia iscritti in altra stagione"
+          [modal]="true"
+          [(visible)]="dialogVisible_Copia"
+          [closable]="false"
+          [style]="{ width: '50rem', padding: '10px', 'background-color': '#1f2937' }">
+   <div class="dialog-container">
+      <p-card>
+         <ng-template pTemplate="content">
+            <div class="form-group">
+               <label>Da stagione:</label>
+               <b>{{ currSeason?.nome }}</b>
+            </div>
+
+            <div class="form-group">
+               <label for="copiastagione">A stagione:</label>
+               <p-dropdown
+                  id="copiastagione"
+                  [style]="{'min-width': '255px'}"
+                  [options]="copiaStagioni"
+                  optionLabel="nome"
+                  [(ngModel)]="copiaSeason"
+                  [checkmark]="true"
+                  [showClear]="false"
+                  [disabled]="copiaInCorso"
+                  placeholder="Scegli la stagione"
+                  appendTo="body"
+                  [scrollHeight]="'300px'"/>
+            </div>
+
+            <div class="copia-nota">
+               Vengono copiati: cognome e nome, anno, società, categoria, date della visita medica e recapiti.
+               Gruppi, maglie, tesseramento, MyFIP, pagamenti e note restano vuoti.
+               Chi è già presente nella stagione di destinazione non viene copiato di nuovo.
+            </div>
+
+            <div class="form-group">
+               <label for="copiafiltro">Cerca:</label>
+               <input type="text"
+                      id="copiafiltro"
+                      [(ngModel)]="copiaFiltro"
+                      (ngModelChange)="CopiaFiltra()"
+                      [disabled]="copiaInCorso"
+                      placeholder="Cognome o nome"
+                      pInputText/>
+            </div>
+
+            <p-table
+               class="custom-header-table"
+               styleClass="p-datatable-gridlines p-datatable-sm"
+               [value]="copiaElenco"
+               [(selection)]="copiaSelezionati"
+               dataKey="id"
+               [scrollable]="true"
+               scrollHeight="320px">
+               <ng-template pTemplate="header">
+                  <tr>
+                     <th style="width: 3rem;"><p-tableHeaderCheckbox [disabled]="copiaInCorso" /></th>
+                     <th>Cognome</th>
+                     <th>Nome</th>
+                     <th style="width: 80px;">Anno</th>
+                     <th>Categoria</th>
+                     <th>Società</th>
+                  </tr>
+               </ng-template>
+               <ng-template pTemplate="body" let-elemento>
+                  <tr>
+                     <td><p-tableCheckbox [value]="elemento" [disabled]="copiaInCorso" /></td>
+                     <td>{{ elemento.cognome }}</td>
+                     <td>{{ elemento.nome }}</td>
+                     <td>{{ elemento.anno }}</td>
+                     <td>{{ elemento.categoria }}</td>
+                     <td>{{ elemento.societa }}</td>
+                  </tr>
+               </ng-template>
+            </p-table>
+
+            <div class="copia-stato">
+               <span *ngIf="!copiaInCorso">Selezionati: <b>{{ copiaSelezionati.length }}</b></span>
+               <span *ngIf="copiaInCorso">Copia in corso... {{ copiaFatti }} / {{ copiaSelezionati.length }}</span>
+            </div>
+         </ng-template>
+
+         <ng-template pTemplate="footer">
+            <div class="dialog-footer-buttons">
+               <button
+                  pButton
+                  type="button"
+                  label="Annulla"
+                  class="p-button-secondary"
+                  [disabled]="copiaInCorso"
+                  (click)="CopiaAnnulla()"
+               ></button>
+               <button
+                  pButton
+                  type="button"
+                  icon="pi pi-copy"
+                  label="Copia {{ copiaSelezionati.length }} iscritti"
+                  class="p-button-primary"
+                  [disabled]="copiaInCorso || copiaSeason == null || copiaSelezionati.length == 0"
+                  (click)="CopiaEsegui()"
+               ></button>
+            </div>
+         </ng-template>
+      </p-card>
+   </div>
+</p-dialog>
+<!--   FINE DIALOG COPIA   --->

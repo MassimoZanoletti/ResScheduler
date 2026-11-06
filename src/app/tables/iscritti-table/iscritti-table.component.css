@@ -164,3 +164,14 @@
 :host ::ng-deep .table-container .p-datatable-wrapper {
    min-height: var(--altezza-tabella);
 }
+
+
+.copia-nota {
+   font-size: 0.85em;
+   opacity: 0.8;
+   margin: 6px 0 12px 0;
+}
+
+.copia-stato {
+   margin-top: 8px;
+}

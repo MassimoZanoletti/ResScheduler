@@ -44,6 +44,8 @@ import {DropdownModule} from "primeng/dropdown";
 import {MultiSelectModule} from "primeng/multiselect";
 import {SocietaService} from "../../services/societa.service";
 import {CategorieService} from "../../services/categorie.service";
+import {SeasonsService} from "../../services/seasons.service";
+import {ScegliStagione} from "../../common/stagioni";
 
 
 
@@ -93,6 +95,18 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
    currSocieta: any | null = null;
    listaCategorie: Array<Categoria> = [];
    currCategoria: any | null = null;
+   listaStagioni: Array<SeasonElement> = [];
+   currSeason: SeasonElement | null = null;         // stagione mostrata nella tabella
+   dialogSeason: SeasonElement | null = null;       // stagione dell'iscritto nella maschera
+   // Copia di iscritti in un'altra stagione
+   dialogVisible_Copia: boolean = false;
+   copiaSeason: SeasonElement | null = null;        // stagione di destinazione
+   copiaSelezionati: Array<Iscritto> = [];
+   copiaFiltro: string = "";
+   copiaElenco: Array<Iscritto> = [];               // iscritti mostrati (dopo il filtro)
+   copiaStagioni: Array<SeasonElement> = [];        // stagioni di destinazione possibili
+   copiaInCorso: boolean = false;
+   copiaFatti: number = 0;
    windowHeight: number = 110;
    scrollHeight: string = "110px";
 
@@ -102,7 +116,8 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
                 private messageDialogService: MessageDialogService,
                 private gruppiService: GruppiService,
                 private societaService: SocietaService,
-                private categorieService: CategorieService)
+                private categorieService: CategorieService,
+                private seasonServ: SeasonsService)
    {
       this.currSelected = null;
    }
@@ -118,14 +133,58 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
       await this.theLocalStorage.Load();
       this.theSessionStorage = new globs.TSessionStorage();
       await this.theSessionStorage.Load();
+      //
+      // Stessa stagione delle altre pagine (scelta in automatico se non ce n'e' una valida)
+      await this.LoadSeasons ();
+      this.currSeason = ScegliStagione (this.listaStagioni, this.theLocalStorage.data.currSeason);
+      this.theLocalStorage.data.currSeason = this.currSeason;
+      this.theLocalStorage.Save ();
+      //
       await this.LoadData ();
+   }
+
+
+   async LoadSeasons ()
+   {
+      try
+      {
+         const dataSeas = await firstValueFrom (this.seasonServ.getAllData ());
+         if ((dataSeas) && (dataSeas.ok))
+            this.listaStagioni = dataSeas.elements;
+         else
+            this.messageDialogService.showError ("Errore durante il caricamento delle stagioni", dataSeas?.message ?? 'No data returned');
+      }
+      catch (err)
+      {
+         this.messageDialogService.showError ("Errore durante il caricamento delle stagioni", err);
+      }
+   }
+
+
+   OnSeasonChange (evento: any)
+   {
+      if (this.theLocalStorage)
+      {
+         this.theLocalStorage.data.currSeason = this.currSeason;
+         this.theLocalStorage.Save ();
+      }
+      this.currSelected = null;
+      this.LoadData ();
    }
 
 
    async LoadData ()
    {
       this.isLoading = true;
-      let seasonId: number | null = null;
+      // Senza stagione la tabella resta vuota: gli iscritti cambiano ad ogni stagione
+      if (this.currSeason == null)
+      {
+         this.tblData = [];
+         this.isLoading = false;
+         this.cdr.detectChanges ();
+         return;
+      }
+      let seasonId: number | null = this.currSeason.id;
       let societaId: Array<number> | null = null;
       let gruppoId: Array<number> | null = null;
       let categoriaId: Array<number> | null = null;
@@ -260,6 +319,7 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
                            myfip: false };
       this.currGruppi = [];
       this.dialogMaglie = {};
+      this.dialogSeason = this.currSeason;
       this.dialogVisible_Iscritto = true;
       this.dialogOperation = "ADD";
    }
@@ -282,6 +342,7 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
 
       this.dialogTitle = "Modifica iscritto";
       this.dialogValue = this.currSelected;
+      this.dialogSeason = this.listaStagioni.find (s => s.id == this.dialogValue.seasonid) ?? this.currSeason;
       this.currGruppi = [];
       this.dialogMaglie = {};
       for (const g of this.dialogValue.gruppi)
@@ -424,6 +485,173 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
    }
 
 
+   // ---------------------------------------------------------------
+   //  COPIA ISCRITTI IN UN'ALTRA STAGIONE
+   // ---------------------------------------------------------------
+
+   onCopia (): void
+   {
+      if (this.tblData.length == 0)
+      {
+         const dlgData: MessDlgData = {
+            title:      'ATTENZIONE',
+            subtitle:   'Copia iscritti',
+            message:    `Nella stagione '${this.currSeason?.nome ?? ''}' non ci sono iscritti da copiare`,
+            messtype:   'warning',
+            btncaption: 'Chiudi'
+         };
+         this.messageDialogService.showMessage (dlgData, '600px');
+         return;
+      }
+      // Proposta: la prima stagione che inizia dopo quella mostrata
+      const inizioCorrente: number = (this.currSeason) ? new Date (this.currSeason.datainizio).getTime () : 0;
+      // Stagioni in cui si puo' copiare: tutte tranne quella mostrata
+      this.copiaStagioni = this.listaStagioni.filter (s => s.id != this.currSeason?.id);
+      const successive: Array<SeasonElement> = this.copiaStagioni
+                                                   .filter (s => new Date (s.datainizio).getTime () > inizioCorrente)
+                                                   .sort ((a, b) => new Date (a.datainizio).getTime () - new Date (b.datainizio).getTime ());
+      this.copiaSeason = (successive.length > 0) ? successive[0] : null;
+      this.copiaSelezionati = [];
+      this.copiaFiltro = "";
+      this.CopiaFiltra ();
+      this.copiaFatti = 0;
+      this.copiaInCorso = false;
+      this.dialogVisible_Copia = true;
+   }
+
+
+   // Iscritti mostrati nella finestra di copia (filtro su cognome/nome)
+   CopiaFiltra ()
+   {
+      const f: string = this.copiaFiltro.trim ().toLowerCase ();
+      if (f == "")
+      {
+         this.copiaElenco = this.tblData;
+         return;
+      }
+      this.copiaElenco = this.tblData.filter (i => `${i.cognome} ${i.nome}`.toLowerCase ().includes (f) ||
+                                       `${i.nome} ${i.cognome}`.toLowerCase ().includes (f));
+   }
+
+
+   CopiaAnnulla ()
+   {
+      if (!this.copiaInCorso)
+         this.dialogVisible_Copia = false;
+   }
+
+
+   static ChiaveIscritto (i: Iscritto): string
+   {
+      return `${(i.cognome ?? '').trim ().toLowerCase ()}|${(i.nome ?? '').trim ().toLowerCase ()}|${i.anno}`;
+   }
+
+
+   async CopiaEsegui ()
+   {
+      if ((this.copiaSeason == null) || (this.copiaSelezionati.length == 0) || (this.copiaInCorso))
+         return;
+      const dest: SeasonElement = this.copiaSeason;
+      this.copiaInCorso = true;
+      this.copiaFatti = 0;
+      const copiati: Array<string> = [];
+      const saltati: Array<string> = [];
+      const errori: Array<string> = [];
+      try
+      {
+         // Iscritti gia' presenti nella stagione di destinazione: non li duplico
+         const esistenti = await firstValueFrom (this.theDataService.getAllData (dest.id, null, null, null, this.listaGruppi));
+         if ((!esistenti) || (!esistenti.ok))
+         {
+            this.messageDialogService.showError ("Errore durante la lettura degli iscritti della stagione di destinazione", esistenti?.message ?? 'No data returned');
+            return;
+         }
+         const giaPresenti: Set<string> = new Set ((esistenti.elements as Array<Iscritto>).map (i => IscrittiTableComponent.ChiaveIscritto (i)));
+         //
+         // In ordine alfabetico, una richiesta alla volta (il server accetta solo GET)
+         const daCopiare: Array<Iscritto> = [...this.copiaSelezionati].sort ((a, b) => `${a.cognome} ${a.nome}`.localeCompare (`${b.cognome} ${b.nome}`));
+         for (const isc of daCopiare)
+         {
+            const nomeCompleto: string = `${isc.cognome} ${isc.nome}`;
+            const chiave: string = IscrittiTableComponent.ChiaveIscritto (isc);
+            if (giaPresenti.has (chiave))
+            {
+               saltati.push (nomeCompleto);
+            }
+            else
+            {
+               try
+               {
+                  // Si copiano solo i dati anagrafici, la visita e i recapiti: gruppi, maglie,
+                  // tesseramento, MyFIP, pagamenti e note ripartono vuoti nella nuova stagione
+                  const response = await firstValueFrom (this.theDataService.addNewData (isc.cognome,
+                                                                                         isc.nome,
+                                                                                         isc.anno,
+                                                                                         dest.id,
+                                                                                         "",
+                                                                                         isc.categoriaid,
+                                                                                         isc.societaid,
+                                                                                         "",
+                                                                                         isc.visitafatta,
+                                                                                         isc.visitascadenza,
+                                                                                         false,
+                                                                                         false,
+                                                                                         "",
+                                                                                         isc.recapiti ?? "",
+                                                                                         ""));
+                  if ((response) && (response.ok))
+                  {
+                     copiati.push (nomeCompleto);
+                     giaPresenti.add (chiave);
+                  }
+                  else
+                     errori.push (`${nomeCompleto}: ${response?.message ?? 'nessuna risposta'}`);
+               }
+               catch (err: any)
+               {
+                  errori.push (`${nomeCompleto}: ${err?.message ?? err}`);
+               }
+            }
+            this.copiaFatti++;
+            this.cdr.detectChanges ();
+         }
+      }
+      catch (err)
+      {
+         this.messageDialogService.showError ("Errore durante la copia degli iscritti", err);
+         return;
+      }
+      finally
+      {
+         this.copiaInCorso = false;
+         this.cdr.detectChanges ();
+      }
+      //
+      this.dialogVisible_Copia = false;
+      let messaggio: string = `Copiati <b>${copiati.length}</b> iscritti nella stagione '<b>${dest.nome}</b>'.`;
+      if (saltati.length > 0)
+         messaggio += `<br><br>Già presenti nella stagione, non copiati (${saltati.length}):<br>${saltati.join ('<br>')}`;
+      if (errori.length > 0)
+         messaggio += `<br><br>Errori (${errori.length}):<br>${errori.join ('<br>')}`;
+      const dlgData: MessDlgData = {
+         title:      (errori.length > 0) ? 'ATTENZIONE' : 'COPIA COMPLETATA',
+         subtitle:   'Copia iscritti',
+         message:    messaggio,
+         messtype:   (errori.length > 0) ? 'warning' : 'info',
+         btncaption: 'Chiudi'
+      };
+      this.messageDialogService.showMessage (dlgData, '600px');
+   }
+
+
+   ApplicaStagione ()
+   {
+      const stagione: SeasonElement | null = this.dialogSeason ?? this.currSeason;
+      this.dialogValue.seasonid = stagione?.id ?? 0;
+      this.dialogValue.season = stagione?.nome ?? "";
+   }
+
+
    async DialogAnnulla(senderName: string)
    {
       this.dialogVisible_Iscritto = false;
@@ -438,6 +666,7 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
          try
          {
             this.ApplicaGruppi ();
+            this.ApplicaStagione ();
             this.dialogValue.societaid = this.currSocieta.id;
             this.dialogValue.societa = this.currSocieta.nome;
             this.dialogValue.categoriaid = this.currCategoria.id;
@@ -489,6 +718,7 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
       if (this.dialogOperation == "EDIT")
       {
          this.ApplicaGruppi ();
+         this.ApplicaStagione ();
          this.dialogValue.societaid = this.currSocieta.id;
          this.dialogValue.societa = this.currSocieta.nome;
          this.dialogValue.categoriaid = this.currCategoria.id;
