@@ -64,3 +64,41 @@
    /* Oppure semplicemente: */
    /* box-shadow: none !important; */
 }
+
+
+/* Scelta del font */
+.riga-font {
+   display: flex;
+   align-items: center;
+   gap: 10px;
+   margin-top: 10px;
+}
+
+.nota-font {
+   opacity: 0.6;
+   font-size: 0.9em;
+}
+
+
+/* Box di esempio del font scelto */
+.esempio-font {
+   margin-top: 12px;
+   padding: 12px 16px;
+   max-width: 1100px;
+   border: 1px solid #424b57;
+   border-radius: 6px;
+   background-color: rgba(255, 255, 255, 0.03);
+}
+
+.esempio-caratteri {
+   font-size: 1.3em;
+   line-height: 1.4;
+   margin-bottom: 8px;
+   white-space: nowrap;     /* sempre su una riga sola */
+   overflow-x: auto;        /* su schermi stretti si scorre invece di uscire dal box */
+}
+
+.esempio-font p {
+   margin: 6px 0;
+   line-height: 1.5;
+}

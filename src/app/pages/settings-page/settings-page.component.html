@@ -21,6 +21,35 @@
                          (click)="EditUtente()">
                </p-button>
             </div>
+            <!-- Scelta del font: vale per questo browser -->
+            <div class="riga-font">
+               <label for="cbfont">Carattere:</label>
+               <p-dropdown
+                  inputId="cbfont"
+                  [style]="{'min-width': '160px'}"
+                  [options]="fontDisponibili"
+                  optionLabel="nome"
+                  optionValue="valore"
+                  [(ngModel)]="fontScelto"
+                  (onChange)="OnFontChange()"/>
+               <span class="nota-font">La scelta vale per questo browser</span>
+            </div>
+            <!-- Anteprima del font scelto -->
+            <div class="esempio-font">
+               <div class="esempio-caratteri">
+                  ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789 àèéìòù
+               </div>
+               <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+                  ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+                  laboris nisi ut aliquip ex ea commodo consequat.
+               </p>
+               <p>
+                  <b>Duis aute irure dolor</b> in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+                  nulla pariatur. <i>Excepteur sint occaecat cupidatat non proident</i>, sunt in culpa qui officia
+                  deserunt mollit anim id est laborum.
+               </p>
+            </div>
          </p-card>
       </div>
    </div>

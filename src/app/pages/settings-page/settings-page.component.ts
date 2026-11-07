@@ -16,6 +16,7 @@ import {TableModule} from "primeng/table";
 import {TooltipModule} from "primeng/tooltip";
 import {Router} from "@angular/router";
 import {loggedUser} from "../../services/users.service";
+import {FONT_DISPONIBILI, ImpostaFont, LeggiFont, NomeFont} from "../../common/font";
 
 
 
@@ -44,6 +45,8 @@ import {loggedUser} from "../../services/users.service";
             })
 export class SettingsPageComponent
 {
+   fontDisponibili = FONT_DISPONIBILI;
+   fontScelto: NomeFont = LeggiFont ();
 
 
    constructor (public router: Router)
@@ -60,6 +63,13 @@ export class SettingsPageComponent
    CfgUtenteEnabled(): boolean
    {
       return ((loggedUser.attributo > 0) && (loggedUser.attributo < 255));
+   }
+
+
+   // Il font cambia subito, senza ricaricare la pagina
+   OnFontChange ()
+   {
+      ImpostaFont (this.fontScelto);
    }
 
 

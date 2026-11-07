@@ -1,6 +1,6 @@
 {
   "name": "Resource Scheduler",
-  "version": "1.2.5.611072",
+  "version": "1.2.5.611073",
   "copyrights": "© 2025/2027 by Massimo Zanoletti",
   "scripts": {
     "clean": ".bin\\clean.bat",
@@ -20,6 +20,8 @@
     "@angular/platform-browser": "^17.0.0",
     "@angular/platform-browser-dynamic": "^17.0.0",
     "@angular/router": "^17.0.0",
+    "@fontsource/rubik": "^5.1.0",
+    "@fontsource/zalando-sans": "^5.2.2",
     "cors": "^2.8.5",
     "jspdf": "^4.2.1",
     "primeflex": "^3.0.0",

@@ -1,5 +1,18 @@
 /* src/styles.css */
 
+/* Font Rubik, compreso nell'app (pacchetto @fontsource/rubik): nessun collegamento a Google.
+   Solo i caratteri latini (bastano per l'italiano) e gli spessori usati. */
+@import "@fontsource/rubik/latin-400.css";
+@import "@fontsource/rubik/latin-400-italic.css";
+@import "@fontsource/rubik/latin-500.css";
+@import "@fontsource/rubik/latin-700.css";
+
+/* Font Zalando Sans (pacchetto @fontsource/zalando-sans) */
+@import "@fontsource/zalando-sans/latin-400.css";
+@import "@fontsource/zalando-sans/latin-400-italic.css";
+@import "@fontsource/zalando-sans/latin-500.css";
+@import "@fontsource/zalando-sans/latin-700.css";
+
 /* 1. Stili del tema PrimeNG (obbligatorio per il look-and-feel) */
 /* Scegli uno dei temi dal pacchetto @primeng/themes. Esempio: */
 /* Altri esempi:
@@ -142,4 +155,28 @@ body {
 /* Finestra degli slot palestre: rimette il margine all'intestazione (azzerato sopra per i messaggi) */
 .p-dialog.dialog-slot .p-dialog-header {
    padding: 1rem 1.25rem 0.75rem 1.25rem;
+}
+
+
+
+/* Font dell'app, scelto dall'utente in Impostazioni (salvato nel browser).
+   Predefinito: Rubik. Con <html data-font="inter"> torna Inter, il font del tema PrimeNG.
+   "html:root" ha la precedenza su ":root" del tema, che in angular.json è caricato dopo questo file. */
+html:root {
+   --font-family: "Rubik", sans-serif;
+   font-family: "Rubik", sans-serif;
+   --font-feature-settings: normal;
+   font-feature-settings: normal;   /* le impostazioni del tema valgono solo per Inter */
+}
+
+html:root[data-font="zalando"] {
+   --font-family: "Zalando Sans", sans-serif;
+   font-family: "Zalando Sans", sans-serif;
+}
+
+html:root[data-font="inter"] {
+   --font-family: "Inter var", sans-serif;
+   font-family: "Inter var", sans-serif;
+   --font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
