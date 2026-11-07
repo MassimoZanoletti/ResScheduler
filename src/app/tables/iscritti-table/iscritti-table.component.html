@@ -137,11 +137,16 @@
             <td [class.cella-duplicato]="duplicati.has (+elemento.id)"
                 [attr.title]="duplicati.has (+elemento.id) ? testoDuplicato : null">{{ elemento.nome }}</td>
             <td>{{ elemento.anno }}</td>
-            <td><div *ngFor="let g of elemento.gruppi">{{ g.gruppo }}</div></td>
+            <!-- Un gruppo: tutta la cella col suo colore. Più gruppi: una fascia colorata per gruppo -->
+            <td *ngIf="elemento.gruppi.length <= 1"
+                [ngStyle]="elemento.gruppi.length == 1 ? StileGruppo (elemento.gruppi[0].gruppoid) : null">{{ elemento.gruppi[0]?.gruppo }}</td>
+            <td *ngIf="elemento.gruppi.length > 1"
+                class="cella-gruppi"><div *ngFor="let g of elemento.gruppi" class="fascia-gruppo" [ngStyle]="StileGruppo (g.gruppoid)">{{ g.gruppo }}</div></td>
             <td>{{ elemento.societa }}</td>
             <td>{{ elemento.categoria }}</td>
             <td>{{ elemento.visitafatta }}</td>
-            <td>{{ elemento.visitascadenza }}</td>
+            <td [class.visita-scaduta]="statoVisita.get (+elemento.id) == 'scaduta'"
+                [class.visita-in-scadenza]="statoVisita.get (+elemento.id) == 'in-scadenza'">{{ elemento.visitascadenza }}</td>
             <!-- Icone di sola lettura al posto di <p-checkbox [ngModel]>: con molte righe
                  ogni ngModel scatenava cicli di change detection extra bloccando la pagina -->
             <td>

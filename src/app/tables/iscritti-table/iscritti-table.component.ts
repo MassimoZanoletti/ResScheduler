@@ -86,6 +86,10 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
    ordinamentoMultiplo: boolean = false;
    // Righe nell'ordine arrivato dal server (la tabella le riordina "sul posto")
    private ordineIniziale: Array<Iscritto> = [];
+   // Colori di ogni gruppo (id -> stile), calcolati una volta a ogni caricamento
+   private stiliGruppi: Map<number, { [k: string]: string }> = new Map ();
+   // Stato della visita medica per id iscritto: scaduta o in scadenza entro un mese
+   statoVisita: Map<number, 'scaduta' | 'in-scadenza'> = new Map ();
    // Id degli iscritti con stesso cognome, nome e anno di nascita di un altro iscritto
    duplicati: Set<number> = new Set<number> ();
    readonly testoDuplicato: string = "Possibile duplicato: c'è un altro iscritto con stesso cognome, nome e anno";
@@ -204,10 +208,80 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
    }
 
 
+   // Sfondo = colore del gruppo; testo bianco o nero, quello che si legge meglio su quello sfondo
+   AggiornaColoriGruppi ()
+   {
+      this.stiliGruppi = new Map ();
+      for (const g of this.listaGruppi)
+      {
+         const sfondo: string = (g.coloresfondo ?? '').trim ();
+         if (sfondo == '')
+            continue;
+         const testo: string = IscrittiTableComponent.TestoLeggibile (sfondo) ?? ((g.coloretesto ?? '').trim () || '#000000');
+         this.stiliGruppi.set (Number (g.id), { 'background-color': sfondo, 'color': testo });
+      }
+   }
+
+
+   // Le date sono "aaaa-mm-gg", quindi si possono confrontare come testo
+   AggiornaStatoVisite ()
+   {
+      const testo = (d: Date): string => `${d.getFullYear ()}-${String (d.getMonth () + 1).padStart (2, '0')}-${String (d.getDate ()).padStart (2, '0')}`;
+      const oggi: Date = new Date ();
+      const traUnMese: Date = new Date (oggi.getFullYear (), oggi.getMonth () + 1, oggi.getDate ());
+      const sOggi: string = testo (oggi);
+      const sTraUnMese: string = testo (traUnMese);
+      this.statoVisita = new Map ();
+      for (const i of this.tblData)
+      {
+         const scad: string = (i.visitascadenza ?? '').trim ();
+         if (scad == '')
+            continue;
+         if (scad < sOggi)
+            this.statoVisita.set (Number (i.id), 'scaduta');
+         else if (scad <= sTraUnMese)
+            this.statoVisita.set (Number (i.id), 'in-scadenza');
+      }
+   }
+
+
+   StileGruppo (gruppoId: number): { [k: string]: string } | null
+   {
+      return this.stiliGruppi.get (Number (gruppoId)) ?? null;
+   }
+
+
+   /*
+      Nero o bianco, in base alla luminosità dello sfondo (formula WCAG).
+      Solo per colori "#rgb" / "#rrggbb"; per altri formati null (si usa il colore del testo del gruppo).
+   */
+   static TestoLeggibile (sfondo: string): string | null
+   {
+      let hex: string = sfondo.replace ('#', '').trim ();
+      if (/^[0-9a-f]{3}$/i.test (hex))
+         hex = hex.split ('').map (c => c + c).join ('');
+      if (!/^[0-9a-f]{6}$/i.test (hex))
+         return null;
+      const lin = (v: number): number =>
+      {
+         const c: number = v / 255;
+         return (c <= 0.03928) ? c / 12.92 : Math.pow ((c + 0.055) / 1.055, 2.4);
+      };
+      const r: number = lin (parseInt (hex.substring (0, 2), 16));
+      const g: number = lin (parseInt (hex.substring (2, 4), 16));
+      const b: number = lin (parseInt (hex.substring (4, 6), 16));
+      const luminanza: number = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      // contrasto col nero: (L + 0.05) / 0.05; col bianco: 1.05 / (L + 0.05)
+      return ((luminanza + 0.05) / 0.05 >= 1.05 / (luminanza + 0.05)) ? '#000000' : '#ffffff';
+   }
+
+
    // Numero di iscritti e quanti hanno attivi i flag "Tesserato" e "MyFIP"
    AggiornaTotali ()
    {
       this.ordineIniziale = [...this.tblData];
+      this.AggiornaColoriGruppi ();
+      this.AggiornaStatoVisite ();
       this.totIscritti = this.tblData.length;
       this.totTesserati = this.tblData.filter (i => i.tesserato).length;
       this.totMyFip = this.tblData.filter (i => i.myfip).length;

@@ -217,3 +217,29 @@ td.cella-azioni {
 :host ::ng-deep td.cella-azioni .p-button.btn-riga .p-button-icon {
    font-size: 0.85rem;
 }
+
+
+/* Colonna Gruppo con più gruppi: una fascia colorata per gruppo, larga tutta la cella */
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td.cella-gruppi {
+   padding: 0;
+}
+
+.fascia-gruppo {
+   padding: 0.08rem 1rem;  /* stesso rientro delle altre celle */
+}
+
+.fascia-gruppo + .fascia-gruppo {
+   border-top: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+
+/* Scadenza della visita medica: rosso se scaduta, giallo se scade entro un mese */
+td.visita-scaduta {
+   background-color: #c62828;
+   color: #ffffff;
+}
+
+td.visita-in-scadenza {
+   background-color: #f9d71c;
+   color: #000000;
+}

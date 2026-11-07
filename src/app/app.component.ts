@@ -205,7 +205,6 @@ export class AppComponent implements AfterViewInit, OnInit
                {label: "Stagioni", icon: 'pi pi-table', routerLink: ['/seasonstable']},
                {label: "Società", icon: 'pi pi-table', routerLink: ['/societatable']},
                {label: "Categorie", icon: 'pi pi-table', routerLink: ['/categorietable']},
-               {label: "Iscritti", icon: 'pi pi-table', routerLink: ['/iscrittitable'], visible: this.IsDirigente ()},
                {label: "Ruoli", icon: 'pi pi-table', routerLink: ['/ruolitable'], visible: this.IsAdmin ()}
             ]
          },

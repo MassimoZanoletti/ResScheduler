@@ -21,6 +21,14 @@
                  routerLink="/orariopalestre"
                  [raised]="true"></button>
 
+         <button pButton
+                 *ngIf="IsDirigente()"
+                 type="button"
+                 label="Iscritti"
+                 class="p-button-text ml-3 mnu-button"
+                 routerLink="/iscrittitable"
+                 [raised]="true"></button>
+
          <div class="card flex justify-content-center">
             <p-menu #tabelleMenu
                     [model]="mnuTabelle"
