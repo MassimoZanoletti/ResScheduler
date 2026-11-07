@@ -185,3 +185,36 @@ td.ora-sovrapposta {
 :host ::ng-deep #div-tabella .p-datatable-wrapper {
    min-height: var(--altezza-tabella);
 }
+
+
+/* Barra della pagina compatta come l'header dell'app: meno spazio sopra e sotto */
+:host ::ng-deep #div-page-header .p-card .p-card-body {
+   margin-top: 3px !important;
+   margin-bottom: 3px !important;
+}
+
+/* Il separatore verticale del tema ha 1.25rem di padding sopra e sotto: era lui a tenere alta la barra.
+   Senza padding si allunga comunque per tutta l'altezza della riga. */
+:host ::ng-deep #div-page-header .p-divider.p-divider-vertical {
+   padding-top: 0;
+   padding-bottom: 0;
+   align-self: stretch;
+}
+
+:host ::ng-deep #div-page-header .p-divider.p-divider-vertical .p-divider-content {
+   padding: 0;
+}
+
+
+/* Intestazione della tabella compatta: il tema mette 1rem (16px) di padding attorno a ogni cella */
+:host ::ng-deep #div-tabella .p-datatable .p-datatable-thead > tr > th {
+   padding: 4px 8px;
+}
+
+
+/* Pulsanti filtro / togli filtro affiancati sotto il titolo della colonna */
+.filtri-header {
+   display: flex;
+   gap: 4px;
+   margin-top: 2px;
+}

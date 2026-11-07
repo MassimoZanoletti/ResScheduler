@@ -94,25 +94,44 @@
             [tableStyle]="{ 'min-width': '50rem' }">
             <ng-template pTemplate="header">
                <tr>
-                  <th style="width: 65px;">Id</th>
                   <th style="width: 130px;">Data</th>
                   <th style="width: 55px;">Ora</th>
                   <th style="width: 55px;">Fine</th>
                   <th style="width: 65px;">Pal.
-                     <button pButton
-                             type="button"
-                             icon="pi pi-filter"
-                             class="p-button-icon-only my-tiny-button"
-                             [ngClass]="{ 'p-button-success': FiltroRisorseOn(), 'p-button-secondary': !FiltroRisorseOn() }"
-                             (click)="OnFilterRisorsa()"></button>
+                     <div class="filtri-header">
+                        <button pButton
+                                type="button"
+                                icon="pi pi-filter"
+                                class="p-button-icon-only my-tiny-button"
+                                [ngClass]="{ 'p-button-success': FiltroRisorseOn(), 'p-button-secondary': !FiltroRisorseOn() }"
+                                (click)="OnFilterRisorsa()"></button>
+                        <button pButton
+                                *ngIf="FiltroRisorseOn()"
+                                type="button"
+                                icon="pi pi-filter-slash"
+                                class="p-button-icon-only my-tiny-button p-button-danger"
+                                pTooltip="Togli il filtro palestre"
+                                tooltipPosition="top"
+                                (click)="OnClearFilterRisorsa()"></button>
+                     </div>
                   </th>
                   <th style="width: 100px;">Gruppo
-                     <button pButton
-                             type="button"
-                             icon="pi pi-filter"
-                             class="p-button-icon-only my-tiny-button"
-                             [ngClass]="{ 'p-button-success': FiltroGruppiOn(), 'p-button-secondary': !FiltroGruppiOn() }"
-                             (click)="OnFilterGruppo()"></button>
+                     <div class="filtri-header">
+                        <button pButton
+                                type="button"
+                                icon="pi pi-filter"
+                                class="p-button-icon-only my-tiny-button"
+                                [ngClass]="{ 'p-button-success': FiltroGruppiOn(), 'p-button-secondary': !FiltroGruppiOn() }"
+                                (click)="OnFilterGruppo()"></button>
+                        <button pButton
+                                *ngIf="FiltroGruppiOn()"
+                                type="button"
+                                icon="pi pi-filter-slash"
+                                class="p-button-icon-only my-tiny-button p-button-danger"
+                                pTooltip="Togli il filtro gruppi"
+                                tooltipPosition="top"
+                                (click)="OnClearFilterGruppo()"></button>
+                     </div>
                   </th>
                   <th>Casa</th>
                   <th>Ospite</th>
@@ -128,7 +147,6 @@
             <ng-template pTemplate="body" let-evento>
                <tr [pSelectableRow]="evento"
                    [ngClass]="evento.vista.classe">
-                  <td><span style="font-size: 0.6em;">{{ evento.id }}</span></td>
                   <td>{{ evento.vista.data }}</td>
                   <td [class.ora-sovrapposta]="sovrapposizioni.has(evento.id)"
                       [attr.title]="sovrapposizioni.get(evento.id) ?? null"><b>{{ evento.vista.ora }}</b></td>

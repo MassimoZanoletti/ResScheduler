@@ -53,6 +53,10 @@ const CHIAVE_PALESTRE: string = "RS_Orario_Palestre";
 // Gruppo scelto (id, null = tutti): ricordato anche dopo la chiusura del browser
 const CHIAVE_GRUPPO: string = "RS_Orario_Gruppo";
 
+// Posizione dello scroll della griglia salvata quando si apre un evento: la pagina di modifica
+// e' un'altra pagina, quindi al ritorno questa viene ricreata e lo scroll ripartirebbe dall'inizio
+let scrollDaRipristinare: { top: number, left: number } | null = null;
+
 
 // Voce del selettore gruppi (ricavata dagli eventi periodici della stagione)
 interface VoceGruppo
@@ -174,7 +178,28 @@ export class OrarioPalestreComponent implements OnInit
                         this.altezzaGriglia = altezza;
                         this.cdr.detectChanges ();
                      }
+                     this.RipristinaScroll ();
                   });
+   }
+
+
+   // Salva la posizione dello scroll prima di lasciare la pagina per aprire un evento
+   SalvaScroll ()
+   {
+      const griglia = this.grigliaScroll?.nativeElement;
+      scrollDaRipristinare = (griglia) ? { top: griglia.scrollTop, left: griglia.scrollLeft } : null;
+   }
+
+
+   // Al ritorno dalla pagina dell'evento rimette la griglia dove era (una volta sola)
+   RipristinaScroll ()
+   {
+      const griglia = this.grigliaScroll?.nativeElement;
+      if ((!griglia) || (!scrollDaRipristinare))
+         return;
+      griglia.scrollTop = scrollDaRipristinare.top;
+      griglia.scrollLeft = scrollDaRipristinare.left;
+      scrollDaRipristinare = null;
    }
 
 
@@ -641,6 +666,7 @@ export class OrarioPalestreComponent implements OnInit
    {
       event.stopPropagation ();
       const ev: EventoMasterElement = blocco.evento;
+      this.SalvaScroll ();
       this.router.navigate (['/eventomasteredit'], {
          state: {
             id:        ev.id,
@@ -659,6 +685,7 @@ export class OrarioPalestreComponent implements OnInit
          return;
       let minuti: number = giorno.inizio + Math.floor (event.offsetY / PX_PER_MINUTO / PASSO_MINUTI) * PASSO_MINUTI;
       minuti = Math.max (0, Math.min (minuti, 23 * 60 + 30));
+      this.SalvaScroll ();
       this.router.navigate (['/eventomasteredit'], {
          state: {
             id:          0,

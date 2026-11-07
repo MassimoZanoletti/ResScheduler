@@ -1,5 +1,6 @@
 <div id="main_container">
-   <div class="card flex justify-content-start">
+   <div class="card flex justify-content-start"
+        id="div-page-header">
       <p-card [style]="{ width: '100%' }"
               contentStyleClass="card-contenuto-ridotto">
          <div style="display: flex; align-items: center;">
@@ -69,27 +70,46 @@
             [tableStyle]="{ 'min-width': '50rem' }">
             <ng-template pTemplate="header">
                <tr>
-                  <th style="width: 65px;">Id</th>
                   <th style="width: 95px;">Giorno</th>
                   <th style="width: 130px;">Data</th>
                   <th style="width: 130px;">Data fine</th>
                   <th style="width: 55px;">Ora</th>
                   <th style="width: 55px;">Fine</th>
                   <th style="width: 65px;">Pal.
-                     <button pButton
-                             type="button"
-                             icon="pi pi-filter"
-                             class="p-button-icon-only my-tiny-button"
-                             [ngClass]="{ 'p-button-success': fltrRisorsa, 'p-button-secondary': !fltrRisorsa }"
-                             (click)="OnFilterRisorsa()"></button>
+                     <div class="filtri-header">
+                        <button pButton
+                                type="button"
+                                icon="pi pi-filter"
+                                class="p-button-icon-only my-tiny-button"
+                                [ngClass]="{ 'p-button-success': fltrRisorsa, 'p-button-secondary': !fltrRisorsa }"
+                                (click)="OnFilterRisorsa()"></button>
+                        <button pButton
+                                *ngIf="fltrRisorsa"
+                                type="button"
+                                icon="pi pi-filter-slash"
+                                class="p-button-icon-only my-tiny-button p-button-danger"
+                                pTooltip="Togli il filtro palestre"
+                                tooltipPosition="top"
+                                (click)="OnClearFilterRisorsa()"></button>
+                     </div>
                   </th>
                   <th style="width: 100px;">Gruppo
-                     <button pButton
-                             type="button"
-                             icon="pi pi-filter"
-                             class="p-button-icon-only my-tiny-button"
-                             [ngClass]="{ 'p-button-success': fltrGruppo, 'p-button-secondary': !fltrGruppo }"
-                             (click)="OnFilterGruppo()"></button>
+                     <div class="filtri-header">
+                        <button pButton
+                                type="button"
+                                icon="pi pi-filter"
+                                class="p-button-icon-only my-tiny-button"
+                                [ngClass]="{ 'p-button-success': fltrGruppo, 'p-button-secondary': !fltrGruppo }"
+                                (click)="OnFilterGruppo()"></button>
+                        <button pButton
+                                *ngIf="fltrGruppo"
+                                type="button"
+                                icon="pi pi-filter-slash"
+                                class="p-button-icon-only my-tiny-button p-button-danger"
+                                pTooltip="Togli il filtro gruppi"
+                                tooltipPosition="top"
+                                (click)="OnClearFilterGruppo()"></button>
+                     </div>
                   </th>
                   <th style="width: 110px;">Date</th>
                   <th>Commento</th>
@@ -102,7 +122,6 @@
             <ng-template pTemplate="body" let-evento let-rowIndex="rowIndex">
                <tr [pSelectableRow]="evento"
                    [ngClass]="GetRowColorClass(evento)">
-                  <td><span style="font-size: 0.6em;">{{ evento.id }}</span></td>
                   <td><b>{{ NomeGiorno (evento) }}</b></td>
                   <td>{{ GetFormattedDate(evento, rowIndex) }}</td>
                   <td>{{ FormattaData (evento.datafine) }}</td>

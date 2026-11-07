@@ -12,25 +12,6 @@
                (click)="CaricaEventi()"
             ></p-button>
 
-            <p-button
-               *ngIf="!IsGuest()"
-               icon="pi pi-file-pdf"
-               label="PDF"
-               severity="danger"
-               [loading]="esportazioneInCorso"
-               [disabled]="esportazioneInCorso || caricamento || (palestreMostrate.length == 0)"
-               (click)="EsportaPdf()"
-            ></p-button>
-
-            <p-button
-               *ngIf="PuoModificare()"
-               icon="pi pi-clock"
-               label="Slot"
-               severity="secondary"
-               title="Slot orari assegnati alle palestre"
-               (click)="ApriSlotPalestre()"
-            ></p-button>
-
             <div class="filtro">
                <label for="cbstagione">Stagione:</label>
                <p-dropdown
@@ -42,18 +23,6 @@
                   [scrollHeight]="'300px'"
                   [overlayOptions]="comboOverlayOptions"
                   (onChange)="OnStagioneChange()"/>
-            </div>
-
-            <div class="filtro">
-               <label for="dataRif">Attivi il:</label>
-               <p-calendar
-                  inputId="dataRif"
-                  [(ngModel)]="dataRiferimento"
-                  (ngModelChange)="OnDataRiferimentoChange()"
-                  [showIcon]="true"
-                  [showButtonBar]="true"
-                  placeholder="tutta la stagione"
-                  dateFormat="dd/mm/yy"/>
             </div>
 
             <div class="filtro">
@@ -90,6 +59,38 @@
                   [overlayOptions]="comboOverlayOptions"
                   (onChange)="OnGruppoChange()"/>
             </div>
+
+            <div class="filtro">
+               <label for="dataRif">Attivi il:</label>
+               <p-calendar
+                  inputId="dataRif"
+                  [style]="{'width': '200px'}"
+                  [(ngModel)]="dataRiferimento"
+                  (ngModelChange)="OnDataRiferimentoChange()"
+                  [showIcon]="true"
+                  [showButtonBar]="true"
+                  placeholder="tutta la stagione"
+                  dateFormat="dd/mm/yy"/>
+            </div>
+
+            <p-button
+               *ngIf="!IsGuest()"
+               icon="pi pi-file-pdf"
+               label="PDF"
+               severity="danger"
+               [loading]="esportazioneInCorso"
+               [disabled]="esportazioneInCorso || caricamento || (palestreMostrate.length == 0)"
+               (click)="EsportaPdf()"
+            ></p-button>
+
+            <p-button
+               *ngIf="PuoModificare()"
+               icon="pi pi-clock"
+               label="Slot"
+               severity="secondary"
+               title="Slot orari assegnati alle palestre"
+               (click)="ApriSlotPalestre()"
+            ></p-button>
          </div>
 
          <div class="legenda">

@@ -175,3 +175,45 @@
 .copia-stato {
    margin-top: 8px;
 }
+
+
+/* Intestazione della tabella compatta: il tema mette 1rem (16px) di padding attorno a ogni cella */
+:host ::ng-deep #iscrittiTable .p-datatable .p-datatable-thead > tr > th {
+   padding: 4px 8px;
+}
+
+
+/* Riga dei totali in fondo alla tabella: stesso stile dell'intestazione, così non sembra un iscritto */
+:host ::ng-deep #iscrittiTable .p-datatable-tfoot > tr.riga-totali > td {
+   padding: 4px 8px;
+   background-color: #422d6b !important;
+   color: #ffe378 !important;
+   font-weight: bold;
+   border-top: 2px solid #3949ab;
+}
+
+
+/* Cognome e nome di un possibile duplicato (stesso cognome, nome e anno di un altro iscritto) */
+td.cella-duplicato {
+   background-color: #c62828;
+   color: #ffffff;
+   cursor: help;
+}
+
+
+/* Pulsanti modifica / elimina sulla riga: piccoli, solo icona */
+td.cella-azioni {
+   white-space: nowrap;
+}
+
+:host ::ng-deep td.cella-azioni .p-button.btn-riga {
+   width: 26px;
+   height: 26px;
+   min-height: 0;          /* annulla il min-height di 2.5rem dei pulsanti dentro .custom-header-table */
+   padding: 0;
+   margin-right: 4px;
+}
+
+:host ::ng-deep td.cella-azioni .p-button.btn-riga .p-button-icon {
+   font-size: 0.85rem;
+}

@@ -78,9 +78,19 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
 {
    isLoading: boolean = false;
    public tblData: Array<Iscritto> = [];
+   // Totali mostrati in fondo alla tabella (ricalcolati a ogni caricamento)
+   totIscritti: number = 0;
+   totTesserati: number = 0;
+   totMyFip: number = 0;
+   // Ordinamento per più colonne senza dover tenere premuto Ctrl
+   ordinamentoMultiplo: boolean = false;
+   // Righe nell'ordine arrivato dal server (la tabella le riordina "sul posto")
+   private ordineIniziale: Array<Iscritto> = [];
+   // Id degli iscritti con stesso cognome, nome e anno di nascita di un altro iscritto
+   duplicati: Set<number> = new Set<number> ();
+   readonly testoDuplicato: string = "Possibile duplicato: c'è un altro iscritto con stesso cognome, nome e anno";
    theLocalStorage: globs.TLocalStorage | null = null;
    theSessionStorage: globs.TSessionStorage | null = null;
-   currSelected: Iscritto | null = null;
    @ViewChild('iscrittiTable') pTable: Table | undefined;
    @ViewChild('tableContainer') tableContainer: ElementRef<HTMLElement> | undefined;
    dialogVisible_Iscritto: boolean = false;
@@ -119,7 +129,6 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
                 private categorieService: CategorieService,
                 private seasonServ: SeasonsService)
    {
-      this.currSelected = null;
    }
 
 
@@ -168,8 +177,47 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
          this.theLocalStorage.data.currSeason = this.currSeason;
          this.theLocalStorage.Save ();
       }
-      this.currSelected = null;
       this.LoadData ();
+   }
+
+
+   TooltipOrdinamento (): string
+   {
+      return (this.ordinamentoMultiplo)
+         ? "Attivo: ogni clic su un'intestazione aggiunge la colonna all'ordinamento. Clic qui per disattivare."
+         : "Ordina per più colonne (oppure tieni premuto Ctrl mentre clicchi le intestazioni)";
+   }
+
+
+   // true se la tabella è ordinata per almeno una colonna
+   OrdinamentoAttivo (): boolean
+   {
+      return (this.pTable?.multiSortMeta?.length ?? 0) > 0;
+   }
+
+
+   // Toglie l'ordinamento e rimette le righe nell'ordine arrivato dal server
+   TogliOrdinamento ()
+   {
+      this.pTable?.reset ();
+      this.tblData = [...this.ordineIniziale];
+   }
+
+
+   // Numero di iscritti e quanti hanno attivi i flag "Tesserato" e "MyFIP"
+   AggiornaTotali ()
+   {
+      this.ordineIniziale = [...this.tblData];
+      this.totIscritti = this.tblData.length;
+      this.totTesserati = this.tblData.filter (i => i.tesserato).length;
+      this.totMyFip = this.tblData.filter (i => i.myfip).length;
+
+      // Possibili duplicati: stesso cognome, nome e anno (senza badare a maiuscole e spazi)
+      const chiave = (i: Iscritto): string => `${(i.cognome ?? '').trim ().toLowerCase ()}|${(i.nome ?? '').trim ().toLowerCase ()}|${i.anno}`;
+      const conteggio: Map<string, number> = new Map<string, number> ();
+      for (const i of this.tblData)
+         conteggio.set (chiave (i), (conteggio.get (chiave (i)) ?? 0) + 1);
+      this.duplicati = new Set<number> (this.tblData.filter (i => (conteggio.get (chiave (i)) ?? 0) > 1).map (i => Number (i.id)));
    }
 
 
@@ -180,6 +228,7 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
       if (this.currSeason == null)
       {
          this.tblData = [];
+         this.AggiornaTotali ();
          this.isLoading = false;
          this.cdr.detectChanges ();
          return;
@@ -206,6 +255,7 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
                                                         if (data.ok)
                                                         {
                                                            this.tblData = data.elements;
+                                                           this.AggiornaTotali ();
                                                         }
                                                         else
                                                         {
@@ -238,6 +288,20 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
 
    ngAfterViewInit ()
    {
+      // Con "Ordina per più colonne" attivo, un clic normale su un'intestazione ordinabile
+      // viene trasformato in Ctrl+clic, che PrimeNG usa per aggiungere la colonna all'ordinamento
+      this.tableContainer?.nativeElement.addEventListener ('click', (ev: MouseEvent) =>
+      {
+         if ((!this.ordinamentoMultiplo) || ev.ctrlKey || ev.metaKey)
+            return;
+         const th = (ev.target as HTMLElement | null)?.closest ('th.p-sortable-column');
+         if (!th)
+            return;
+         ev.stopPropagation ();
+         ev.preventDefault ();
+         th.dispatchEvent (new MouseEvent ('click', { bubbles: true, cancelable: true, ctrlKey: true }));
+      }, true);
+
       // Misuro dopo il rendering: qui la pagina precedente può essere ancora nel DOM
       // (viene tolta a fine animazione) e falserebbe la posizione della tabella
       setTimeout (() =>
@@ -325,23 +389,18 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
    }
 
 
-   onEdit (): void
+   // Colonna con i pulsanti modifica/elimina: solo per chi può usarli
+   AzioniVisibili (): boolean
    {
-      if (this.currSelected == null)
-      {
-         const dlgData: MessDlgData = {
-            title:      'ATTENZIONE',
-            subtitle:   'Modifica iscritto',
-            message:    `Non è stato selezionato alcun iscritto`,
-            messtype:   'warning',
-            btncaption: 'Chiudi'
-         };
-         this.messageDialogService.showMessage (dlgData, '600px');
-         return;
-      }
+      return this.EditEnabled () || this.DeleteEnabled ();
+   }
 
+
+   // Pulsante "modifica" sulla riga dell'iscritto
+   onEdit (iscritto: Iscritto): void
+   {
       this.dialogTitle = "Modifica iscritto";
-      this.dialogValue = this.currSelected;
+      this.dialogValue = iscritto;
       this.dialogSeason = this.listaStagioni.find (s => s.id == this.dialogValue.seasonid) ?? this.currSeason;
       this.currGruppi = [];
       this.dialogMaglie = {};
@@ -370,26 +429,14 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
    }
 
 
-   onDelete (): void
+   // Pulsante "elimina" sulla riga dell'iscritto
+   onDelete (iscritto: Iscritto): void
    {
-      if (this.currSelected == null)
-      {
-         const dlgData: MessDlgData = {
-            title:      'ATTENZIONE',
-            subtitle:   'Cancellazione iscritto',
-            message:    `Non è stato selezionato alcun iscritto`,
-            messtype:   'warning',
-            btncaption: 'Chiudi'
-         };
-         this.messageDialogService.showMessage (dlgData, '600px');
-         return;
-      }
-
-      let idToDelete: number = this.currSelected.id;
+      let idToDelete: number = iscritto.id;
       const dlgData: MessDlgData = {
          title:               'Cancellazione Iscritto',
          subtitle:            '',
-         message:             `Sei veramente sicuro di voloer cancellare l'iscritto '<b>${this.currSelected.cognome} ${this.currSelected.nome}</b>' dal database?`,
+         message:             `Sei veramente sicuro di voloer cancellare l'iscritto '<b>${iscritto.cognome} ${iscritto.nome}</b>' dal database?`,
          messtype:            'warning',
          btncaption:          'Annulla',
          showCancelButton:    true,
@@ -456,19 +503,6 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
       if ((rowIndex % 3) == 2)
          return "row-bck-2";
       return "row-bck-0";
-   }
-
-
-   OnRowSelected (evento: any)
-   {
-      if (this.currSelected != null)
-         utils.SaveToSessionStorage ("RS_Editing_Iscritto_Id", this.currSelected.id);
-   }
-
-
-   OnRowUnselected (evento: any)
-   {
-      utils.removeFromSessionStorage("RS_Editing_Iscritto_Id");
    }
 
 

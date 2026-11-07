@@ -748,6 +748,24 @@ export class EventiMasterTableComponent implements OnInit, OnDestroy, AfterViewI
    }
 
 
+   /* Toglie il filtro sulle palestre e ricarica gli eventi */
+   OnClearFilterRisorsa ()
+   {
+      this.fltrRisorsaItems = null;
+      this.fltrRisorsa = false;
+      this.LoadEvents ();
+   }
+
+
+   /* Toglie il filtro sui gruppi e ricarica gli eventi */
+   OnClearFilterGruppo ()
+   {
+      this.fltrGruppoItems = null;
+      this.fltrGruppo = false;
+      this.LoadEvents ();
+   }
+
+
    OnFilterRisorsa ()
    {
       this.fltrRisorsa = (this.fltrRisorsaItems) ? ((this.fltrRisorsaItems.length > 0) ? true : false) : false;

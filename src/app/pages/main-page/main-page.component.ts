@@ -1436,6 +1436,30 @@ export class MainPageComponent implements OnInit, OnDestroy, AfterViewInit
    }
 
 
+   /* Toglie il filtro sulle palestre e ricarica gli eventi */
+   OnClearFilterRisorsa()
+   {
+      if (!this.theSessionStorage)
+         return;
+      this.theSessionStorage.data.fltrRisorsaItems = [];
+      this.theSessionStorage.data.fltrRisorsa = false;
+      this.theSessionStorage.Save ();
+      this.RefreshData ();
+   }
+
+
+   /* Toglie il filtro sui gruppi e ricarica gli eventi */
+   OnClearFilterGruppo()
+   {
+      if (!this.theSessionStorage)
+         return;
+      this.theSessionStorage.data.fltrGruppoItems = [];
+      this.theSessionStorage.data.fltrGruppo = false;
+      this.theSessionStorage.Save ();
+      this.RefreshData ();
+   }
+
+
    FiltroRisorseOn(): boolean
    {
       let result: boolean = false;

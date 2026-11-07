@@ -14,7 +14,7 @@ html, body {
 
 .content {
    flex-grow: 1;
-   padding-bottom: 90px;
+   padding-bottom: 45px; /* spazio lasciato al piè di pagina fisso */
 }
 
 .app-footer {
@@ -27,7 +27,8 @@ html, body {
    border-top: 1px solid #dee2e6;
    */
    text-align: center;
-   padding: 10px;
+   /* Compatto come l'header: niente altezza fissa, poco spazio sopra e sotto il testo */
+   padding: 4px 12px;
    position: fixed;
    bottom: 0;
    /* left + right al posto di width: 100%: con margini e bordi il piè di pagina usciva dalla finestra
@@ -35,7 +36,11 @@ html, body {
    left: 0;
    right: 0;
    box-sizing: border-box;
-   height: 60px;
+}
+
+/* Il paragrafo ha un margine predefinito sopra e sotto che spingeva il testo in basso */
+.app-footer p {
+   margin: 0;
 }
 
 

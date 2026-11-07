@@ -32,6 +32,21 @@ export class IscrittiService
 
 
    /*
+      Data della visita medica come "aaaa-mm-gg"; stringa vuota se non è stata inserita
+      (vuota, null, "0000-00-00"...) invece di "NaN-NaN-NaN" o "1970-01-01".
+   */
+   static DataVisita (valore: Date | string | null | undefined): string
+   {
+      if ((valore == null) || (String (valore).trim () == ''))
+         return '';
+      const dt: Date = new Date (valore);
+      if (isNaN (dt.getTime ()) || (dt.getFullYear () < 1900))
+         return '';
+      return `${dt.getFullYear()}-${utils.Dlt_PadDigits(1+dt.getMonth(),2)}-${utils.Dlt_PadDigits(dt.getDate(),2)}`;
+   }
+
+
+   /*
       Un iscritto può stare in più gruppi. Nel database:
         gruppoid_link = id dei gruppi separati da virgola       (es. "3,5")
         nummaglia     = numeri di maglia nello stesso ordine    (es. "7,12")
@@ -109,15 +124,13 @@ export class IscrittiService
                   const gruppi: Array<IscrittoGruppo> = IscrittiService.LeggiGruppi (elm.gruppoid_link, elm.nummaglia, listaGruppi);
                   try
                   {
-                     const dt1: Date = new Date (elm.visitafatta);
-                     const dt2: Date = new Date (elm.visitascadenza);
                      return {
                         id:             elm.id,
                         cognome:        elm.cognome,
                         nome:           elm.nome,
                         anno:           elm.anno,
-                        visitafatta:    `${dt1.getFullYear()}-${utils.Dlt_PadDigits(1+dt1.getMonth(),2)}-${utils.Dlt_PadDigits(dt1.getDate(),2)}`,
-                        visitascadenza: `${dt2.getFullYear()}-${utils.Dlt_PadDigits(1+dt2.getMonth(),2)}-${utils.Dlt_PadDigits(dt2.getDate(),2)}`,
+                        visitafatta:    IscrittiService.DataVisita (elm.visitafatta),
+                        visitascadenza: IscrittiService.DataVisita (elm.visitascadenza),
                         seasonid:       elm.seasonid_link,
                         season:         elm.season,
                         gruppi:         gruppi,

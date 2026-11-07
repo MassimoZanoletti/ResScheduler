@@ -30,28 +30,29 @@
             severity="primary"
             pTooltip="Aggiungi nuovo iscritto"
             tooltipPosition="top"
-            label="Aggiungi iscritto"
+            label="Aggiungi"
             (click)="onAdd()"
          ></p-button>
+         <!-- Ordinamento per più colonne: si può fare anche con Ctrl+clic sulle intestazioni;
+              l'interruttore serve su telefono/tablet e per chi non conosce il Ctrl+clic -->
          <p-button
-            *ngIf="EditEnabled()"
-            class="p-button-table"
-            icon="pi pi-pencil"
-            severity="primary"
-            pTooltip="Modifica iscritto selezionato"
+            class="p-button-table margin-left"
+            icon="pi pi-sort-amount-down"
+            [severity]="ordinamentoMultiplo ? 'success' : 'secondary'"
+            [pTooltip]="TooltipOrdinamento ()"
             tooltipPosition="top"
-            label="Modifica"
-            (click)="onEdit()"
+            label="Ordina per più colonne"
+            (click)="ordinamentoMultiplo = !ordinamentoMultiplo"
          ></p-button>
          <p-button
-            *ngIf="DeleteEnabled()"
-            class="p-button-table margin-left"
-            icon="pi pi-trash"
-            severity="warning"
-            pTooltip="Elimina iscritto selezionato"
+            *ngIf="OrdinamentoAttivo()"
+            class="p-button-table"
+            icon="pi pi-times"
+            severity="secondary"
+            pTooltip="Togli l'ordinamento e torna all'ordine iniziale"
             tooltipPosition="top"
-            label="Elimina"
-            (click)="onDelete()"
+            label="Togli ordinamento"
+            (click)="TogliOrdinamento()"
          ></p-button>
          <p-button
             *ngIf="AddEnabled()"
@@ -105,16 +106,11 @@
       [scrollable]="true"
       [scrollHeight]="scrollHeight"
       [value]="tblData"
-      selectionMode="single"
-      [(selection)]="currSelected"
-      (onRowSelect)="OnRowSelected($event)"
-      (onRowUnselect)="OnRowUnselected($event)"
       dataKey="id"
       sortMode="multiple"
       [tableStyle]="{ 'min-width': '50rem' }">
       <ng-template pTemplate="header">
          <tr>
-            <th style="width: 65px;">Id</th>
             <th pSortableColumn="cognome" style="width: 250px;">Cognome <p-sortIcon field="cognome" /></th>
             <th style="width: 250px;">Nome</th>
             <th pSortableColumn="anno" style="width: 250px;">Anno <p-sortIcon field="anno" /></th>
@@ -129,16 +125,17 @@
             <th style="width: 250px;">Pagamenti</th>
             <th style="width: 250px;">Recapiti</th>
             <th style="width: 250px;">Note</th>
+            <th *ngIf="AzioniVisibili()" style="width: 80px;"></th>
          </tr>
       </ng-template>
       <ng-template pTemplate="body"
                    let-elemento
                    let-rowIndex="rowIndex">
-         <tr [pSelectableRow]="elemento"
-            [ngClass]="getRowColorClass(rowIndex)">
-            <td><span style="font-size: 0.6em;">{{ elemento.id }}</span></td>
-            <td>{{ elemento.cognome }}</td>
-            <td>{{ elemento.nome }}</td>
+         <tr [ngClass]="getRowColorClass(rowIndex)">
+            <td [class.cella-duplicato]="duplicati.has (+elemento.id)"
+                [attr.title]="duplicati.has (+elemento.id) ? testoDuplicato : null">{{ elemento.cognome }}</td>
+            <td [class.cella-duplicato]="duplicati.has (+elemento.id)"
+                [attr.title]="duplicati.has (+elemento.id) ? testoDuplicato : null">{{ elemento.nome }}</td>
             <td>{{ elemento.anno }}</td>
             <td><div *ngFor="let g of elemento.gruppi">{{ g.gruppo }}</div></td>
             <td>{{ elemento.societa }}</td>
@@ -157,6 +154,36 @@
             <td>{{ elemento.pagamenti }}</td>
             <td>{{ elemento.recapiti }}</td>
             <td>{{ elemento.note }}</td>
+            <td *ngIf="AzioniVisibili()" class="cella-azioni">
+               <p-button
+                  *ngIf="EditEnabled()"
+                  styleClass="btn-riga"
+                  icon="pi pi-pencil"
+                  severity="primary"
+                  pTooltip="Modifica iscritto"
+                  tooltipPosition="left"
+                  (click)="onEdit(elemento)"
+               ></p-button>
+               <p-button
+                  *ngIf="DeleteEnabled()"
+                  styleClass="btn-riga"
+                  icon="pi pi-trash"
+                  severity="warning"
+                  pTooltip="Elimina iscritto"
+                  tooltipPosition="left"
+                  (click)="onDelete(elemento)"
+               ></p-button>
+            </td>
+         </tr>
+      </ng-template>
+      <!-- Totali: numero di iscritti e quanti hanno i flag Tesserato / MyFIP attivi -->
+      <ng-template pTemplate="footer">
+         <tr class="riga-totali">
+            <td>Totale: {{ totIscritti }}</td>
+            <td colspan="7"></td>
+            <td>{{ totTesserati }}</td>
+            <td>{{ totMyFip }}</td>
+            <td [attr.colspan]="AzioniVisibili() ? 5 : 4"></td>
          </tr>
       </ng-template>
    </p-table>
