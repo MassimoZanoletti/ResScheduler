@@ -924,7 +924,7 @@ export class MainPageComponent implements OnInit, OnDestroy, AfterViewInit
          const dlgData: MessDlgData = {
             title:               'Creazione Eventi Stagione',
             subtitle:            '',
-            message:             `Sei sicuro di volere aggiungere gli eventi vuoti per la stagione\n'<b>${this.theLocalStorage?.data.currSeason?.nome}</b>'\nnel database?</b>`,
+            message:             `Sei sicuro di volere aggiungere gli eventi vuoti per la stagione\n'<b>${this.theLocalStorage?.data.currSeason?.nome}</b>'\nnel database?`,
             messtype:            'warning',
             btncaption:          'Annulla',
             showCancelButton:    true,

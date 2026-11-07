@@ -135,9 +135,9 @@ export class RisorseTableComponent implements OnInit
    onDelete (item: any): void
    {
       const dlgData: MessDlgData = {
-         title:               'Cancellazione Società',
+         title:               'Cancellazione Palestra',
          subtitle:            '',
-         message:             `Sei veramente sicuro di volere cancellare la società '<b>${item.nome}</b>' dal database?`,
+         message:             `Sei veramente sicuro di volere cancellare la palestra '<b>${item.nome}</b>' dal database?`,
          messtype:            'warning',
          btncaption:          'Annulla',
          showCancelButton:    true,
