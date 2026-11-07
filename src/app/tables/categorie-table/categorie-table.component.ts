@@ -135,7 +135,7 @@ export class CategorieTableComponent implements OnInit
       const dlgData: MessDlgData = {
          title:               'Cancellazione Categoria',
          subtitle:            '',
-         message:             `Sei veramente sicuro di voloer cancellare la categoria '<b>${item.nome}</b>' dal database?`,
+         message:             `Sei veramente sicuro di volere cancellare la categoria '<b>${item.nome}</b>' dal database?`,
          messtype:            'warning',
          btncaption:          'Annulla',
          showCancelButton:    true,

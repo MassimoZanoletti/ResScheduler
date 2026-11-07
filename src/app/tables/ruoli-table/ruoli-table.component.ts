@@ -136,7 +136,7 @@ export class RuoliTableComponent implements OnInit
       const dlgData: MessDlgData = {
          title:               'Cancellazione Ruolo',
          subtitle:            '',
-         message:             `Sei veramente sicuro di voloer cancellare il ruolo '<b>${item.ruolo}</b>' dal database?`,
+         message:             `Sei veramente sicuro di volere cancellare il ruolo '<b>${item.ruolo}</b>' dal database?`,
          messtype:            'warning',
          btncaption:          'Annulla',
          showCancelButton:    true,

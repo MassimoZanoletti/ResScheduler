@@ -137,7 +137,7 @@ export class UsersTableComponent implements OnInit
       const dlgData: MessDlgData = {
          title:               'Cancellazione Utente',
          subtitle:            '',
-         message:             `Sei veramente sicuro di voloer cancellare l'utente '<b>${item.nome}</b>' dal database?`,
+         message:             `Sei veramente sicuro di volere cancellare l'utente '<b>${item.nome}</b>' dal database?`,
          messtype:            'warning',
          btncaption:          'Annulla',
          showCancelButton:    true,

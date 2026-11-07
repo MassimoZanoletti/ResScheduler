@@ -737,7 +737,7 @@ export class MainPageComponent implements OnInit, OnDestroy, AfterViewInit
          const dlgData: MessDlgData = {
             title:               'Cancellazione Evento',
             subtitle:            '',
-            message:             `Sei veramente sicuro di voloer cancellare l'evento '<b>${this.FormattaData(this.currEvent.data)} : ${this.FormattaOrario(this.currEvent.orainizio)}</b>' dal database?`,
+            message:             `Sei veramente sicuro di volere cancellare l'evento '<b>${this.FormattaData(this.currEvent.data)} : ${this.FormattaOrario(this.currEvent.orainizio)}</b>' dal database?`,
             messtype:            'warning',
             btncaption:          'Annulla',
             showCancelButton:    true,
@@ -924,7 +924,7 @@ export class MainPageComponent implements OnInit, OnDestroy, AfterViewInit
          const dlgData: MessDlgData = {
             title:               'Creazione Eventi Stagione',
             subtitle:            '',
-            message:             `Sei sicuro di voloer aggiungere gli eventi vuoti per la stagione\n'<b>${this.theLocalStorage?.data.currSeason?.nome}</b>'\nnel database?</b>`,
+            message:             `Sei sicuro di volere aggiungere gli eventi vuoti per la stagione\n'<b>${this.theLocalStorage?.data.currSeason?.nome}</b>'\nnel database?</b>`,
             messtype:            'warning',
             btncaption:          'Annulla',
             showCancelButton:    true,

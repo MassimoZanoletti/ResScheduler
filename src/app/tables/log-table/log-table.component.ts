@@ -180,7 +180,7 @@ export class LogTableComponent implements OnInit
       const dlgData: MessDlgData = {
          title:               'Cancellazione Log',
          subtitle:            '',
-         message:             `Sei veramente sicuro di voloer cancellare il log '<b>${item.nome}</b>' dal database?`,
+         message:             `Sei veramente sicuro di volere cancellare il log '<b>${item.nome}</b>' dal database?`,
          messtype:            'warning',
          btncaption:          'Annulla',
          showCancelButton:    true,

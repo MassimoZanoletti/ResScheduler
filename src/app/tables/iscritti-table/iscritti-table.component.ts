@@ -436,7 +436,7 @@ export class IscrittiTableComponent implements OnInit, AfterViewInit
       const dlgData: MessDlgData = {
          title:               'Cancellazione Iscritto',
          subtitle:            '',
-         message:             `Sei veramente sicuro di voloer cancellare l'iscritto '<b>${iscritto.cognome} ${iscritto.nome}</b>' dal database?`,
+         message:             `Sei veramente sicuro di volere cancellare l'iscritto '<b>${iscritto.cognome} ${iscritto.nome}</b>' dal database?`,
          messtype:            'warning',
          btncaption:          'Annulla',
          showCancelButton:    true,

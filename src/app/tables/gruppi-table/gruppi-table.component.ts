@@ -135,7 +135,7 @@ export class GruppiTableComponent implements OnInit
       const dlgData: MessDlgData = {
          title:               'Cancellazione Gruppo',
          subtitle:            '',
-         message:             `Sei veramente sicuro di voloer cancellare il gruppo '<b>${item.nome}</b>' dal database?`,
+         message:             `Sei veramente sicuro di volere cancellare il gruppo '<b>${item.nome}</b>' dal database?`,
          messtype:            'warning',
          btncaption:          'Annulla',
          showCancelButton:    true,
